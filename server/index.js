@@ -1,25 +1,53 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
-const { Log } = require('log');
-const argi = require('argi');
+import os from 'os';
+import path from 'path';
 
-const { options } = argi.parse({
-	port: {
-		type: 'number',
-		defaultValue: 1040,
-		alias: 'p',
-	},
-	verbosity: {
-		type: 'number',
-		defaultValue: 1,
-		alias: 'v',
+import Argi from 'argi';
+
+import Game, { games } from './Game';
+import database from './database';
+import server, { spawnBuild } from './server';
+
+import './exit';
+import gamesDatabase from './database/games';
+
+const { options } = new Argi({
+	options: {
+		database: {
+			type: 'string',
+			alias: 'd',
+			defaultValue: path.join(os.homedir(), '.phaserload.json'),
+			description: 'Database json file to use',
+		},
+		port: {
+			type: 'number',
+			alias: 'p',
+			defaultValue: 1040,
+		},
 	},
 });
 
-const log = new Log({ tag: 'phaserload', defaults: { verbosity: options.verbosity, color: true } });
+console.log('Options', options);
 
-log(1)('Options', options);
+await database.init({ persistent: options.persistent, path: options.database });
 
-require('./phaserload').init(options);
+Object.values(gamesDatabase.read()).forEach(saveState => {
+	games[saveState.id] = new Game({ saveState });
+});
 
-require('./exit');
+await server.init({ port: options.port });
+
+if (process.env.NODE_ENV === 'development') {
+	try {
+		for await (const line of console) {
+			if ({ stop: 1, close: 1, exit: 1 }[line]) process.kill(process.pid, 'SIGTERM');
+			else if (line === 'b') {
+				console.log('>> Building...');
+				spawnBuild();
+			}
+		}
+	} catch (error) {
+		console.error('Build Error', error);
+	}
+}

@@ -1,0 +1,42 @@
+import Phaser from 'phaser';
+
+import { gridToPxPosition, randInt } from '../../../utils';
+import gameContext from '../gameContext';
+
+export class Item extends Phaser.GameObjects.Image {
+	/**
+	 * Create an Item
+	 * @param {object} scene - The scene
+	 * @param {number} x - Grid x
+	 * @param {number} y - Grid y
+	 * @param { "detonator" | "energy" | "explosion" | "freeze_explosion" | "gas" | "remote_charge" | "remote_freeze_charge" | "repair_nanites" | "responder" | "responder_teleporter" | "satchel" | "super_oxygen_liquid_nitrogen" | "teleporter" | "timed_charge" | "timed_freeze_charge" | "tombstone" } name - The item name
+	 */
+	constructor(scene, x, y, name) {
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'map', `item_${name}`);
+
+		this.name = name;
+
+		this.setOrigin(0.5, -0.01);
+
+		scene.add.existing(this);
+	}
+
+	collect() {
+		const player = gameContext.players.get(gameContext.playerId);
+
+		this.scene.tweens.add({
+			targets: this,
+			x: gridToPxPosition(player.position.x) - randInt(-16, 16),
+			y: gridToPxPosition(player.position.y) - randInt(111, 222),
+			alpha: 0.3,
+			duration: randInt(400, 900),
+			delay: randInt(0, 500),
+			ease: 'Linear',
+			onComplete: () => {
+				this.destroy();
+
+				gameContext.scene.sound.play('pickup', { volume: gameContext.volume.effects });
+			},
+		});
+	}
+}

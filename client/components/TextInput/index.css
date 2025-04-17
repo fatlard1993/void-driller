@@ -1,5 +1,0 @@
-@import '../input.css';
-
-input[type='text'].textInput {
-	@mixin Input;
-}

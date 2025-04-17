@@ -1,5 +1,6 @@
-node_modules
+# macos
 .DS_Store
-dist
-dist-ssr
-*.local
+
+# build
+node_modules/
+build/
