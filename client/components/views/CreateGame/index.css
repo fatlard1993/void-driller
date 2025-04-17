@@ -1,8 +1,0 @@
-@import '../../../styles/colors';
-
-div.createGame {
-	button.button {
-		display: block;
-		margin: 6px auto;
-	}
-}
