@@ -95,6 +95,8 @@ export default class GameScene extends Phaser.Scene {
 			gameContext.serverState.world.spaceco.position.y,
 		);
 
+		gameContext.sceneLayers.hazards.add(gameContext.spaceco);
+
 		gameContext.serverState.players.forEach(player => {
 			if (gameContext.playerId === player.id) {
 				const sprite = new Player(this, player.position.x, player.position.y, player.orientation);
