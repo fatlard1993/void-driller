@@ -1,6 +1,6 @@
-import { capitalize, Component, Dialog, Elem, Input, Label, Select } from 'vanilla-bean-components';
+import { capitalize, Component, convertRange, Dialog, Elem, Input, Label, Select } from 'vanilla-bean-components';
 
-import imageMap from '../img/map.json';
+import SpriteSheetImage from '../shared/SpriteSheetImage';
 import gameContext from './gameContext';
 
 class VolumeControl extends Component {
@@ -29,25 +29,12 @@ class VolumeControl extends Component {
 	}
 }
 
-class SpriteSheetImage extends Elem {
-	constructor(key) {
-		super({
-			style: {
-				backgroundImage: 'url(/img/map.png)',
-				backgroundPosition: `-${imageMap.frames[key].frame.x}px -${imageMap.frames[key].frame.y}px`,
-				width: `${imageMap.frames[key].frame.w}px`,
-				height: `${imageMap.frames[key].frame.h}px`,
-			},
-		});
-	}
-}
-
 export default class ConsoleDialog extends Dialog {
 	constructor(options = {}) {
 		super({
 			size: 'standard',
 			header: 'Console',
-			buttons: ['Cargo', 'Config', 'Items', 'Settings', 'Help', 'Close'],
+			buttons: ['Cargo', 'Status', 'Items', 'Settings', 'Help', 'Close'],
 			view: localStorage.getItem('console_defaultMenu') || 'Help',
 			onButtonPress: ({ button }) => {
 				if (this[`render_${button.toLowerCase()}`]) {
@@ -74,15 +61,25 @@ export default class ConsoleDialog extends Dialog {
 		);
 	}
 
-	render_config() {
-		this.options.header = 'Console | Config';
+	render_status() {
+		this.options.header = 'Console | Status';
 
 		const player = gameContext.players.get(gameContext.playerId);
 
 		this._body.append(
-			new SpriteSheetImage('drill_move1'),
-			Object.entries(player.configuration).flatMap(([key, value]) =>
-				typeof value === 'object' ? [] : [new Label(key, value.toString())],
+			new Label('Credits', `$${player.credits}`),
+			new Label('Health', `${convertRange(player.health, [0, player.maxHealth], [0, 100]).toFixed(1)}%`),
+			new Label('Fuel', `${player.fuel.toFixed(2)}l (${convertRange(player.fuel, [0, player.maxFuel], [0, 100]).toFixed(1)}%)`),
+			new Label(
+				'Cargo',
+				`${player.cargo.toFixed(2)}t (${convertRange(player.cargo, [0, player.maxCargo], [0, 100]).toFixed(1)}%)`,
+			),
+			new Label(
+				'Configuration',
+				new SpriteSheetImage('drill_move1'),
+				Object.entries(player.configuration).flatMap(([key, value]) =>
+					typeof value === 'object' ? [] : [new Label(key, value.toString())],
+				),
 			),
 		);
 	}
