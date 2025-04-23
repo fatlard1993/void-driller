@@ -22,7 +22,8 @@ class Players extends Map {
  * 		players: Phaser.GameObjects.Layer,
  * 		interfaces: Phaser.GameObjects.Layer
  * 	},
- * 	spaceco: Phaser.GameObjects.Sprite
+ * 	spaceco: Phaser.GameObjects.Sprite,
+ * 	cursor: Phaser.GameObjects.Rectangle,
  * 	volume: { music: number, alerts: number, interfaces: number, effects: number },
  * 	serverState: {},
  * 	players: Players,
