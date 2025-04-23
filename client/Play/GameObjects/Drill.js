@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 import { gridToPxPosition } from '../../../utils';
+import gameContext from '../gameContext';
 
 export class Drill extends Phaser.GameObjects.Sprite {
 	/**
@@ -38,6 +39,7 @@ export class Drill extends Phaser.GameObjects.Sprite {
 		});
 
 		scene.add.existing(this);
+		gameContext.sceneLayers.players.add(this);
 	}
 
 	move(position, speed, orientation) {
