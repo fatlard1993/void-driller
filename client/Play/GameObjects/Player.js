@@ -1,7 +1,7 @@
 import { convertRange, theme } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
-import { gridToPxPosition } from '../../../utils';
+import { getSurroundingRadius, gridToPxPosition, pxToGridPosition } from '../../../utils';
 import gameContext from '../gameContext';
 import { Drill } from './Drill';
 
@@ -9,6 +9,11 @@ export class Player extends Drill {
 	constructor(scene, x, y, orientation) {
 		super(scene, x, y, orientation);
 
+		this.tradeButton = scene.add.text(0, 0, 'trade');
+		this.tradeButton.visible = false;
+
+		this.healthBarIcon = scene.add.image(0, 0, 'map', 'item_repair_nanites');
+		this.healthBarIcon.setScale(0.7);
 		this.healthBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
 		this.healthBar = scene.add.rectangle(
 			0,
@@ -18,6 +23,8 @@ export class Player extends Drill {
 			Phaser.Display.Color.ValueToColor(theme.colors.red.toRgbString()).color,
 		);
 
+		this.fuelBarIcon = scene.add.image(0, 0, 'map', 'item_gas');
+		this.fuelBarIcon.setScale(0.7);
 		this.fuelBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
 		this.fuelBar = scene.add.rectangle(
 			0,
@@ -27,39 +34,38 @@ export class Player extends Drill {
 			Phaser.Display.Color.ValueToColor(theme.colors.yellow.toRgbString()).color,
 		);
 
-		this.cargoBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
-		this.cargoBar = scene.add.rectangle(
-			0,
-			0,
-			100,
-			3,
-			Phaser.Display.Color.ValueToColor(theme.colors.blue.toRgbString()).color,
-		);
-
 		this.showStatusBars(false);
 		this.updateStatusBars({ position: { x, y } });
 
+		gameContext.sceneLayers.interfaces.add(this.tradeButton);
+		gameContext.sceneLayers.interfaces.add(this.healthBarIcon);
 		gameContext.sceneLayers.interfaces.add(this.healthBarFrame);
 		gameContext.sceneLayers.interfaces.add(this.healthBar);
+		gameContext.sceneLayers.interfaces.add(this.fuelBarIcon);
 		gameContext.sceneLayers.interfaces.add(this.fuelBarFrame);
 		gameContext.sceneLayers.interfaces.add(this.fuelBar);
-		gameContext.sceneLayers.interfaces.add(this.cargoBarFrame);
-		gameContext.sceneLayers.interfaces.add(this.cargoBar);
 
 		scene.cameras.main.startFollow(this);
 	}
 
 	showStatusBars(show = true) {
+		this.healthBarIcon.visible = show;
 		this.healthBarFrame.visible = show;
 		this.healthBar.visible = show;
+		this.fuelBarIcon.visible = show;
 		this.fuelBarFrame.visible = show;
 		this.fuelBar.visible = show;
-		this.cargoBarFrame.visible = show;
-		this.cargoBar.visible = show;
 	}
 
 	updateStatusBars({ position, speed = 0 } = {}) {
 		const player = gameContext.players.get(gameContext.playerId);
+
+		if (player) {
+			this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [3, 100]);
+			this.fuelBar.width = convertRange(player.fuel, [0, player.maxFuel], [3, 100]);
+		}
+
+		this.showStatusBars(!!player);
 
 		if (position) {
 			const { x, y } = gridToPxPosition(position);
@@ -67,9 +73,13 @@ export class Player extends Drill {
 			speed += 200;
 
 			if (this.healthBar.visible) {
-				this.scene.tweens.add({ targets: this.healthBar, duration: speed, x, y: y - 40 });
+				this.scene.tweens.add({ targets: this.healthBar, duration: speed, x: x, y: y - 40 });
 				this.scene.tweens.add({ targets: this.healthBarFrame, duration: speed, x: x, y: y - 40 });
+				this.scene.tweens.add({ targets: this.healthBarIcon, duration: speed, x: x - 70, y: y - 35 });
 			} else {
+				this.healthBarIcon.x = x - 70;
+				this.healthBarIcon.y = y - 35;
+
 				this.healthBar.x = x;
 				this.healthBar.y = y - 40;
 
@@ -80,39 +90,49 @@ export class Player extends Drill {
 			if (this.fuelBar.visible) {
 				this.scene.tweens.add({ targets: this.fuelBar, duration: speed, x, y: y - 50 });
 				this.scene.tweens.add({ targets: this.fuelBarFrame, duration: speed, x, y: y - 50 });
+				this.scene.tweens.add({ targets: this.fuelBarIcon, duration: speed, x: x - 70, y: y - 55 });
 			} else {
+				this.fuelBarIcon.x = x - 70;
+				this.fuelBarIcon.y = y - 55;
+
 				this.fuelBar.x = x;
 				this.fuelBar.y = y - 50;
 
 				this.fuelBarFrame.x = x;
 				this.fuelBarFrame.y = y - 50;
 			}
-
-			if (this.cargoBar.visible) {
-				this.scene.tweens.add({ targets: this.cargoBar, duration: speed, x, y: y - 60 });
-				this.scene.tweens.add({ targets: this.cargoBarFrame, duration: speed, x, y: y - 60 });
-			} else {
-				this.cargoBar.x = x;
-				this.cargoBar.y = y - 60;
-
-				this.cargoBarFrame.x = x;
-				this.cargoBarFrame.y = y - 60;
-			}
 		}
-
-		this.showStatusBars(!!player);
-
-		if (!player) return;
-
-		this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [1, 100]);
-		this.fuelBar.width = convertRange(player.fuel, [0, player.maxFuel], [1, 100]);
-		this.cargoBar.width = convertRange(player.cargo, [0, player.maxCargo], [1, 100]);
 	}
 
 	move(position, speed, orientation) {
 		super.move(position, speed, orientation);
 
 		this.updateStatusBars({ position, speed });
+
+		if (
+			getSurroundingRadius(position, 1).some(
+				position =>
+					pxToGridPosition(gameContext.spaceco.x) === position.x &&
+					pxToGridPosition(gameContext.spaceco.y) === position.y,
+			)
+		) {
+			console.log('SPACECO');
+			this.showSpacecoPrompt();
+		}
+	}
+
+	showSpacecoPrompt() {
+		this.tradeButton.x = gameContext.spaceco.x - 30;
+		this.tradeButton.y = gameContext.spaceco.y - 75;
+
+		this.tradeButton.visible = true;
+
+		this.tradeButton.setInteractive();
+		this.tradeButton.on('pointerdown', (pointer, localX, localY, event) => {
+			console.log({ pointer, localX, localY, event });
+
+			new SpacecoDialog();
+		});
 	}
 
 	teleport(position, speed) {
