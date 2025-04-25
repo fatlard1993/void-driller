@@ -9,9 +9,6 @@ export class Player extends Drill {
 	constructor(scene, x, y, orientation) {
 		super(scene, x, y, orientation);
 
-		this.tradeButton = scene.add.text(0, 0, 'trade');
-		this.tradeButton.visible = false;
-
 		this.healthBarIcon = scene.add.image(0, 0, 'map', 'item_repair_nanites');
 		this.healthBarIcon.setScale(0.7);
 		this.healthBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
@@ -37,13 +34,14 @@ export class Player extends Drill {
 		this.showStatusBars(false);
 		this.updateStatusBars({ position: { x, y } });
 
-		gameContext.sceneLayers.interfaces.add(this.tradeButton);
 		gameContext.sceneLayers.interfaces.add(this.healthBarIcon);
 		gameContext.sceneLayers.interfaces.add(this.healthBarFrame);
 		gameContext.sceneLayers.interfaces.add(this.healthBar);
 		gameContext.sceneLayers.interfaces.add(this.fuelBarIcon);
 		gameContext.sceneLayers.interfaces.add(this.fuelBarFrame);
 		gameContext.sceneLayers.interfaces.add(this.fuelBar);
+
+		this.move({ x, y }, 0, orientation);
 
 		scene.cameras.main.startFollow(this);
 	}
@@ -108,31 +106,14 @@ export class Player extends Drill {
 		super.move(position, speed, orientation);
 
 		this.updateStatusBars({ position, speed });
+		this.nearSpaceco = getSurroundingRadius(position, 1).some(
+			position =>
+				pxToGridPosition(gameContext.spaceco.x) === position.x &&
+				pxToGridPosition(gameContext.spaceco.y) === position.y,
+		);
 
-		if (
-			getSurroundingRadius(position, 1).some(
-				position =>
-					pxToGridPosition(gameContext.spaceco.x) === position.x &&
-					pxToGridPosition(gameContext.spaceco.y) === position.y,
-			)
-		) {
-			console.log('SPACECO');
-			this.showSpacecoPrompt();
-		}
-	}
-
-	showSpacecoPrompt() {
-		this.tradeButton.x = gameContext.spaceco.x - 30;
-		this.tradeButton.y = gameContext.spaceco.y - 75;
-
-		this.tradeButton.visible = true;
-
-		this.tradeButton.setInteractive();
-		this.tradeButton.on('pointerdown', (pointer, localX, localY, event) => {
-			console.log({ pointer, localX, localY, event });
-
-			new SpacecoDialog();
-		});
+		if (this.nearSpaceco) gameContext.spaceco.showPrompt();
+		else gameContext.spaceco.hidePrompt();
 	}
 
 	teleport(position, speed) {

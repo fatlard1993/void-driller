@@ -18,18 +18,6 @@ const WORLDS = {
 };
 
 const mineralColors = ['white', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink', 'red', 'black'];
-// const mineralNames = {
-// 	white: 'tritanium',
-// 	orange: 'duranium',
-// 	yellow: 'pentrilium',
-// 	green: 'byzanium',
-// 	teal: 'etherium',
-// 	blue: 'mithril',
-// 	purple: 'octanium',
-// 	pink: 'saronite',
-// 	red: 'adamantite',
-// 	black: 'quadium',
-// };
 const groundEffects = {
 	white: ['bonus:~:2:~:white:~:[1,2]'],
 	orange: ['bonus:~:2:~:orange:~:[1,2]'],
@@ -162,7 +150,8 @@ export default class Game {
 				drill: 'standard:~:tritanium',
 				fuelTank: 'standard:~:tritanium',
 			},
-			inventory: { cargo: {} },
+			items: {},
+			hull: {},
 			cargo: 0,
 			health: 30,
 			fuel: 30,
@@ -199,12 +188,88 @@ export default class Game {
 		const player = this.players.get(id);
 		let cargo = 0;
 
-		Object.entries(player.inventory.cargo).forEach(([key, value]) => {
+		Object.entries(player.hull).forEach(([key, value]) => {
 			if (key.startsWith('mineral')) cargo += (densities[key.replace('mineral_', '')] / 2000) * value;
 			else cargo += (densities[key] / 1000) * value;
 		});
 
 		this.players.update(id, _ => ({ ..._, cargo: Math.min(cargo, player.maxCargo) }));
+	}
+
+	spacecoSell(playerId) {
+		const player = this.players.get(playerId);
+		let gain = 0;
+
+		Object.entries(player.hull).forEach(([key, count]) => {
+			if (key.startsWith('mineral')) {
+				gain +=
+					Math.max(0.01, densities[key.replace('mineral_', '')] / 800 - (this.world.spaceco.hull[key] || 0)) * count;
+			} else gain += Math.max(0.01, densities[key] / 1600 - (this.world.spaceco.hull[key] || 0)) * count;
+
+			this.world.spaceco.hull[key] = this.world.spaceco.hull[key] || 0;
+			this.world.spaceco.hull[key] += count;
+		});
+
+		const updates = { credits: player.credits + gain, hull: {} };
+
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		this.broadcast('spacecoSell', { playerId, updates, gain, spacecoHull: this.world.spaceco.hull });
+
+		this.updatePlayerCargo(playerId);
+	}
+
+	spacecoRefuel(playerId, amount) {
+		const player = this.players.get(playerId);
+		const pricePerLiter = 0.9;
+		const purchasedFuel = amount ? amount / pricePerLiter : player.maxFuel;
+		const cost = purchasedFuel * pricePerLiter;
+
+		const updates = { fuel: purchasedFuel, credits: player.credits - cost };
+
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		this.broadcast('spacecoRefuel', { playerId, updates, purchasedFuel, cost });
+	}
+
+	spacecoRepair(playerId, amount) {
+		const player = this.players.get(playerId);
+		const pricePerHealth = 1.3;
+		const purchasedRepairs = amount ? amount / pricePerHealth : player.maxHealth;
+		const cost = purchasedRepairs * pricePerHealth;
+
+		const updates = { health: purchasedRepairs, credits: player.credits - cost };
+
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		this.broadcast('spacecoRepair', { playerId, updates, purchasedRepairs, cost });
+	}
+
+	spacecoBuyItem(playerId, item, count = 1) {
+		const player = this.players.get(playerId);
+		const cost = 10;
+
+		const updates = { items: { ...player.items }, credits: player.credits - cost };
+		updates.items[item] = updates.items[item] || 0;
+		updates.items[item] += count;
+
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		this.broadcast('spacecoBuyItem', { playerId, updates, item, count, cost });
+	}
+
+	spacecoBuyUpgrade(playerId, upgrade) {
+		const player = this.players.get(playerId);
+		const cost = this.world.spaceco.parts[upgrade];
+
+		const updates = {
+			configuration: { ...player.configuration, [upgrade.split(':~:')[2]]: upgrade },
+			credits: player.credits - cost,
+		};
+
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		this.broadcast('spacecoBuyUpgrade', { playerId, updates, upgrade, cost });
 	}
 
 	removePlayer(id) {
@@ -240,7 +305,7 @@ export default class Game {
 		};
 		const subType = weightedChance(subTypes[type]);
 
-		const typePrice = { tracks: 10, hull: 10, drill: 10, fuelTank: 10 };
+		const typePrice = { tracks: 10, hull: 10, cargoBay: 10, drill: 10, fuelTank: 10 };
 		const materialPrice = {
 			tritanium: 10,
 			duranium: 15,
@@ -255,7 +320,7 @@ export default class Game {
 		};
 		const subtypePrices = {
 			tracks: { boosted_1: 20, boosted_2: 30, boosted_3: 40, antigravidic: 50 },
-			hull: { enhanced: 20, reinforced: 40 },
+			hull: { enhanced: 20, reinforced: 40, gasRefiner: 60 },
 			cargoBay: { large: 20, bulky: 40 },
 			drill: { quadratic: 20, precision_1: 30, precision_2: 50 },
 			fuelTank: { large: 20, bulky: 30, pressurized: 40, battery: 55, condenser: 70 },
@@ -290,7 +355,7 @@ export default class Game {
 			spaceco: {
 				damage: 0,
 				partCount: [13, 21],
-				resourceBay: {},
+				hull: {},
 				services: {},
 				fuel: {},
 				shop: {},
@@ -672,20 +737,20 @@ export default class Game {
 		if (this.world.grid[position.x][position.y].ground?.type) {
 			const { type } = this.world.grid[position.x][position.y].ground;
 
-			updatedPlayer.fuel = Math.max(0, updatedPlayer.fuel - densities[type] / 1000);
+			updatedPlayer.fuel = Math.max(0, updatedPlayer.fuel - densities[type] / 3000);
 
-			updatedPlayer.inventory.cargo[type] = updatedPlayer.inventory.cargo[type] || 0;
-			++updatedPlayer.inventory.cargo[type];
+			updatedPlayer.hull[type] = updatedPlayer.hull[type] || 0;
+			++updatedPlayer.hull[type];
 		}
 
 		if (this.world.grid[position.x][position.y].items.length > 0) {
 			this.world.grid[position.x][position.y].items.forEach(({ name }) => {
 				if (name.startsWith('mineral')) {
-					updatedPlayer.inventory.cargo[name] = updatedPlayer.inventory.cargo[name] || 0;
-					++updatedPlayer.inventory.cargo[name];
+					updatedPlayer.hull[name] = updatedPlayer.hull[name] || 0;
+					++updatedPlayer.hull[name];
 				} else {
-					updatedPlayer.inventory[name] = updatedPlayer.inventory[name] || 0;
-					++updatedPlayer.inventory[name];
+					updatedPlayer.items[name] = updatedPlayer.items[name] || 0;
+					++updatedPlayer.items[name];
 				}
 			});
 		}

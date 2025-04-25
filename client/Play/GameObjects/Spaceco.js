@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 
 import { gridToPxPosition } from '../../../utils';
+import SpacecoDialog from '../SpacecoDialog';
+import gameContext from '../gameContext';
 
 export class Spaceco extends Phaser.GameObjects.Sprite {
 	/**
@@ -14,10 +16,39 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 
 		this.setOrigin(0.5, 0.65);
 
+		this.tradeButton = scene.add.text(0, 0, '[trade]');
+		this.tradeButton.visible = false;
+
+		this.tradeButton.setInteractive({ draggable: false, cursor: 'pointer' });
+
+		this.tradeButton.on('pointerover', () => {
+			gameContext.cursor.visible = false;
+			this.tradeButton.setTint(0x00ff00);
+		});
+		this.tradeButton.on('pointerout', () => {
+			this.tradeButton.setTint(0xffffff);
+		});
+		this.tradeButton.on('pointerdown', () => {
+			this.dialog = new SpacecoDialog();
+		});
+
 		scene.add.existing(this);
+
+		gameContext.sceneLayers.interfaces.add(this.tradeButton);
 	}
 
 	hurt(damage) {
 		this.setTexture(`spaceco_hurt${damage}`);
+	}
+
+	showPrompt() {
+		this.tradeButton.x = this.x - 33;
+		this.tradeButton.y = this.y - 80;
+
+		this.tradeButton.visible = true;
+	}
+
+	hidePrompt() {
+		this.tradeButton.visible = false;
 	}
 }

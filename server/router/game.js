@@ -82,6 +82,79 @@ const _game = async request => {
 		return Response.json({}, { status: 200 });
 	}
 
+	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/sell', request);
+	if (match) {
+		const { gameId, playerId } = match;
+
+		if (!playerId || !games[gameId]?.players?.has(playerId)) {
+			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
+		}
+
+		games[gameId].spacecoSell(playerId);
+
+		return Response.json({}, { status: 200 });
+	}
+
+	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/refuel', request);
+	if (match) {
+		const body = await request.json();
+		const { gameId, playerId } = match;
+		const { amount } = body;
+
+		if (!playerId || !games[gameId]?.players?.has(playerId)) {
+			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
+		}
+
+		games[gameId].spacecoRefuel(playerId, amount);
+
+		return Response.json({}, { status: 200 });
+	}
+
+	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/repair', request);
+	if (match) {
+		const body = await request.json();
+		const { gameId, playerId } = match;
+		const { amount } = body;
+
+		if (!playerId || !games[gameId]?.players?.has(playerId)) {
+			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
+		}
+
+		games[gameId].spacecoRepair(playerId, amount);
+
+		return Response.json({}, { status: 200 });
+	}
+
+	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/item', request);
+	if (match) {
+		const body = await request.json();
+		const { gameId, playerId } = match;
+		const { item } = body;
+
+		if (!playerId || !games[gameId]?.players?.has(playerId)) {
+			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
+		}
+
+		games[gameId].spacecoBuyItem(playerId, item);
+
+		return Response.json({}, { status: 200 });
+	}
+
+	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/upgrade', request);
+	if (match) {
+		const body = await request.json();
+		const { gameId, playerId } = match;
+		const { upgrade } = body;
+
+		if (!playerId || !games[gameId]?.players?.has(playerId)) {
+			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
+		}
+
+		games[gameId].spacecoBuyUpgrade(playerId, upgrade);
+
+		return Response.json({}, { status: 200 });
+	}
+
 	match = requestMatch('POST', '/games/:gameId/:playerId/triggerEffect', request);
 	if (match) {
 		const body = await request.json();
