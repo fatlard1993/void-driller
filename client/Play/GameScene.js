@@ -8,10 +8,12 @@ import { Player } from './GameObjects/Player';
 const sounds = [
 	'dig',
 	'hurt',
+	'heal',
 	'hurt_chomper',
 	'pickup',
 	'console_open',
 	'alert',
+	'alert2',
 	'blip',
 	'path_select',
 	'path_accept',
@@ -36,7 +38,9 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	create() {
-		sounds.forEach(sound => this.sound.add(sound));
+		sounds.forEach(sound => {
+			gameContext.sounds[sound] = this.sound.add(sound);
+		});
 
 		gameContext.serverState.world.grid.forEach((layer, x) => {
 			layer.forEach((gridConfig, y) => {

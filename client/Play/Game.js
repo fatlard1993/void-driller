@@ -1,4 +1,4 @@
-import { styled, throttle, debounce, convertRange } from 'vanilla-bean-components';
+import { styled, throttle, debounce, convertRange, randInt } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
 import {
@@ -8,11 +8,12 @@ import {
 	hasFooting,
 	pxToGridPosition,
 } from '../../utils';
-import { Drill, Lava, Gas } from './GameObjects';
 import { move as movePlayer } from '../api';
 import socket, { onMessage } from '../socket';
 import gameContext from './gameContext';
 import GameScene from './GameScene';
+import { Drill, Lava, Gas } from './GameObjects';
+import ConsoleDialog from './ConsoleDialog';
 
 export default class Game extends (styled.Component`
 	background-image: url('img/background.svg');
@@ -33,12 +34,14 @@ export default class Game extends (styled.Component`
 		gameContext.game.events.once('ready', () => {
 			gameContext.scene = gameContext.game.scene.scenes[0];
 
-			this.render();
+			setTimeout(() => this.render(), 300);
 		});
 	}
 
 	render() {
 		super.render();
+
+		if (!localStorage.getItem('console_defaultMenu')) new ConsoleDialog();
 
 		const socketCleanup = onMessage(data => {
 			if (data.id === gameContext.gameId) {
@@ -188,6 +191,76 @@ export default class Game extends (styled.Component`
 							});
 						}
 					});
+				} else if (data.update === 'spacecoSell') {
+					console.log('spacecoSell', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					[...Array(randInt(2, Math.min(100, Math.max(3, data.gain))))].forEach((_, index) =>
+						setTimeout(
+							() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }),
+							index * randInt(40, 70),
+						),
+					);
+
+					gameContext.spaceco.dialog.options.view = 'success';
+				} else if (data.update === 'spacecoRefuel') {
+					console.log('spacecoRefuel', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
+						setTimeout(
+							() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }),
+							index * randInt(40, 70),
+						),
+					);
+
+					gameContext.serverState.world.spaceco.hull = data.spacecoHull;
+
+					gameContext.spaceco.dialog.options.view = 'success';
+				} else if (data.update === 'spacecoRepair') {
+					console.log('spacecoRepair', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
+						setTimeout(
+							() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }),
+							index * randInt(40, 70),
+						),
+					);
+
+					[...Array(randInt(2, Math.min(100, Math.max(3, data.purchasedRepairs))))].forEach((_, index) =>
+						setTimeout(
+							() => gameContext.sounds.heal.play({ volume: gameContext.volume.effects }),
+							index * randInt(40, 70),
+						),
+					);
+
+					gameContext.spaceco.dialog.options.view = 'success';
+				} else if (data.update === 'spacecoBuyItem') {
+					console.log('spacecoBuyItem', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
+						setTimeout(
+							() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }),
+							index * randInt(40, 70),
+						),
+					);
+				} else if (data.update === 'spacecoBuyUpgrade') {
+					console.log('spacecoBuyUpgrade', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
+						setTimeout(
+							() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }),
+							index * randInt(40, 70),
+						),
+					);
+
+					gameContext.spaceco.dialog.options.view = 'success';
+				} else if (data.update === 'updatePlayer') {
+					console.log('sync player', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 				} else if (data.update === 'triggerEffect') {
 					const player = gameContext.players.get(data.playerId);
 
@@ -242,10 +315,10 @@ export default class Game extends (styled.Component`
 
 		const path = [];
 		const move = [];
-		const cursor = gameContext.scene.add.rectangle(0, 0, 64, 64, 0xff0000);
-		cursor.alpha = 0.5;
-		cursor.visible = false;
-		gameContext.sceneLayers.interfaces.add(cursor);
+		gameContext.cursor = gameContext.scene.add.rectangle(0, 0, 64, 64, 0xff0000);
+		gameContext.cursor.alpha = 0.5;
+		gameContext.cursor.visible = false;
+		gameContext.sceneLayers.interfaces.add(gameContext.cursor);
 
 		const submitMove = () => {
 			if (move.length === 0) return;
@@ -267,15 +340,15 @@ export default class Game extends (styled.Component`
 
 			gameContext.scene.sound.play('path_accept', { volume: gameContext.volume.interfaces });
 
-			cursor.visible = false;
+			gameContext.cursor.visible = false;
 		};
 
 		gameContext.scene.input.on('pointerdown', pointer => {
 			const gridPosition = pxToGridPosition({ x: pointer.worldX, y: pointer.worldY });
 			const gridSnappedPxPosition = gridToPxPosition(gridPosition);
 
-			cursor.x = gridSnappedPxPosition.x;
-			cursor.y = gridSnappedPxPosition.y;
+			gameContext.cursor.x = gridSnappedPxPosition.x;
+			gameContext.cursor.y = gridSnappedPxPosition.y;
 
 			const player = gameContext.players.get(gameContext.playerId);
 			const delta = {
@@ -308,10 +381,12 @@ export default class Game extends (styled.Component`
 
 		gameContext.scene.input.on(
 			'pointermove',
-			throttle(pointer => {
+			throttle((pointer, gameObjects) => {
 				if (socket.readyState === WebSocket.CLOSING || socket.readyState === WebSocket.CLOSED) {
 					window.location.reload();
 				}
+
+				if (gameObjects.some(one => one === gameContext.spaceco.tradeButton)) return;
 
 				const player = gameContext.players.get(gameContext.playerId);
 
@@ -326,10 +401,10 @@ export default class Game extends (styled.Component`
 					y: Math.abs(gridPosition.y - lastMove.y),
 				};
 
-				cursor.x = gridSnappedPxPosition.x;
-				cursor.y = gridSnappedPxPosition.y;
-				cursor.visible = true;
-				cursor.fillColor = 0xff0000;
+				gameContext.cursor.x = gridSnappedPxPosition.x;
+				gameContext.cursor.y = gridSnappedPxPosition.y;
+				gameContext.cursor.visible = true;
+				gameContext.cursor.fillColor = 0xff0000;
 
 				if (gridPosition.x === player.position.x && gridPosition.y === player.position.y) {
 					// console.log('move rejected: player position', { gridPosition, delta });
@@ -363,7 +438,7 @@ export default class Game extends (styled.Component`
 					return;
 				}
 
-				cursor.fillColor = 0x00ff00;
+				gameContext.cursor.fillColor = 0x00ff00;
 
 				// console.log('move OK', { gridPosition, delta, lastMove });
 
@@ -383,7 +458,7 @@ export default class Game extends (styled.Component`
 		gameContext.scene.input.on('pointerup', () => submitMove());
 
 		gameContext.scene.input.on('gameout', () => {
-			cursor.visible = false;
+			gameContext.cursor.visible = false;
 
 			submitMove();
 		});

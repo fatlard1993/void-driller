@@ -26,6 +26,7 @@ class Players extends Map {
  * 	cursor: Phaser.GameObjects.Rectangle,
  * 	volume: { music: number, alerts: number, interfaces: number, effects: number },
  * 	serverState: {},
+ * 	sounds: {},
  * 	players: Players,
  * 	gameId: '',
  * 	playerId: ''
@@ -33,6 +34,7 @@ class Players extends Map {
  */
 const gameContext = new Context({
 	sceneLayers: {},
+	sounds: {},
 	volume: { music: 0.2, alerts: 0.3, interfaces: 0.1, effects: 0.2, ...JSON.parse(localStorage.getItem('volume')) },
 	players: new Players(),
 });

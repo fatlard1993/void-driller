@@ -3,6 +3,19 @@ import { capitalize, Component, convertRange, Dialog, Elem, Input, Label, Select
 import SpriteSheetImage from '../shared/SpriteSheetImage';
 import gameContext from './gameContext';
 
+const mineralNames = {
+	white: 'tritanium',
+	orange: 'duranium',
+	yellow: 'pentrilium',
+	green: 'byzanium',
+	teal: 'etherium',
+	blue: 'mithril',
+	purple: 'octanium',
+	pink: 'saronite',
+	red: 'adamantite',
+	black: 'quadium',
+};
+
 class VolumeControl extends Component {
 	render() {
 		new Label(
@@ -52,12 +65,32 @@ export default class ConsoleDialog extends Dialog {
 
 		const player = gameContext.players.get(gameContext.playerId);
 
-		this._body.append(
-			Object.entries(player.inventory.cargo).flatMap(([key, value]) =>
-				typeof value === 'object'
-					? []
-					: [new Label(key, new SpriteSheetImage(key.startsWith('mineral') ? key : `ground_${key}`), value.toString())],
-			),
+		new Elem(
+			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+			Object.entries(player.hull).map(([key, count]) => {
+				let price;
+
+				if (key.startsWith('mineral')) {
+					price =
+						Math.max(
+							0.01,
+							gameContext.serverState.world.densities[key.replace('mineral_', '')] / 800 -
+								(gameContext.serverState.world.spaceco.hull[key] || 0),
+						) * count;
+				} else
+					price =
+						Math.max(
+							0.01,
+							gameContext.serverState.world.densities[key] / 1600 -
+								(gameContext.serverState.world.spaceco.hull[key] || 0),
+						) * count;
+
+				return new Label(
+					{ label: `${capitalize(mineralNames[key.replace('mineral_', '')])}`, style: { width: 'auto' } },
+					`x${count.toString()} = $${price.toFixed(2)}`,
+					new SpriteSheetImage(key.startsWith('mineral') ? key : `ground_${key}`),
+				);
+			}),
 		);
 	}
 
@@ -67,9 +100,12 @@ export default class ConsoleDialog extends Dialog {
 		const player = gameContext.players.get(gameContext.playerId);
 
 		this._body.append(
-			new Label('Credits', `$${player.credits}`),
+			new Label('Credits', `$${player.credits.toFixed(2)}`),
 			new Label('Health', `${convertRange(player.health, [0, player.maxHealth], [0, 100]).toFixed(1)}%`),
-			new Label('Fuel', `${player.fuel.toFixed(2)}l (${convertRange(player.fuel, [0, player.maxFuel], [0, 100]).toFixed(1)}%)`),
+			new Label(
+				'Fuel',
+				`${player.fuel.toFixed(2)}l (${convertRange(player.fuel, [0, player.maxFuel], [0, 100]).toFixed(1)}%)`,
+			),
 			new Label(
 				'Cargo',
 				`${player.cargo.toFixed(2)}t (${convertRange(player.cargo, [0, player.maxCargo], [0, 100]).toFixed(1)}%)`,
@@ -89,10 +125,15 @@ export default class ConsoleDialog extends Dialog {
 
 		const player = gameContext.players.get(gameContext.playerId);
 
-		this._body.append(
-			Object.entries(player.inventory).flatMap(([key, value]) =>
-				typeof value === 'object' ? [] : [new Label(key, new SpriteSheetImage(`item_${key}`), value.toString())],
-			),
+		new Elem(
+			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+			Object.entries(player.items).map(([key, count]) => {
+				return new Label(
+					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
+					`x${count.toString()}`,
+					new SpriteSheetImage(`item_${key}`),
+				);
+			}),
 		);
 	}
 
@@ -107,7 +148,7 @@ export default class ConsoleDialog extends Dialog {
 			new Label(
 				'Default Console Menu',
 				new Select({
-					options: ['Cargo', 'Config', 'Items', 'Settings', 'Help'],
+					options: ['Cargo', 'Status', 'Items', 'Settings', 'Help'],
 					value: localStorage.getItem('console_defaultMenu') || 'Help',
 					onChange: ({ value }) => localStorage.setItem('console_defaultMenu', value),
 				}),
@@ -118,13 +159,16 @@ export default class ConsoleDialog extends Dialog {
 	render_help() {
 		this.options.header = 'Console | Help';
 
-		new Elem({ tag: 'p', content: 'Use your pointer to drag a path for your drill.', appendTo: this._body });
-		new Elem({
-			tag: 'p',
-			content: 'Collect minerals and bring them back to spaceco to sell them.',
-			appendTo: this._body,
-		});
-		new Elem({ tag: 'p', content: 'Use your earned credits to buy fuel and upgrades.', appendTo: this._body });
+		this._body.append(
+			new Elem({ tag: 'p', content: 'Use your pointer to drag a path for your drill.' }),
+			new Elem({
+				tag: 'p',
+				content: 'Collect minerals and bring them back to spaceco to sell them.',
+			}),
+			new Elem({ tag: 'p', content: `Don't run out of fuel, watch your gauge carefully to avoid passing the point of no return.` }),
+			new Elem({ tag: 'p', content: 'Use your earned credits to buy more fuel and upgrade your drill.' }),
+			new Elem({ tag: 'p', content: 'Configure your default menu (in settings) to skip opening the console when you join.' }),
+		);
 	}
 
 	_setOption(key, value) {

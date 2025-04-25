@@ -25,6 +25,45 @@ export const move = async ({ gameId, playerId, path }, options) =>
 		...options,
 	});
 
+export const spacecoSell = async ({ gameId, playerId }, options) =>
+	await POST('/games/:gameId/:playerId/spaceco/sell', {
+		invalidates: ['games'],
+		urlParameters: { gameId, playerId },
+		...options,
+	});
+
+export const spacecoRefuel = async ({ gameId, playerId, amount }, options) =>
+	await POST('/games/:gameId/:playerId/spaceco/refuel', {
+		invalidates: ['games'],
+		urlParameters: { gameId, playerId },
+		body: { amount },
+		...options,
+	});
+
+export const spacecoRepair = async ({ gameId, playerId, amount }, options) =>
+	await POST('/games/:gameId/:playerId/spaceco/repair', {
+		invalidates: ['games'],
+		urlParameters: { gameId, playerId },
+		body: { amount },
+		...options,
+	});
+
+export const spacecoBuyItem = async ({ gameId, playerId, item }, options) =>
+	await POST('/games/:gameId/:playerId/spaceco/item', {
+		invalidates: ['games'],
+		urlParameters: { gameId, playerId },
+		body: { item },
+		...options,
+	});
+
+export const spacecoBuyUpgrade = async ({ gameId, playerId, upgrade }, options) =>
+	await POST('/games/:gameId/:playerId/spaceco/upgrade', {
+		invalidates: ['games'],
+		urlParameters: { gameId, playerId },
+		body: { upgrade },
+		...options,
+	});
+
 export const triggerEffect = async ({ gameId, playerId, position, effect }, options) =>
 	await POST('/games/:gameId/:playerId/triggerEffect', {
 		invalidates: ['games'],
