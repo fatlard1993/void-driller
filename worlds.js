@@ -146,7 +146,7 @@ export default [
 			{ ground: { green: 30, orange: 25, purple: 25, black: 10, teal: 10 } },
 			{ ground: { green: 30, orange: 30, purple: 10, black: 10, teal: 20 } },
 			{ ground: { green: 25, orange: 25, purple: 10, black: 20, teal: 20 } },
-			{ ground: { green: 15, orange: 15, purple: 10, black: 25, teal: 25 } },
+			{ ground: { green: 15, orange: 20, purple: 10, black: 30, teal: 25 } },
 		],
 	},
 	{
@@ -170,7 +170,7 @@ export default [
 		mineralChance: 15,
 		holeChance: 12,
 		hazardChance: 35,
-		hazards: { lava: 1, gas: 60, monster: 49 },
+		hazards: { lava: 1, gas: 60, monster: 39 },
 		layers: [
 			{ ground: { teal: 5, red: 20, purple: 37.5, pink: 37.5 } },
 			{ ground: { white: 35, red: 15, purple: 25, pink: 25 } },
@@ -190,7 +190,7 @@ export default [
 		layers: [
 			{ ground: { white: 65, orange: 25, yellow: 5, red: 5 } },
 			{ ground: { white: 50, orange: 30, yellow: 10, red: 10 } },
-			{ ground: { white: 40, orange: 35, yellow: 15, red: 5 } },
+			{ ground: { white: 40, orange: 35, yellow: 20, red: 5 } },
 			{ ground: { white: 30, orange: 40, yellow: 20, red: 10 } },
 			{ ground: { white: 20, orange: 40, yellow: 30, red: 10 } },
 			{ ground: { white: 10, orange: 35, yellow: 35, red: 20 } },
@@ -240,8 +240,8 @@ export default [
 		hazardChance: 45,
 		hazards: { monster: 100 },
 		layers: [
-			{ ground: { white: 70, yellow: 15, black: 5 } },
-			{ ground: { white: 60, yellow: 20, blue: 10 } },
+			{ ground: { white: 70, yellow: 25, black: 5 } },
+			{ ground: { white: 60, yellow: 30, blue: 10 } },
 			{ ground: { white: 40, yellow: 30, black: 30 } },
 			{ ground: { white: 20, yellow: 40, blue: 40 } },
 			{ ground: { white: 5, orange: 55, black: 40 } },
@@ -259,7 +259,7 @@ export default [
 		layers: [
 			{ ground: { teal: 50, white: 20, green: 30 } },
 			{ ground: { teal: 50, white: 5, green: 35, pink: 10 } },
-			{ ground: { teal: 40, green: 35, pink: 15, purple: 5 } },
+			{ ground: { teal: 40, green: 35, pink: 15, purple: 10 } },
 			{ ground: { teal: 30, green: 25, pink: 15, purple: 30 } },
 			{ ground: { teal: 30, green: 40, blue: 30 } },
 		],
@@ -273,7 +273,7 @@ export default [
 		layers: [
 			{ ground: { orange: 65, red: 25, purple: 5, pink: 5 } },
 			{ ground: { orange: 50, red: 30, purple: 10, pink: 10 } },
-			{ ground: { orange: 40, red: 35, purple: 15, pink: 5 } },
+			{ ground: { orange: 35, red: 35, purple: 25, pink: 5 } },
 			{ ground: { orange: 30, red: 40, purple: 20, pink: 10 } },
 			{ ground: { orange: 20, red: 40, purple: 30, pink: 10 } },
 			{ ground: { black: 10, red: 35, purple: 35, pink: 20 } },
@@ -305,8 +305,8 @@ export default [
 		hazardChance: 30,
 		hazards: { lava: 60, gas: 25, monster: 15 },
 		layers: [
-			{ ground: { white: 70, red: 15, black: 5 } },
-			{ ground: { white: 60, red: 20, black: 10 } },
+			{ ground: { white: 70, red: 25, black: 5 } },
+			{ ground: { white: 60, red: 20, black: 20 } },
 			{ ground: { white: 40, red: 30, black: 30 } },
 			{ ground: { white: 20, red: 40, blue: 40 } },
 			{ ground: { white: 5, red: 55, blue: 40 } },
@@ -331,7 +331,7 @@ export default [
 			{ ground: { yellow: 10, purple: 80, orange: 10 } },
 			{ ground: { purple: 65, orange: 30, black: 5 } },
 			{ ground: { purple: 45, orange: 45, black: 10 } },
-			{ ground: { purple: 40, orange: 70, teal: 10 } },
+			{ ground: { purple: 20, orange: 70, teal: 10 } },
 			{ ground: { purple: 30, orange: 50, teal: 20 } },
 			{ ground: { purple: 20, orange: 40, teal: 40 } },
 			{ ground: { purple: 10, orange: 20, teal: 70 } },
@@ -348,7 +348,7 @@ export default [
 			{ ground: { blue: 40, purple: 60 } },
 			{ ground: { blue: 40, red: 60 } },
 			{ ground: { green: 50, white: 50 } },
-			{ ground: { pink: 34, black: 32, green: 32 } },
+			{ ground: { pink: 36, black: 32, green: 32 } },
 			{ ground: { blue: 40, purple: 60 } },
 		],
 	},
@@ -379,7 +379,7 @@ export default [
 			{ ground: { blue: 50, yellow: 15, orange: 20, black: 15 } },
 			{ ground: { blue: 30, yellow: 5, orange: 60, black: 5 } },
 			{ ground: { blue: 14, yellow: 25, orange: 60, black: 1 } },
-			{ ground: { blue: 1, orange: 97, black: 1 } },
+			{ ground: { blue: 1, orange: 98, black: 1 } },
 		],
 	},
 	{
