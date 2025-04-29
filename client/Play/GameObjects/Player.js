@@ -59,8 +59,8 @@ export class Player extends Drill {
 		const player = gameContext.players.get(gameContext.playerId);
 
 		if (player) {
-			this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [3, 100]);
-			this.fuelBar.width = convertRange(player.fuel, [0, player.maxFuel], [3, 100]);
+			this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [1, 100]);
+			this.fuelBar.width = convertRange(player.fuel, [0, player.maxFuel], [1, 100]);
 		}
 
 		this.showStatusBars(!!player);

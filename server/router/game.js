@@ -170,6 +170,21 @@ const _game = async request => {
 		return Response.json({}, { status: 200 });
 	}
 
+	match = requestMatch('POST', '/games/:gameId/:playerId/useItem', request);
+	if (match) {
+		const body = await request.json();
+		const { gameId, playerId } = match;
+		const { item } = body;
+
+		if (!playerId || !games[gameId]?.players?.has(playerId)) {
+			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
+		}
+
+		games[gameId].useItem(playerId, item);
+
+		return Response.json({}, { status: 200 });
+	}
+
 	match = requestMatch('DELETE', '/games/:id', request);
 	if (match) {
 		const { id } = match;

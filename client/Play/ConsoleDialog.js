@@ -1,20 +1,18 @@
-import { capitalize, Component, convertRange, Dialog, Elem, Input, Label, Select } from 'vanilla-bean-components';
+import {
+	capitalize,
+	Component,
+	convertRange,
+	Dialog,
+	Elem,
+	Input,
+	Label,
+	Select,
+	Button,
+} from 'vanilla-bean-components';
 
 import SpriteSheetImage from '../shared/SpriteSheetImage';
+import { useItem } from '../api';
 import gameContext from './gameContext';
-
-const mineralNames = {
-	white: 'tritanium',
-	orange: 'duranium',
-	yellow: 'pentrilium',
-	green: 'byzanium',
-	teal: 'etherium',
-	blue: 'mithril',
-	purple: 'octanium',
-	pink: 'saronite',
-	red: 'adamantite',
-	black: 'quadium',
-};
 
 class VolumeControl extends Component {
 	render() {
@@ -58,6 +56,8 @@ export default class ConsoleDialog extends Dialog {
 			},
 			...options,
 		});
+
+		gameContext.sounds.alert2.play({ volume: gameContext.volume.alerts });
 	}
 
 	render_cargo() {
@@ -74,19 +74,22 @@ export default class ConsoleDialog extends Dialog {
 					price =
 						Math.max(
 							0.01,
-							gameContext.serverState.world.densities[key.replace('mineral_', '')] / 800 -
-								(gameContext.serverState.world.spaceco.hull[key] || 0),
+							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
+								(800 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 				} else
 					price =
 						Math.max(
 							0.01,
-							gameContext.serverState.world.densities[key] / 1600 -
-								(gameContext.serverState.world.spaceco.hull[key] || 0),
+							gameContext.serverState.world.densities[key] /
+								(1600 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 
 				return new Label(
-					{ label: `${capitalize(mineralNames[key.replace('mineral_', '')])}`, style: { width: 'auto' } },
+					{
+						label: `${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
+						style: { width: 'auto' },
+					},
 					`x${count.toString()} = $${price.toFixed(2)}`,
 					new SpriteSheetImage(key.startsWith('mineral') ? key : `ground_${key}`),
 				);
@@ -127,12 +130,24 @@ export default class ConsoleDialog extends Dialog {
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			Object.entries(player.items).map(([key, count]) => {
-				return new Label(
-					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
-					`x${count.toString()}`,
-					new SpriteSheetImage(`item_${key}`),
-				);
+			Object.entries(player.items).flatMap(([key, count]) => {
+				if (!count) return [];
+
+				return [
+					new Label(
+						{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
+						`x${count.toString()}`,
+						new SpriteSheetImage(`item_${key}`),
+						new Button({
+							content: 'Use',
+							onPointerPress: () => {
+								useItem({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, item: key });
+
+								this.close();
+							},
+						}),
+					),
+				];
 			}),
 		);
 	}
@@ -165,9 +180,15 @@ export default class ConsoleDialog extends Dialog {
 				tag: 'p',
 				content: 'Collect minerals and bring them back to spaceco to sell them.',
 			}),
-			new Elem({ tag: 'p', content: `Don't run out of fuel, watch your gauge carefully to avoid passing the point of no return.` }),
-			new Elem({ tag: 'p', content: 'Use your earned credits to buy more fuel and upgrade your drill.' }),
-			new Elem({ tag: 'p', content: 'Configure your default menu (in settings) to skip opening the console when you join.' }),
+			new Elem({
+				tag: 'p',
+				content: `Don't run out of fuel, watch your gauge carefully to avoid passing the point of no return.`,
+			}),
+			new Elem({ tag: 'p', content: 'Use your earned credits to; make repairs, buy more fuel, teleporters, bombs, and upgrade your drill.' }),
+			new Elem({
+				tag: 'p',
+				content: 'Configure your default menu (in settings) to skip opening the console when you join.',
+			}),
 		);
 	}
 

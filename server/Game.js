@@ -18,6 +18,18 @@ const WORLDS = {
 };
 
 const mineralColors = ['white', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink', 'red', 'black'];
+const mineralNames = {
+	white: 'tritanium',
+	orange: 'duranium',
+	yellow: 'pentrilium',
+	green: 'byzanium',
+	teal: 'etherium',
+	blue: 'mithril',
+	purple: 'octanium',
+	pink: 'saronite',
+	red: 'adamantite',
+	black: 'quadium',
+};
 const groundEffects = {
 	white: ['bonus:~:2:~:white:~:[1,2]'],
 	orange: ['bonus:~:2:~:orange:~:[1,2]'],
@@ -43,41 +55,13 @@ const densities = {
 	black: 900,
 };
 const items = {
-	teleporter: {
-		useEffects: ['teleport:~:spaceco'],
-	},
-	responder_teleporter: {
-		useEffects: ['teleport:~:responder'],
-	},
-	repair_nanites: {
-		useEffects: ['heal'],
-		interactEffects: ['repair:~:95:~:25'],
-	},
-	timed_charge: {
-		useEffects: ['explode:~:3'],
-		interactEffects: ['intractable:~:disarm'],
-	},
-	remote_charge: {
-		useEffects: ['explode:~:5'],
-		interactEffects: ['intractable:~:disarm'],
-	},
-	timed_freeze_charge: {
-		useEffects: ['freeze:~:3'],
-		interactEffects: ['intractable:~:disarm'],
-	},
-	remote_freeze_charge: {
-		useEffects: ['freeze:~:5'],
-		interactEffects: ['intractable:~:disarm'],
-	},
-	tombstone: {
-		interactEffects: ['intractable:~:tombstone'],
-	},
-	satchel: {
-		interactEffects: ['intractable:~:satchel'],
-	},
-	super_oxygen_liquid_nitrogen: {},
-	gas: {},
-	energy: {},
+	teleporter: { price: 7, description: 'Teleport back to spaceco' },
+	responder_teleporter: { price: 9, description: 'Place a responder, then teleport back to it later' },
+	repair_nanites: { price: 30, description: 'Repair yourself on the go' },
+	timed_charge: { price: 13, description: '3s delay 3 radius explosive charge' },
+	remote_charge: { price: 22, description: '5 radius explosive charge with a remote detonator' },
+	timed_freeze_charge: { price: 9, description: '3s delay 3 radius chem charge - Freezes gas/lava' },
+	remote_freeze_charge: { price: 16, description: '5 radius chem charge with a remote detonator - Freezes gas/lava' },
 };
 const itemNames = Object.keys(items);
 
@@ -203,10 +187,11 @@ export default class Game {
 		Object.entries(player.hull).forEach(([key, count]) => {
 			if (key.startsWith('mineral')) {
 				gain +=
-					Math.max(0.01, densities[key.replace('mineral_', '')] / 800 - (this.world.spaceco.hull[key] || 0)) * count;
-			} else gain += Math.max(0.01, densities[key] / 1600 - (this.world.spaceco.hull[key] || 0)) * count;
+					Math.max(0.01, densities[key.replace('mineral_', '')] / (800 + (this.world.spaceco.hull?.[key] || 0))) *
+					count;
+			} else gain += Math.max(0.01, densities[key] / (1600 + (this.world.spaceco.hull?.[key] || 0))) * count;
 
-			this.world.spaceco.hull[key] = this.world.spaceco.hull[key] || 0;
+			this.world.spaceco.hull[key] = this.world.spaceco.hull?.[key] || 0;
 			this.world.spaceco.hull[key] += count;
 		});
 
@@ -272,6 +257,58 @@ export default class Game {
 		this.broadcast('spacecoBuyUpgrade', { playerId, updates, upgrade, cost });
 	}
 
+	useItem(playerId, item) {
+		const player = this.players.get(playerId);
+
+		const updates = {
+			items: { ...player.items, [item]: (player.items[item] -= 1) },
+		};
+
+		if (item === 'teleporter') {
+			updates.position = { ...this.world.spaceco.position };
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+			this.broadcast('useItem', { playerId, updates, item });
+		} else if (item === 'repair_nanites') {
+			updates.health = player.maxHealth;
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+			this.broadcast('useItem', { playerId, updates, item });
+		} else if (item === 'timed_charge') {
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+			const bombPosition = { ...player.position };
+
+			// TODO update player & update world to show bomb
+
+			setTimeout(() => {
+				getSurroundingRadius(bombPosition, 3).forEach(({ x, y }) => {
+					if (this.world.grid[x]?.[y]) this.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+				});
+
+				this.broadcast('useItem', { playerId, updates, item, position: bombPosition });
+			}, 3000);
+		} else if (item === 'timed_freeze_charge') {
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+			const bombPosition = { ...player.position };
+
+			// TODO update player & update world to show bomb
+
+			setTimeout(() => {
+				getSurroundingRadius(bombPosition, 3).forEach(({ x, y }) => {
+					if (!this.world.grid[x]?.[y] || this.world.grid[x][y].ground?.type || !this.world.grid[x][y].hazards.length) {
+						return;
+					}
+
+					this.world.grid[x][y].hazards = [];
+					this.world.grid[x][y].ground = { type: 'white' };
+				});
+
+				this.broadcast('useItem', { playerId, updates, item, position: bombPosition });
+			}, 3000);
+		} else {
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+			this.broadcast('useItem', { playerId, updates, item });
+		}
+	}
+
 	removePlayer(id) {
 		this.players.delete(id);
 
@@ -305,18 +342,18 @@ export default class Game {
 		};
 		const subType = weightedChance(subTypes[type]);
 
-		const typePrice = { tracks: 10, hull: 10, cargoBay: 10, drill: 10, fuelTank: 10 };
+		const typePrice = { tracks: 1, hull: 1, cargoBay: 1, drill: 1, fuelTank: 1 };
 		const materialPrice = {
-			tritanium: 10,
-			duranium: 15,
-			pentrilium: 25,
-			byzanium: 30,
-			etherium: 40,
-			mithril: 45,
-			octanium: 50,
-			saronite: 55,
-			adamantite: 65,
-			quadium: 80,
+			tritanium: 1,
+			duranium: 5,
+			pentrilium: 15,
+			byzanium: 20,
+			etherium: 30,
+			mithril: 35,
+			octanium: 40,
+			saronite: 45,
+			adamantite: 55,
+			quadium: 70,
 		};
 		const subtypePrices = {
 			tracks: { boosted_1: 20, boosted_2: 30, boosted_3: 40, antigravidic: 50 },
@@ -348,17 +385,16 @@ export default class Game {
 			width: [30, 50],
 			depth: [180, 250],
 			gravity: [350, 500],
+			spacecoPartCount: [13, 21],
 			...options,
 			grid: [],
 			groundEffects,
 			densities,
+			mineralNames,
 			spaceco: {
-				damage: 0,
-				partCount: [13, 21],
+				items,
+				health: 9,
 				hull: {},
-				services: {},
-				fuel: {},
-				shop: {},
 			},
 		};
 
@@ -371,9 +407,9 @@ export default class Game {
 		if (!world.spaceco.parts) {
 			world.spaceco.parts = {};
 
-			if (world.spaceco.partCount instanceof Array) world.spaceco.partCount = randInt(...world.spaceco.partCount);
+			if (world.spacecoPartCount instanceof Array) world.spacecoPartCount = randInt(...world.spacecoPartCount);
 
-			for (let x = 0; x < world.spaceco.partCount; ++x) {
+			for (let x = 0; x < world.spacecoPartCount; ++x) {
 				const { name, price } = this.generatePart();
 
 				world.spaceco.parts[name] = price;
@@ -406,11 +442,7 @@ export default class Game {
 
 				if (!world.grid[x]) world.grid[x] = [];
 
-				world.grid[x][y] = {
-					ground: {},
-					items: [],
-					hazards: [],
-				};
+				world.grid[x][y] = { ground: {}, items: [], hazards: [] };
 
 				if (y <= world.airGap) continue;
 
@@ -813,6 +845,29 @@ export default class Game {
 			disturbedChompers.forEach(({ x, y, name }) => {
 				this.wakeChomper({ x, y, name });
 			});
+		}
+
+		//check if spaceco should fall
+		const isNearSpaceco = getSurroundingRadius(position, 2).some(
+			position => this.world.spaceco.position.x === position.x && this.world.spaceco.position.y === position.y,
+		);
+		if (isNearSpaceco) {
+			const { bottomLeft, bottom, bottomRight } = getImmediateSurrounds(
+				this.world.spaceco.position,
+				['bottomLeft', 'bottom', 'bottomRight'],
+				this.world.grid,
+			);
+
+			if (!bottomLeft.ground.type && !bottom.ground.type && !bottomRight.ground.type) {
+				console.log('FALL');
+
+				const landingPosition = { x: bottom.x, y: bottom.y };
+
+				this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
+				this.world.spaceco.position = landingPosition;
+
+				this.broadcast('spacecoFall', { position: landingPosition, health: this.world.spaceco.health });
+			}
 		}
 	}
 
