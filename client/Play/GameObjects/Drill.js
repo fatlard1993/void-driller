@@ -67,8 +67,8 @@ export class Drill extends Phaser.GameObjects.Sprite {
 			x: gridToPxPosition(position.x),
 			y: gridToPxPosition(position.y),
 			onComplete: () => {
-				this.anims.play('move');
 				this.anims.stop();
+				this.move(position, 0, this.orientation);
 			},
 		});
 	}
@@ -77,6 +77,7 @@ export class Drill extends Phaser.GameObjects.Sprite {
 	 * @param { "left" | "right" | "up_left" | "down_right" | "down_left" | "up_right" | "up_left_angle" | "down_right_angle" | "down_left_angle" | "up_right_angle" } orientation - The orientation of the drill
 	 */
 	setOrientation(orientation) {
+		this.orientation = orientation;
 		this.setOrigin(0.5, 0.5);
 
 		if (orientation.includes('_')) {

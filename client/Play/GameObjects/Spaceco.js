@@ -12,7 +12,13 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 	 * @param {number} y - Grid y
 	 */
 	constructor(scene, x, y) {
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'map', 'spaceco_hurt0');
+		super(
+			scene,
+			gridToPxPosition(x),
+			gridToPxPosition(y),
+			'map',
+			`spaceco_health${gameContext.serverState.world.spaceco.health}`,
+		);
 
 		this.setOrigin(0.5, 0.65);
 
@@ -37,15 +43,35 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 		gameContext.sceneLayers.interfaces.add(this.tradeButton);
 	}
 
-	hurt(damage) {
-		this.setTexture(`spaceco_hurt${damage}`);
+	hurt() {
+		console.log(`spaceco_health${gameContext.serverState.world.spaceco.health}`);
+		this.setTexture('map', `spaceco_health${gameContext.serverState.world.spaceco.health}`);
+
+		gameContext.scene.sound.play('hurt', { volume: gameContext.volume.effects });
+	}
+
+	fall(position, speed = 800) {
+		this.scene.tweens.add({
+			targets: this,
+			duration: speed,
+			x: gridToPxPosition(position.x),
+			y: gridToPxPosition(position.y),
+			onComplete: () => {
+				this.anims.stop();
+				this.hurt();
+			},
+		});
 	}
 
 	showPrompt() {
+		if (this.tradeButton.visible) return;
+
 		this.tradeButton.x = this.x - 33;
 		this.tradeButton.y = this.y - 80;
 
 		this.tradeButton.visible = true;
+
+		gameContext.sounds.alert.play({ volume: gameContext.volume.alerts });
 	}
 
 	hidePrompt() {

@@ -17,6 +17,7 @@ module.exports = {
 		'tweens',
 		'teleport',
 		'teleporter',
+		'teleporters',
 		'teleporting',
 		'responder',
 		'antigravidic',

@@ -4,29 +4,6 @@ import SpriteSheetImage from '../shared/SpriteSheetImage';
 import { spacecoBuyItem, spacecoBuyUpgrade, spacecoRefuel, spacecoRepair, spacecoSell } from '../api';
 import gameContext from './gameContext';
 
-const items = {
-	teleporter: 10,
-	responder_teleporter: 15,
-	repair_nanites: 10,
-	timed_charge: 15,
-	remote_charge: 20,
-	timed_freeze_charge: 12,
-	remote_freeze_charge: 16,
-};
-
-const mineralNames = {
-	white: 'tritanium',
-	orange: 'duranium',
-	yellow: 'pentrilium',
-	green: 'byzanium',
-	teal: 'etherium',
-	blue: 'mithril',
-	purple: 'octanium',
-	pink: 'saronite',
-	red: 'adamantite',
-	black: 'quadium',
-};
-
 export default class SpacecoDialog extends Dialog {
 	constructor(options = {}) {
 		super({
@@ -40,12 +17,20 @@ export default class SpacecoDialog extends Dialog {
 
 					this.renderPlayerInfo();
 					this[`render_${button.toLowerCase()}`]();
-				} else this.close();
+				} else {
+					const player = gameContext.players.get(gameContext.playerId);
+
+					player.sprite.move(player.position, 0, player.orientation);
+
+					this.close();
+				}
 			},
 			...options,
 		});
 
 		console.log(gameContext.serverState.world.spaceco);
+
+		gameContext.sounds.alert2.play({ volume: gameContext.volume.alerts });
 	}
 
 	renderPlayerInfo() {
@@ -79,25 +64,40 @@ export default class SpacecoDialog extends Dialog {
 			Object.entries(player.hull).map(([key, count]) => {
 				let price;
 
+				console.log(
+					`Old price: ${Math.max(0.01, gameContext.serverState.world.densities[key.replace('mineral_', '')] / 800) * count}`,
+					`\nSpaceco has: ${gameContext.serverState.world.spaceco.hull?.[key]}`,
+					`\nNew price: ${
+						Math.max(
+							0.01,
+							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
+								(800 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
+						) * count
+					}`,
+				);
+
 				if (key.startsWith('mineral')) {
 					price =
 						Math.max(
 							0.01,
-							gameContext.serverState.world.densities[key.replace('mineral_', '')] / 800 -
-								(gameContext.serverState.world.spaceco.hull[key] || 0),
+							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
+								(800 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 				} else
 					price =
 						Math.max(
 							0.01,
-							gameContext.serverState.world.densities[key] / 1600 -
-								(gameContext.serverState.world.spaceco.hull[key] || 0),
+							gameContext.serverState.world.densities[key] /
+								(1600 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 
 				credits += price;
 
 				return new Label(
-					{ label: `${capitalize(mineralNames[key.replace('mineral_', '')])}`, style: { width: 'auto' } },
+					{
+						label: `${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
+						style: { width: 'auto' },
+					},
 					`x${count.toString()} = $${price.toFixed(2)}`,
 					new SpriteSheetImage(key.startsWith('mineral') ? key : `ground_${key}`),
 				);
@@ -218,9 +218,10 @@ export default class SpacecoDialog extends Dialog {
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			Object.entries(items).map(([key, price]) => {
+			Object.entries(gameContext.serverState.world.spaceco.items).map(([key, { price, description }]) => {
 				return new Label(
 					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
+					description,
 					new SpriteSheetImage(`item_${key}`),
 					new Button({
 						content: `Buy ($${price})`,

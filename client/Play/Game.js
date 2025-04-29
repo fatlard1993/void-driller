@@ -12,7 +12,7 @@ import { move as movePlayer } from '../api';
 import socket, { onMessage } from '../socket';
 import gameContext from './gameContext';
 import GameScene from './GameScene';
-import { Drill, Lava, Gas } from './GameObjects';
+import { Drill, Lava, Gas, Ground } from './GameObjects';
 import ConsoleDialog from './ConsoleDialog';
 
 export default class Game extends (styled.Component`
@@ -258,6 +258,80 @@ export default class Game extends (styled.Component`
 					);
 
 					gameContext.spaceco.dialog.options.view = 'success';
+				} else if (data.update === 'useItem') {
+					console.log('useItem', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					if (data.item === 'teleporter') {
+						gameContext.players.get(data.playerId).sprite.teleport(data.updates.position, 1000);
+					} else if (data.item === 'repair_nanites') {
+						[...Array(randInt(2, 40))].forEach((_, index) =>
+							setTimeout(
+								() => gameContext.sounds.heal.play({ volume: gameContext.volume.effects }),
+								index * randInt(40, 70),
+							),
+						);
+						const player = gameContext.players.get(data.playerId);
+
+						player.sprite.move(player.position, 0, player.orientation);
+					} else if (data.item === 'timed_charge') {
+						const player = gameContext.players.get(data.playerId);
+
+						const delta = {
+							x: data.position.x - player.position.x,
+							y: data.position.y - player.position.y,
+						};
+						gameContext.scene.cameras.main.shake(
+							1000,
+							convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
+						);
+						gameContext.scene.cameras.main.flash(600);
+						gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
+
+						getSurroundingRadius(data.position, 3).forEach(({ x, y }) => {
+							const gridConfig = gameContext.serverState.world.grid[x][y];
+							if (gridConfig.ground.sprite?.scene) gridConfig.ground.sprite.dig();
+
+							gameContext.serverState.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+						});
+					} else if (data.item === 'timed_freeze_charge') {
+						const player = gameContext.players.get(data.playerId);
+
+						const delta = {
+							x: data.position.x - player.position.x,
+							y: data.position.y - player.position.y,
+						};
+						gameContext.scene.cameras.main.shake(
+							1000,
+							convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
+						);
+						gameContext.scene.cameras.main.flash(600);
+						gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
+
+						getSurroundingRadius(data.position, 3).forEach(({ x, y }) => {
+							if (
+								!this.world.grid[x]?.[y] ||
+								this.world.grid[x][y].ground?.type ||
+								!this.world.grid[x][y].hazards.length
+							) {
+								return;
+							}
+
+							this.world.grid[x][y].hazards = [];
+							this.world.grid[x][y].ground = { type: 'white' };
+
+							gameContext.serverState.world.grid[x][y].ground.sprite = new Ground(this, x, y, 'white');
+							gameContext.sceneLayers.ground.add(gameContext.serverState.world.grid[x][y].ground.sprite);
+						});
+					} else {
+						console.warn(`unknown item ${data.item}`);
+					}
+				} else if (data.update === 'spacecoFall') {
+					console.log('spacecoFall', data);
+					gameContext.serverState.world.spaceco.position = data.position;
+					gameContext.serverState.world.spaceco.health = data.health;
+
+					gameContext.spaceco.fall(data.position);
 				} else if (data.update === 'updatePlayer') {
 					console.log('sync player', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
