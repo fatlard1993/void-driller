@@ -28,7 +28,20 @@ const sounds = [
 
 export default class GameScene extends Phaser.Scene {
 	preload() {
-		this.load.atlas('map', 'img/map.png', 'img/map.json');
+		this.load.spritesheet('drills', 'img/drills.png', { frameWidth: 30, frameHeight: 56 });
+		this.load.spritesheet('spaceco', 'img/spaceco.png', { frameWidth: 192, frameHeight: 192 });
+
+		this.load.spritesheet('vehicles', 'img/vehicles.png', { frameWidth: 64, frameHeight: 64 });
+		this.load.spritesheet('teleport', 'img/teleport.png', { frameWidth: 64, frameHeight: 64 });
+		this.load.spritesheet('items', 'img/items.png', { frameWidth: 64, frameHeight: 64 });
+		this.load.spritesheet('monsters', 'img/monsters.png', { frameWidth: 64, frameHeight: 64 });
+		this.load.spritesheet('fogs', 'img/fogs.png', { frameWidth: 64, frameHeight: 64 });
+		this.load.spritesheet('ground', 'img/ground.png', { frameWidth: 64, frameHeight: 64 });
+		this.load.spritesheet('lava', 'img/lava.png', { frameWidth: 64, frameHeight: 64 });
+		this.load.spritesheet('crack', 'img/crack.png', { frameWidth: 64, frameHeight: 64 });
+
+		this.load.spritesheet('icons', 'img/icons.png', { frameWidth: 32, frameHeight: 32 });
+		this.load.spritesheet('minerals', 'img/minerals.png', { frameWidth: 32, frameHeight: 32 });
 
 		sounds.forEach(sound => this.load.audio(sound, `audio/${sound}.wav`));
 

@@ -1,4 +1,4 @@
-import { Dialog, Label, Button, Elem, capitalize } from 'vanilla-bean-components';
+import { Dialog, Label, Button, Elem, capitalize, theme } from 'vanilla-bean-components';
 
 import SpriteSheetImage from '../shared/SpriteSheetImage';
 import { spacecoBuyItem, spacecoBuyUpgrade, spacecoRefuel, spacecoRepair, spacecoSell } from '../api';
@@ -9,26 +9,17 @@ export default class SpacecoDialog extends Dialog {
 		super({
 			size: 'standard',
 			header: 'Spaceco',
-			buttons: ['Sell', 'Refuel', 'Repair', 'Upgrade', 'Shop', 'Close'],
-			view: 'Sell',
-			onButtonPress: ({ button }) => {
-				if (this[`render_${button.toLowerCase()}`]) {
-					this._body.empty();
+			buttons: ['Close'],
+			view: gameContext.serverState.world.spaceco.health > 0 ? 'Sell' : 'destroyed',
+			onButtonPress: () => {
+				const player = gameContext.players.get(gameContext.playerId);
 
-					this.renderPlayerInfo();
-					this[`render_${button.toLowerCase()}`]();
-				} else {
-					const player = gameContext.players.get(gameContext.playerId);
+				player.sprite.move(player.position, 0, player.orientation);
 
-					player.sprite.move(player.position, 0, player.orientation);
-
-					this.close();
-				}
+				this.close();
 			},
 			...options,
 		});
-
-		console.log(gameContext.serverState.world.spaceco);
 
 		gameContext.sounds.alert2.play({ volume: gameContext.volume.alerts });
 	}
@@ -39,9 +30,47 @@ export default class SpacecoDialog extends Dialog {
 		this._body.append(new Label('Credits', `$${player.credits.toFixed(2)}`));
 	}
 
-	render_sell() {
-		this.options.header = 'Spaceco | Sell';
+	renderMenu() {
+		if (this.options.view === 'destroyed') return;
 
+		new Elem(
+			{ style: { display: 'flex', flexWrap: 'wrap-reverse', gap: '6px', margin: '6px' }, appendTo: this._body },
+			['Sell', 'Refuel', 'Repair', 'Upgrade', 'Shop'].map(
+				view =>
+					new Button({
+						content: view,
+						style: { flex: '1' },
+						onPointerPress: () => {
+							this.options.view = view;
+						},
+						disabled: this.options.view === view,
+					}),
+			),
+		);
+	}
+
+	render_destroyed() {
+		new Elem({
+			tag: 'p',
+			content:
+				'This Spaceco outpost is nearly destroyed, it needs to be repaired before its regular services are available again.',
+			appendTo: this._body,
+		});
+
+		const player = gameContext.players.get(gameContext.playerId);
+
+		const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
+
+		new Button({
+			content: `Full Repair ($${spacecoRepairCost})`,
+			appendTo: this._body,
+			onPointerPress: () =>
+				spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'outpost' }),
+			disabled: spacecoRepairCost > player.credits,
+		});
+	}
+
+	render_sell() {
 		const player = gameContext.players.get(gameContext.playerId);
 
 		if (Object.keys(player.hull).length === 0) {
@@ -64,18 +93,6 @@ export default class SpacecoDialog extends Dialog {
 			Object.entries(player.hull).map(([key, count]) => {
 				let price;
 
-				console.log(
-					`Old price: ${Math.max(0.01, gameContext.serverState.world.densities[key.replace('mineral_', '')] / 800) * count}`,
-					`\nSpaceco has: ${gameContext.serverState.world.spaceco.hull?.[key]}`,
-					`\nNew price: ${
-						Math.max(
-							0.01,
-							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
-								(800 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
-						) * count
-					}`,
-				);
-
 				if (key.startsWith('mineral')) {
 					price =
 						Math.max(
@@ -93,13 +110,26 @@ export default class SpacecoDialog extends Dialog {
 
 				credits += price;
 
+				const mineralColorIndex = {
+					teal: 0,
+					blue: 1,
+					red: 2,
+					purple: 3,
+					pink: 4,
+					orange: 5,
+					green: 6,
+					yellow: 7,
+					black: 8,
+					white: 9,
+				};
+
 				return new Label(
 					{
-						label: `${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
+						label: `${key.startsWith('mineral') ? 'Concentrated ' : ''}${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
 						style: { width: 'auto' },
 					},
 					`x${count.toString()} = $${price.toFixed(2)}`,
-					new SpriteSheetImage(key.startsWith('mineral') ? key : `ground_${key}`),
+					new SpriteSheetImage('img/minerals.png', mineralColorIndex[key.replace('mineral_', '')], 32, 32),
 				);
 			}),
 		);
@@ -108,12 +138,10 @@ export default class SpacecoDialog extends Dialog {
 	}
 
 	render_success() {
-		this._body.append(new Elem({ tag: 'p', content: 'Thank you' }));
+		new Elem({ tag: 'p', content: 'Thank you', appendTo: this._body });
 	}
 
 	render_upgrade() {
-		this.options.header = 'Spaceco | Upgrade';
-
 		const player = gameContext.players.get(gameContext.playerId);
 
 		new Elem(
@@ -137,8 +165,6 @@ export default class SpacecoDialog extends Dialog {
 	}
 
 	render_refuel() {
-		this.options.header = 'Spaceco | Refuel';
-
 		const player = gameContext.players.get(gameContext.playerId);
 		const pricePerLiter = 0.9;
 		const neededFuel = player.maxFuel - player.fuel;
@@ -151,7 +177,7 @@ export default class SpacecoDialog extends Dialog {
 		}
 
 		this._body.append(
-			new Label('Fuel Type', new SpriteSheetImage('item_gas')),
+			new Label('Fuel Type: Oil', new SpriteSheetImage('img/items.png', 6, 64, 64)),
 			new Button({
 				content: `Fill ($${cost.toFixed(2)})`,
 				onPointerPress: () => spacecoRefuel({ gameId: gameContext.serverState.id, playerId: gameContext.playerId }),
@@ -187,7 +213,8 @@ export default class SpacecoDialog extends Dialog {
 	}
 
 	render_repair() {
-		this.options.header = 'Spaceco | Repair';
+		const playerRepairs = new Label('Repair your Drill');
+		const spacecoRepairs = new Label('Repair Spaceco Outpost');
 
 		const player = gameContext.players.get(gameContext.playerId);
 
@@ -196,33 +223,64 @@ export default class SpacecoDialog extends Dialog {
 		const cost = neededHealth * pricePerHealth;
 
 		if (neededHealth === 0) {
-			this._body.append(new Elem({ tag: 'p', content: `You're in good shape` }));
-
-			return;
+			new Elem({ tag: 'p', content: `You're in good shape`, appendTo: playerRepairs });
+		} else {
+			new Button({
+				textContent: `Full Repair ($${cost.toFixed(2)})`,
+				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
+				appendTo: playerRepairs,
+				onPointerPress: () =>
+					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'player' }),
+				disabled: cost > player.credits,
+			});
 		}
 
-		this._body.append(
-			new SpriteSheetImage('item_repair_nanites'),
+		if (gameContext.serverState.world.spaceco.health >= 9) {
+			new Elem({ tag: 'p', content: `This outpost is in good shape`, appendTo: spacecoRepairs });
+		} else {
+			const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
+
 			new Button({
-				content: `Full Repair ($${cost.toFixed(2)})`,
-				onPointerPress: () => spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId }),
-				disabled: cost > player.credits,
-			}),
-		);
+				textContent: `Full Repair ($${spacecoRepairCost})`,
+				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
+				appendTo: spacecoRepairs,
+				onPointerPress: () =>
+					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'outpost' }),
+				disabled: spacecoRepairCost > player.credits,
+			});
+		}
+
+		this._body.append(playerRepairs, spacecoRepairs);
 	}
 
 	render_shop() {
-		this.options.header = 'Spaceco | Shop';
-
 		const player = gameContext.players.get(gameContext.playerId);
+
+		const itemIndex = {
+			repair_nanites: 0,
+			teleporter: 1,
+			responder: 3,
+			responder_teleporter: 5,
+			gas: 6,
+			timed_charge: 7,
+			remote_charge: 8,
+		};
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
 			Object.entries(gameContext.serverState.world.spaceco.items).map(([key, { price, description }]) => {
 				return new Label(
-					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
-					description,
-					new SpriteSheetImage(`item_${key}`),
+					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'clamp(130px, 27%, 300px)' } },
+					new Elem({
+						tag: 'p',
+						content: description,
+						style: {
+							color: theme.colors.lighter(theme.colors.gray),
+							borderLeft: '3px solid',
+							paddingLeft: '6px',
+						},
+					}),
+					new SpriteSheetImage('img/items.png', itemIndex[key], 64, 64),
 					new Button({
 						content: `Buy ($${price})`,
 						onPointerPress: () =>
@@ -242,6 +300,7 @@ export default class SpacecoDialog extends Dialog {
 		if (key === 'view') {
 			this._body.empty();
 
+			this.renderMenu();
 			this.renderPlayerInfo();
 
 			this[`render_${value.toLowerCase()}`]();

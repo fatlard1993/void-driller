@@ -40,11 +40,11 @@ export const spacecoRefuel = async ({ gameId, playerId, amount }, options) =>
 		...options,
 	});
 
-export const spacecoRepair = async ({ gameId, playerId, amount }, options) =>
+export const spacecoRepair = async ({ gameId, playerId, amount, type }, options) =>
 	await POST('/games/:gameId/:playerId/spaceco/repair', {
 		invalidates: ['games'],
 		urlParameters: { gameId, playerId },
-		body: { amount },
+		body: { amount, type },
 		...options,
 	});
 

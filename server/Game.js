@@ -8,6 +8,7 @@ import {
 	weightedChance,
 	getSurroundingRadius,
 	getImmediateSurrounds,
+	hasFooting,
 } from '../utils';
 import worlds from '../worlds';
 import gamesDatabase from './database/games';
@@ -60,8 +61,8 @@ const items = {
 	repair_nanites: { price: 30, description: 'Repair yourself on the go' },
 	timed_charge: { price: 13, description: '3s delay 3 radius explosive charge' },
 	remote_charge: { price: 22, description: '5 radius explosive charge with a remote detonator' },
-	timed_freeze_charge: { price: 9, description: '3s delay 3 radius chem charge - Freezes gas/lava' },
-	remote_freeze_charge: { price: 16, description: '5 radius chem charge with a remote detonator - Freezes gas/lava' },
+	// timed_freeze_charge: { price: 9, description: '3s delay 3 radius chem charge - Freezes gas/lava' },
+	// remote_freeze_charge: { price: 16, description: '5 radius chem charge with a remote detonator - Freezes gas/lava' },
 };
 const itemNames = Object.keys(items);
 
@@ -118,6 +119,8 @@ export default class Game {
 
 	broadcast(key, data) {
 		socketBroadcast({ id: this.id, update: key, ...data });
+
+		this.save();
 	}
 
 	addPlayer(name) {
@@ -139,7 +142,7 @@ export default class Game {
 			cargo: 0,
 			health: 30,
 			fuel: 30,
-			credits: 0,
+			credits: 1000,
 		};
 
 		this.players.set(id, newPlayer);
@@ -147,8 +150,6 @@ export default class Game {
 		this.updatePlayerConfiguration(id);
 
 		this.broadcast('addPlayer', { newPlayer: this.players.get(id) });
-
-		this.save();
 
 		return newPlayer;
 	}
@@ -199,15 +200,20 @@ export default class Game {
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-		this.broadcast('spacecoSell', { playerId, updates, gain, spacecoHull: this.world.spaceco.hull });
-
 		this.updatePlayerCargo(playerId);
+
+		this.broadcast('spacecoSell', {
+			playerId,
+			updates: { ...updates, cargo: this.players.get(playerId).cargo },
+			gain,
+			spacecoHull: this.world.spaceco.hull,
+		});
 	}
 
 	spacecoRefuel(playerId, amount) {
 		const player = this.players.get(playerId);
 		const pricePerLiter = 0.9;
-		const purchasedFuel = amount ? amount / pricePerLiter : player.maxFuel;
+		const purchasedFuel = amount ? amount / pricePerLiter : player.maxFuel - player.fuel;
 		const cost = purchasedFuel * pricePerLiter;
 
 		const updates = { fuel: purchasedFuel, credits: player.credits - cost };
@@ -217,17 +223,31 @@ export default class Game {
 		this.broadcast('spacecoRefuel', { playerId, updates, purchasedFuel, cost });
 	}
 
-	spacecoRepair(playerId, amount) {
+	spacecoRepair(playerId, amount, type = 'player') {
 		const player = this.players.get(playerId);
-		const pricePerHealth = 1.3;
-		const purchasedRepairs = amount ? amount / pricePerHealth : player.maxHealth;
-		const cost = purchasedRepairs * pricePerHealth;
 
-		const updates = { health: purchasedRepairs, credits: player.credits - cost };
+		if (type === 'player') {
+			const pricePerHealth = 1.3;
+			const purchasedRepairs = amount ? amount / pricePerHealth : player.maxHealth - player.health;
+			const cost = purchasedRepairs * pricePerHealth;
 
-		this.players.update(playerId, _ => ({ ..._, ...updates }));
+			const updates = { health: purchasedRepairs, credits: player.credits - cost };
 
-		this.broadcast('spacecoRepair', { playerId, updates, purchasedRepairs, cost });
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			this.broadcast('spacecoRepair', { playerId, updates, purchasedRepairs, cost });
+		} else if (type === 'outpost') {
+			const purchasedRepairs = 9 - this.world.spaceco.health;
+			const cost = purchasedRepairs * 10;
+
+			this.world.spaceco.health = 9;
+
+			const updates = { credits: player.credits - cost };
+
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			this.broadcast('spacecoRepair', { playerId, updates, purchasedRepairs, cost, type });
+		}
 	}
 
 	spacecoBuyItem(playerId, item, count = 1) {
@@ -275,15 +295,31 @@ export default class Game {
 		} else if (item === 'timed_charge') {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			const bombPosition = { ...player.position };
+			const radius = 3;
 
 			// TODO update player & update world to show bomb
+			// this.broadcast('useItem', { playerId, updates, item, position: bombPosition });
 
 			setTimeout(() => {
-				getSurroundingRadius(bombPosition, 3).forEach(({ x, y }) => {
+				const playersToFall = [];
+
+				getSurroundingRadius(bombPosition, radius).forEach(({ x, y }) => {
 					if (this.world.grid[x]?.[y]) this.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+
+					if (this.world.spaceco.position.x === x && this.world.spaceco.position.y === y) {
+						this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
+					}
+
+					this.players.forEach(player => {
+						if (player.position.x === x && player.position.y === y) playersToFall.push(player.id);
+					});
 				});
 
-				this.broadcast('useItem', { playerId, updates, item, position: bombPosition });
+				this.broadcast('explodeBomb', { playerId, item, radius, position: bombPosition });
+
+				this.spacecoFall();
+
+				playersToFall.forEach(playerId => this.playerFall(playerId));
 			}, 3000);
 		} else if (item === 'timed_freeze_charge') {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
@@ -313,8 +349,6 @@ export default class Game {
 		this.players.delete(id);
 
 		this.broadcast('removePlayer', { id });
-
-		this.save();
 
 		return id;
 	}
@@ -483,6 +517,30 @@ export default class Game {
 						world.grid[x][y].items.push({ name: item });
 					}
 				}
+
+				if (
+					!world.grid[x][y].ground.type &&
+					world.grid[x][y].hazards.length === 0 &&
+					world.grid[x][y].items.length === 0
+				) {
+					if (
+						world.grid[x - 1]?.[y]?.hazards?.some(hazard => hazard.name === 'lava' || hazard.name.endsWith('gas')) ||
+						world.grid[x][y - 1]?.hazards?.some(hazard => hazard.name === 'lava' || hazard.name.endsWith('gas'))
+					) {
+						world.grid[x][y].hazards =
+							world.grid[x - 1]?.[y]?.hazards?.length > 0 ? world.grid[x - 1][y].hazards : world.grid[x][y - 1].hazards;
+					}
+				}
+
+				if (
+					world.grid[x][y].hazards.some(hazard => hazard.name === 'lava' || hazard.name.endsWith('gas')) &&
+					world.grid[x - 1]?.[y] &&
+					!world.grid[x - 1][y].ground.type &&
+					world.grid[x - 1][y].hazards.length === 0 &&
+					world.grid[x - 1][y].items.length === 0
+				) {
+					world.grid[x - 1][y].hazards = world.grid[x][y].hazards;
+				}
 			}
 		}
 
@@ -503,8 +561,6 @@ export default class Game {
 			);
 
 			this.broadcast('hurtPlayers', { players: [...this.players.values()], damage });
-
-			this.save();
 		}
 	}
 
@@ -725,6 +781,44 @@ export default class Game {
 		this.save();
 	}
 
+	spacecoFall(falling = false) {
+		const { bottomLeft, bottom, bottomRight } = getImmediateSurrounds(
+			this.world.spaceco.position,
+			['bottomLeft', 'bottom', 'bottomRight'],
+			this.world.grid,
+		);
+
+		if (!bottomLeft.ground.type && !bottom.ground.type && !bottomRight.ground.type) {
+			const landingPosition = { x: bottom.x, y: bottom.y };
+
+			this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
+			this.world.spaceco.position = landingPosition;
+
+			this.spacecoFall(true);
+		} else if (falling) {
+			this.broadcast('spacecoFall', { position: this.world.spaceco.position, health: this.world.spaceco.health });
+		}
+	}
+
+	playerFall(playerId, falling = false) {
+		const player = this.players.get(playerId);
+
+		const playerShouldFall = !hasFooting(player.position, this.world.grid);
+
+		if (playerShouldFall) {
+			const updates = {
+				position: { x: player.position.x, y: player.position.y + 1 },
+				health: Math.max(0, player.health - 3),
+			};
+
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			this.playerFall(playerId, true);
+		} else if (falling) {
+			this.broadcast('playerFall', { updates: { position: player.position, health: player.health } });
+		}
+	}
+
 	movePlayerStep(playerId, position) {
 		const player = this.players.get(playerId);
 		const surrounds = getImmediateSurrounds(position, ['left', 'right', 'bottom', 'top'], this.world.grid);
@@ -847,28 +941,11 @@ export default class Game {
 			});
 		}
 
-		//check if spaceco should fall
 		const isNearSpaceco = getSurroundingRadius(position, 2).some(
 			position => this.world.spaceco.position.x === position.x && this.world.spaceco.position.y === position.y,
 		);
-		if (isNearSpaceco) {
-			const { bottomLeft, bottom, bottomRight } = getImmediateSurrounds(
-				this.world.spaceco.position,
-				['bottomLeft', 'bottom', 'bottomRight'],
-				this.world.grid,
-			);
 
-			if (!bottomLeft.ground.type && !bottom.ground.type && !bottomRight.ground.type) {
-				console.log('FALL');
-
-				const landingPosition = { x: bottom.x, y: bottom.y };
-
-				this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
-				this.world.spaceco.position = landingPosition;
-
-				this.broadcast('spacecoFall', { position: landingPosition, health: this.world.spaceco.health });
-			}
-		}
+		if (isNearSpaceco) this.spacecoFall();
 	}
 
 	movePlayer(playerId, path) {
@@ -896,9 +973,5 @@ export default class Game {
 				this.save();
 			}
 		}, 500);
-	}
-
-	triggerEffect(playerId, effect, position) {
-		this.broadcast('triggerEffect', { playerId, effect, position });
 	}
 }

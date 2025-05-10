@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { gridToPxPosition } from '../../../utils';
+import { gridToPxPosition, shuffleArray } from '../../../utils';
 
 export class Gas extends Phaser.GameObjects.Sprite {
 	/**
@@ -12,16 +12,13 @@ export class Gas extends Phaser.GameObjects.Sprite {
 	 * @param { "fill" | "full" } subtype - The gas subtype
 	 */
 	constructor(scene, x, y, type = 'poisonous', subtype = 'fill') {
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'map', `${type}_gas_${subtype}1`);
-
-		this.setFlipY(true);
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'fogs', 0);
 
 		this.anims.create({
 			key: 'fill',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: `${type}_gas_fill`,
-				start: 1,
-				end: 3,
+			frames: this.anims.generateFrameNumbers('fogs', {
+				start: 7,
+				end: 4,
 			}),
 			frameRate: 1,
 			repeat: 0,
@@ -33,21 +30,18 @@ export class Gas extends Phaser.GameObjects.Sprite {
 
 		this.anims.create({
 			key: 'full',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: `${type}_gas_full`,
-				start: 1,
-				end: 3,
+			frames: this.anims.generateFrameNumbers('fogs', {
+				frames: shuffleArray([0, 1, 2, 3])
 			}),
-			frameRate: 3,
+			frameRate: 0.5,
 			repeat: -1,
 		});
 
 		this.anims.create({
 			key: 'dissipate',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: `${type}_gas_fill`,
-				start: 3,
-				end: 1,
+			frames: this.anims.generateFrameNumbers('fogs', {
+				start: 4,
+				end: 7,
 			}),
 			frameRate: 1,
 			repeat: 0,
@@ -71,8 +65,6 @@ export class Gas extends Phaser.GameObjects.Sprite {
 	}
 
 	dissipate() {
-		this.anims.stop();
-		this.setFlipY(false);
 		this.anims.play('dissipate');
 	}
 }

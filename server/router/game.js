@@ -114,13 +114,13 @@ const _game = async request => {
 	if (match) {
 		const body = await request.json();
 		const { gameId, playerId } = match;
-		const { amount } = body;
+		const { amount, type } = body;
 
 		if (!playerId || !games[gameId]?.players?.has(playerId)) {
 			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
 		}
 
-		games[gameId].spacecoRepair(playerId, amount);
+		games[gameId].spacecoRepair(playerId, amount, type);
 
 		return Response.json({}, { status: 200 });
 	}
