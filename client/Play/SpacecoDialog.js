@@ -141,7 +141,7 @@ export default class SpacecoDialog extends Dialog {
 		new Elem({ tag: 'p', content: 'Thank you', appendTo: this._body });
 	}
 
-	render_upgrade() {
+	render_upgrade_old() {
 		const player = gameContext.players.get(gameContext.playerId);
 
 		new Elem(
@@ -157,6 +157,95 @@ export default class SpacecoDialog extends Dialog {
 								playerId: gameContext.playerId,
 								upgrade: key,
 							}),
+						disabled: price > player.credits,
+					}),
+				);
+			}),
+		);
+	}
+
+	render_upgrade() {
+		const player = gameContext.players.get(gameContext.playerId);
+
+		const drills = [
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+		];
+
+		const vehicles = [
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+			{ name: '', price: 0, description: '' },
+		];
+
+		new Elem(
+			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+			drills.map(({ name, price, description }, index) => {
+				return new Label(
+					{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+					new Elem({
+						tag: 'p',
+						content: description,
+						style: {
+							color: theme.colors.lighter(theme.colors.gray),
+							borderLeft: '3px solid',
+							paddingLeft: '6px',
+						},
+					}),
+					new SpriteSheetImage('img/drills.png', index, 30, 56),
+					new Button({
+						content: `Buy ($${price})`,
+						onPointerPress: () => {
+							const player = gameContext.players.get(gameContext.playerId);
+
+							player.sprite.drill.setTexture('drills', index);
+						},
+						disabled: price > player.credits,
+					}),
+				);
+			}),
+			vehicles.map(({ name, price, description }, index) => {
+				return new Label(
+					{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+					new Elem({
+						tag: 'p',
+						content: description,
+						style: {
+							color: theme.colors.lighter(theme.colors.gray),
+							borderLeft: '3px solid',
+							paddingLeft: '6px',
+						},
+					}),
+					new SpriteSheetImage('img/vehicles.png', index, 64, 64),
+					new Button({
+						content: `Buy ($${price})`,
+						onPointerPress: () => {
+							const player = gameContext.players.get(gameContext.playerId);
+
+							player.sprite.setTexture('vehicles', index);
+						},
 						disabled: price > player.credits,
 					}),
 				);
@@ -227,7 +316,10 @@ export default class SpacecoDialog extends Dialog {
 		} else {
 			new Button({
 				textContent: `Full Repair ($${cost.toFixed(2)})`,
-				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
+				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, {
+					display: 'inline-block',
+					margin: '-5px 0 -10px -10px',
+				}),
 				appendTo: playerRepairs,
 				onPointerPress: () =>
 					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'player' }),
@@ -242,7 +334,10 @@ export default class SpacecoDialog extends Dialog {
 
 			new Button({
 				textContent: `Full Repair ($${spacecoRepairCost})`,
-				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
+				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, {
+					display: 'inline-block',
+					margin: '-5px 0 -10px -10px',
+				}),
 				appendTo: spacecoRepairs,
 				onPointerPress: () =>
 					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'outpost' }),
