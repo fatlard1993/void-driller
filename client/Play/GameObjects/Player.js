@@ -9,8 +9,8 @@ export class Player extends Drill {
 	constructor(scene, x, y, orientation) {
 		super(scene, x, y, orientation);
 
-		this.healthBarIcon = scene.add.image(0, 0, 'map', 'item_repair_nanites');
-		this.healthBarIcon.setScale(0.7);
+		this.healthBarIcon = scene.add.image(0, 0, 'icons', 1);
+		this.healthBarIcon.setScale(0.9);
 		this.healthBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
 		this.healthBar = scene.add.rectangle(
 			0,
@@ -20,8 +20,8 @@ export class Player extends Drill {
 			Phaser.Display.Color.ValueToColor(theme.colors.red.toRgbString()).color,
 		);
 
-		this.fuelBarIcon = scene.add.image(0, 0, 'map', 'item_gas');
-		this.fuelBarIcon.setScale(0.7);
+		this.fuelBarIcon = scene.add.image(0, 0, 'icons', 0);
+		this.fuelBarIcon.setScale(0.8);
 		this.fuelBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
 		this.fuelBar = scene.add.rectangle(
 			0,
@@ -29,6 +29,16 @@ export class Player extends Drill {
 			100,
 			3,
 			Phaser.Display.Color.ValueToColor(theme.colors.yellow.toRgbString()).color,
+		);
+
+		this.cargoBarIcon = scene.add.image(0, 0, 'icons', 2);
+		this.cargoBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
+		this.cargoBar = scene.add.rectangle(
+			0,
+			0,
+			100,
+			3,
+			Phaser.Display.Color.ValueToColor(theme.colors.blue.toRgbString()).color,
 		);
 
 		this.showStatusBars(false);
@@ -40,6 +50,9 @@ export class Player extends Drill {
 		gameContext.sceneLayers.interfaces.add(this.fuelBarIcon);
 		gameContext.sceneLayers.interfaces.add(this.fuelBarFrame);
 		gameContext.sceneLayers.interfaces.add(this.fuelBar);
+		gameContext.sceneLayers.interfaces.add(this.cargoBarIcon);
+		gameContext.sceneLayers.interfaces.add(this.cargoBarFrame);
+		gameContext.sceneLayers.interfaces.add(this.cargoBar);
 
 		this.move({ x, y }, 0, orientation);
 
@@ -53,6 +66,9 @@ export class Player extends Drill {
 		this.fuelBarIcon.visible = show;
 		this.fuelBarFrame.visible = show;
 		this.fuelBar.visible = show;
+		this.cargoBarIcon.visible = show;
+		this.cargoBarFrame.visible = show;
+		this.cargoBar.visible = show;
 	}
 
 	updateStatusBars({ position, speed = 0 } = {}) {
@@ -61,6 +77,7 @@ export class Player extends Drill {
 		if (player) {
 			this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [1, 100]);
 			this.fuelBar.width = convertRange(player.fuel, [0, player.maxFuel], [1, 100]);
+			this.cargoBar.width = convertRange(player.cargo, [0, player.maxCargo], [1, 100]);
 		}
 
 		this.showStatusBars(!!player);
@@ -73,10 +90,10 @@ export class Player extends Drill {
 			if (this.healthBar.visible) {
 				this.scene.tweens.add({ targets: this.healthBar, duration: speed, x: x, y: y - 40 });
 				this.scene.tweens.add({ targets: this.healthBarFrame, duration: speed, x: x, y: y - 40 });
-				this.scene.tweens.add({ targets: this.healthBarIcon, duration: speed, x: x - 70, y: y - 35 });
+				this.scene.tweens.add({ targets: this.healthBarIcon, duration: speed, x: x - 70, y: y - 40 });
 			} else {
 				this.healthBarIcon.x = x - 70;
-				this.healthBarIcon.y = y - 35;
+				this.healthBarIcon.y = y - 40;
 
 				this.healthBar.x = x;
 				this.healthBar.y = y - 40;
@@ -88,16 +105,31 @@ export class Player extends Drill {
 			if (this.fuelBar.visible) {
 				this.scene.tweens.add({ targets: this.fuelBar, duration: speed, x, y: y - 50 });
 				this.scene.tweens.add({ targets: this.fuelBarFrame, duration: speed, x, y: y - 50 });
-				this.scene.tweens.add({ targets: this.fuelBarIcon, duration: speed, x: x - 70, y: y - 55 });
+				this.scene.tweens.add({ targets: this.fuelBarIcon, duration: speed, x: x + 70, y: y - 50 });
 			} else {
-				this.fuelBarIcon.x = x - 70;
-				this.fuelBarIcon.y = y - 55;
+				this.fuelBarIcon.x = x + 70;
+				this.fuelBarIcon.y = y - 50;
 
 				this.fuelBar.x = x;
 				this.fuelBar.y = y - 50;
 
 				this.fuelBarFrame.x = x;
 				this.fuelBarFrame.y = y - 50;
+			}
+
+			if (this.cargoBar.visible) {
+				this.scene.tweens.add({ targets: this.cargoBar, duration: speed, x, y: y - 60 });
+				this.scene.tweens.add({ targets: this.cargoBarFrame, duration: speed, x, y: y - 60 });
+				this.scene.tweens.add({ targets: this.cargoBarIcon, duration: speed, x: x - 70, y: y - 60 });
+			} else {
+				this.cargoBarIcon.x = x - 70;
+				this.cargoBarIcon.y = y - 60;
+
+				this.cargoBar.x = x;
+				this.cargoBar.y = y - 60;
+
+				this.cargoBarFrame.x = x;
+				this.cargoBarFrame.y = y - 60;
 			}
 		}
 	}
@@ -120,5 +152,11 @@ export class Player extends Drill {
 		super.teleport(position, speed);
 
 		this.updateStatusBars({ position, speed });
+	}
+
+	fall(position, speed) {
+		super.fall(position, speed);
+
+		this.showStatusBars(false);
 	}
 }

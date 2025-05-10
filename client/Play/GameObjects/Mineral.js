@@ -13,11 +13,24 @@ export class Mineral extends Phaser.GameObjects.Image {
 	 * @param {object} origin - The x/y origin (randomized if undefined)
 	 */
 	constructor(scene, x, y, name, origin) {
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'map', `mineral_${name}`);
+		const mineralColorIndex = {
+			teal: 0,
+			blue: 1,
+			red: 2,
+			purple: 3,
+			pink: 4,
+			orange: 5,
+			green: 6,
+			yellow: 7,
+			black: 8,
+			white: 9,
+		};
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'minerals', mineralColorIndex[name] * 6 + randInt(0, 5));
 
 		this.name = name;
 
 		this.setOrigin(origin.x ?? rand(-0.3, 1.2), origin.y ?? rand(-0.3, 1.2));
+		this.setAlpha(0.9);
 		this.setScale(rand(0.6, 0.8));
 		this.setAngle(randInt(-33, 33));
 

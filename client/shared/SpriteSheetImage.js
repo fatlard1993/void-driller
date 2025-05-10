@@ -1,15 +1,13 @@
 import { Elem } from 'vanilla-bean-components';
 
-import imageMap from '../img/map.json';
-
 export default class SpriteSheetImage extends Elem {
-	constructor(key, style = {}) {
+	constructor(url, index, width = 32, height = 32, style = {}) {
 		super({
 			style: {
-				backgroundImage: 'url(/img/map.png)',
-				backgroundPosition: `-${imageMap.frames[key].frame.x}px -${imageMap.frames[key].frame.y}px`,
-				width: `${imageMap.frames[key].frame.w}px`,
-				height: `${imageMap.frames[key].frame.h}px`,
+				backgroundImage: `url(${url})`,
+				backgroundPosition: `-${index * width}px -${index * height}px`,
+				width: `${width}px`,
+				height: `${height}px`,
 				...style,
 			},
 		});

@@ -8,6 +8,7 @@ import {
 	Label,
 	Select,
 	Button,
+	randInt,
 } from 'vanilla-bean-components';
 
 import SpriteSheetImage from '../shared/SpriteSheetImage';
@@ -45,14 +46,14 @@ export default class ConsoleDialog extends Dialog {
 		super({
 			size: 'standard',
 			header: 'Console',
-			buttons: ['Cargo', 'Status', 'Items', 'Settings', 'Help', 'Close'],
+			buttons: ['Close'],
 			view: localStorage.getItem('console_defaultMenu') || 'Help',
-			onButtonPress: ({ button }) => {
-				if (this[`render_${button.toLowerCase()}`]) {
-					this._body.empty();
+			onButtonPress: () => {
+				const player = gameContext.players.get(gameContext.playerId);
 
-					this[`render_${button.toLowerCase()}`]();
-				} else this.close();
+				player.sprite.move(player.position, 0, player.orientation);
+
+				this.close();
 			},
 			...options,
 		});
@@ -60,9 +61,26 @@ export default class ConsoleDialog extends Dialog {
 		gameContext.sounds.alert2.play({ volume: gameContext.volume.alerts });
 	}
 
-	render_cargo() {
-		this.options.header = 'Console | Cargo';
+	renderMenu() {
+		if (this.options.view === 'destroyed') return;
 
+		new Elem(
+			{ style: { display: 'flex', flexWrap: 'wrap-reverse', gap: '6px', margin: '6px' }, appendTo: this._body },
+			['Cargo', 'Status', 'Items', 'Settings', 'Help'].map(
+				view =>
+					new Button({
+						content: view,
+						style: { flex: '1' },
+						onPointerPress: () => {
+							this.options.view = view;
+						},
+						disabled: this.options.view === view,
+					}),
+			),
+		);
+	}
+
+	render_cargo() {
 		const player = gameContext.players.get(gameContext.playerId);
 
 		new Elem(
@@ -85,24 +103,36 @@ export default class ConsoleDialog extends Dialog {
 								(1600 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 
+				const mineralColorIndex = {
+					teal: 0,
+					blue: 1,
+					red: 2,
+					purple: 3,
+					pink: 4,
+					orange: 5,
+					green: 6,
+					yellow: 7,
+					black: 8,
+					white: 9,
+				};
+
 				return new Label(
 					{
-						label: `${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
+						label: `${key.startsWith('mineral') ? 'Concentrated ' : ''}${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
 						style: { width: 'auto' },
 					},
 					`x${count.toString()} = $${price.toFixed(2)}`,
-					new SpriteSheetImage(key.startsWith('mineral') ? key : `ground_${key}`),
+					new SpriteSheetImage('img/minerals.png', mineralColorIndex[key.replace('mineral_', '')], 32, 32),
 				);
 			}),
 		);
 	}
 
 	render_status() {
-		this.options.header = 'Console | Status';
-
 		const player = gameContext.players.get(gameContext.playerId);
 
 		this._body.append(
+			new Label('Position', `X: ${player.position.x} | Y: ${player.position.y}`),
 			new Label('Credits', `$${player.credits.toFixed(2)}`),
 			new Label('Health', `${convertRange(player.health, [0, player.maxHealth], [0, 100]).toFixed(1)}%`),
 			new Label(
@@ -115,7 +145,8 @@ export default class ConsoleDialog extends Dialog {
 			),
 			new Label(
 				'Configuration',
-				new SpriteSheetImage('drill_move1'),
+				new SpriteSheetImage('img/vehicles.png', randInt(0, 12), 128, 128),
+				new SpriteSheetImage('img/drills.png', randInt(0, 12), 30, 56),
 				Object.entries(player.configuration).flatMap(([key, value]) =>
 					typeof value === 'object' ? [] : [new Label(key, value.toString())],
 				),
@@ -124,8 +155,6 @@ export default class ConsoleDialog extends Dialog {
 	}
 
 	render_items() {
-		this.options.header = 'Console | Items';
-
 		const player = gameContext.players.get(gameContext.playerId);
 
 		new Elem(
@@ -133,11 +162,21 @@ export default class ConsoleDialog extends Dialog {
 			Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
+				const itemIndex = {
+					repair_nanites: 0,
+					teleporter: 1,
+					responder: 3,
+					responder_teleporter: 5,
+					gas: 6,
+					timed_charge: 7,
+					remote_charge: 8,
+				};
+
 				return [
 					new Label(
 						{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
 						`x${count.toString()}`,
-						new SpriteSheetImage(`item_${key}`),
+						new SpriteSheetImage('img/items.png', itemIndex[key], 64, 64),
 						new Button({
 							content: 'Use',
 							onPointerPress: () => {
@@ -153,8 +192,6 @@ export default class ConsoleDialog extends Dialog {
 	}
 
 	render_settings() {
-		this.options.header = 'Console | Settings';
-
 		this._body.append(
 			new VolumeControl({ key: 'music' }),
 			new VolumeControl({ key: 'alerts' }),
@@ -172,8 +209,6 @@ export default class ConsoleDialog extends Dialog {
 	}
 
 	render_help() {
-		this.options.header = 'Console | Help';
-
 		this._body.append(
 			new Elem({ tag: 'p', content: 'Use your pointer to drag a path for your drill.' }),
 			new Elem({
@@ -184,7 +219,10 @@ export default class ConsoleDialog extends Dialog {
 				tag: 'p',
 				content: `Don't run out of fuel, watch your gauge carefully to avoid passing the point of no return.`,
 			}),
-			new Elem({ tag: 'p', content: 'Use your earned credits to; make repairs, buy more fuel, teleporters, bombs, and upgrade your drill.' }),
+			new Elem({
+				tag: 'p',
+				content: 'Use your earned credits to; make repairs, buy more fuel, teleporters, bombs, and upgrade your drill.',
+			}),
 			new Elem({
 				tag: 'p',
 				content: 'Configure your default menu (in settings) to skip opening the console when you join.',
@@ -193,7 +231,12 @@ export default class ConsoleDialog extends Dialog {
 	}
 
 	_setOption(key, value) {
-		if (key === 'view') this[`render_${value.toLowerCase()}`]();
-		else super._setOption(key, value);
+		if (key === 'view') {
+			this._body.empty();
+
+			this.renderMenu();
+
+			this[`render_${value.toLowerCase()}`]();
+		} else super._setOption(key, value);
 	}
 }

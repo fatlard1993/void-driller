@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { gridToPxPosition } from '../../../utils';
+import { gridToPxPosition, randInt } from '../../../utils';
 
 export class Lava extends Phaser.GameObjects.Sprite {
 	/**
@@ -11,16 +11,15 @@ export class Lava extends Phaser.GameObjects.Sprite {
 	 * @param { "fill" | "full" } type - The lava type
 	 */
 	constructor(scene, x, y, type = 'fill') {
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'map', `lava_${type}1`);
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'lava', 0);
 
 		this.anims.create({
 			key: 'fill',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: 'lava_fill',
-				start: 1,
-				end: 3,
+			frames: this.anims.generateFrameNumbers('lava', {
+				start: 11,
+				end: 6,
 			}),
-			frameRate: 1,
+			frameRate: 3,
 			repeat: 0,
 		});
 
@@ -30,23 +29,21 @@ export class Lava extends Phaser.GameObjects.Sprite {
 
 		this.anims.create({
 			key: 'full',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: 'lava_full',
-				start: 1,
-				end: 3,
+			frames: this.anims.generateFrameNumbers('lava', {
+				start: 0,
+				end: 5,
 			}),
-			frameRate: 3,
+			frameRate: 9,
 			repeat: -1,
 		});
 
 		this.anims.create({
 			key: 'dissipate',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: 'lava_fill',
-				start: 3,
-				end: 1,
+			frames: this.anims.generateFrameNumbers('lava', {
+				start: 6,
+				end: 11,
 			}),
-			frameRate: 1,
+			frameRate: 3,
 			repeat: 0,
 		});
 
@@ -68,8 +65,6 @@ export class Lava extends Phaser.GameObjects.Sprite {
 	}
 
 	dissipate() {
-		this.anims.stop();
-		this.setFlipY(true);
 		this.anims.play('dissipate');
 	}
 }

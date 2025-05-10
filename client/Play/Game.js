@@ -14,6 +14,7 @@ import gameContext from './gameContext';
 import GameScene from './GameScene';
 import { Drill, Lava, Gas, Ground } from './GameObjects';
 import ConsoleDialog from './ConsoleDialog';
+import { destroyGround, explode } from './effects';
 
 export default class Game extends (styled.Component`
 	background-image: url('img/background.svg');
@@ -64,7 +65,7 @@ export default class Game extends (styled.Component`
 
 					const gridConfig = gameContext.serverState.world.grid[player.position.x][player.position.y];
 
-					if (gridConfig.ground.sprite?.scene) gridConfig.ground.sprite.dig();
+					destroyGround(player.position);
 
 					if (gridConfig.items.length) {
 						gridConfig.items.forEach(({ sprite }) => {
@@ -236,6 +237,11 @@ export default class Game extends (styled.Component`
 					);
 
 					gameContext.spaceco.dialog.options.view = 'success';
+
+					if (data.type === 'outpost') {
+						gameContext.serverState.world.spaceco.health = 9;
+						gameContext.spaceco.hurt();
+					}
 				} else if (data.update === 'spacecoBuyItem') {
 					console.log('spacecoBuyItem', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
@@ -246,6 +252,8 @@ export default class Game extends (styled.Component`
 							index * randInt(40, 70),
 						),
 					);
+
+					gameContext.spaceco.dialog.options.view = 'success';
 				} else if (data.update === 'spacecoBuyUpgrade') {
 					console.log('spacecoBuyUpgrade', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
@@ -291,6 +299,7 @@ export default class Game extends (styled.Component`
 						getSurroundingRadius(data.position, 3).forEach(({ x, y }) => {
 							const gridConfig = gameContext.serverState.world.grid[x][y];
 							if (gridConfig.ground.sprite?.scene) gridConfig.ground.sprite.dig();
+							[...gridConfig.items, ...gridConfig.hazards].forEach(one => one.sprite.destroy());
 
 							gameContext.serverState.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
 						});
@@ -332,48 +341,18 @@ export default class Game extends (styled.Component`
 					gameContext.serverState.world.spaceco.health = data.health;
 
 					gameContext.spaceco.fall(data.position);
+				} else if (data.update === 'playerFall') {
+					console.log('playerFall', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					gameContext.players.get(gameContext.playerId).sprite.fall(data.updates.position);
 				} else if (data.update === 'updatePlayer') {
 					console.log('sync player', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-				} else if (data.update === 'triggerEffect') {
-					const player = gameContext.players.get(data.playerId);
+				} else if (data.update === 'explodeBomb') {
+					console.log('explodeBomb', data);
 
-					const delta = {
-						x: data.position.x - player.position.x,
-						y: data.position.y - player.position.y,
-					};
-
-					if (data.effect === 'explosion') {
-						gameContext.scene.cameras.main.shake(
-							1000,
-							convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
-						);
-						gameContext.scene.cameras.main.flash(600);
-						gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
-
-						getSurroundingRadius(data.position, 3).forEach(({ x, y }) => {
-							const gridConfig = gameContext.serverState.world.grid[x][y];
-							if (gridConfig.ground.sprite?.scene) gridConfig.ground.sprite.dig();
-						});
-					} else if (data.effect === 'freeze') {
-						gameContext.scene.cameras.main.shake(
-							1000,
-							convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
-						);
-						gameContext.scene.cameras.main.flash(600);
-						gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
-
-						getSurroundingRadius(data.position, 3).forEach(({ x, y }) => {
-							gameContext.serverState.world.grid[x][y].hazards.forEach(({ name }) => {
-								if (name === 'lava') gameContext.serverState.world.grid[x][y].ground.type = 'white';
-							});
-						});
-					} else if (data.effect === 'teleport') {
-						player.sprite.teleport(
-							data.position,
-							Math.min(3000, Math.max(1000, Math.abs(delta.x) + Math.abs(delta.y) * 50)),
-						);
-					}
+					explode({ position: data.position, radius: data.radius });
 				}
 			}
 		});
@@ -389,8 +368,9 @@ export default class Game extends (styled.Component`
 
 		const path = [];
 		const move = [];
+		const maxPathLength = 20;
 		gameContext.cursor = gameContext.scene.add.rectangle(0, 0, 64, 64, 0xff0000);
-		gameContext.cursor.alpha = 0.5;
+		gameContext.cursor.alpha = 0.3;
 		gameContext.cursor.visible = false;
 		gameContext.sceneLayers.interfaces.add(gameContext.cursor);
 
@@ -448,7 +428,7 @@ export default class Game extends (styled.Component`
 			if (!hasFooting(gridPosition, gameContext.serverState.world.grid)) return;
 
 			path.push(gameContext.scene.add.rectangle(gridSnappedPxPosition.x, gridSnappedPxPosition.y, 64, 64, 0x00ff00));
-			path[path.length - 1].alpha = 0.8;
+			path[path.length - 1].alpha = 0.4;
 
 			move.push(gridPosition);
 		});
@@ -516,11 +496,11 @@ export default class Game extends (styled.Component`
 
 				// console.log('move OK', { gridPosition, delta, lastMove });
 
-				if (pointer.isDown && move.length < 10) {
+				if (pointer.isDown && move.length < maxPathLength) {
 					path.push(
 						gameContext.scene.add.rectangle(gridSnappedPxPosition.x, gridSnappedPxPosition.y, 64, 64, 0x00ff00),
 					);
-					path[path.length - 1].alpha = 0.8;
+					path[path.length - 1].alpha = 0.4;
 
 					move.push(gridPosition);
 

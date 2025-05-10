@@ -34,10 +34,6 @@ module.exports = {
 		'gameout',
 		'wav',
 		'svg',
-		// Remove These:
-		'youve',
-		'pos',
-		'hud',
-		'inv',
+		'spritesheet',
 	],
 };

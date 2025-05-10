@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { gridToPxPosition } from '../../../utils';
+import { gridToPxPosition, randInt } from '../../../utils';
 
 export class Chomper extends Phaser.GameObjects.Sprite {
 	/**
@@ -11,37 +11,28 @@ export class Chomper extends Phaser.GameObjects.Sprite {
 	 * @param { "red" | "purple" } type - The monster type
 	 */
 	constructor(scene, x, y, type) {
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'map', `${type}_monster_sleep1`);
+		const monsterIndex = randInt(0, 14) * 8;
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'monsters', monsterIndex);
 
-		this.anims.create({
-			key: 'sleep',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: `${type}_monster_sleep`,
-				start: 1,
-				end: 3,
-			}),
-			frameRate: 2,
-			repeat: -1,
-		});
+		this.monsterIndex = monsterIndex;
 
 		this.anims.create({
 			key: 'awake',
-			frames: this.anims.generateFrameNames('map', {
-				prefix: `${type}_monster_awake`,
-				start: 1,
-				end: 3,
-			}),
-			frameRate: 12,
-			repeat: -1,
+			frames: this.anims.generateFrameNumbers('monsters', { start: monsterIndex, end: monsterIndex + 2 }),
+			duration: 500,
+			frameRate: 3,
+			repeat: 0,
 		});
 
 		scene.add.existing(this);
 
-		this.sleep();
+		// this.sleep();
 	}
 
 	sleep() {
-		this.anims.play('sleep');
+		// this.anims.play('sleep');
+		this.anims.stop();
+		this.setTexture(this.monsterIndex);
 	}
 
 	awake() {

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { gridToPxPosition } from '../../../utils';
+import { convertRange, gridToPxPosition, randInt } from '../../../utils';
 import SpacecoDialog from '../SpacecoDialog';
 import gameContext from '../gameContext';
 
@@ -12,15 +12,9 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 	 * @param {number} y - Grid y
 	 */
 	constructor(scene, x, y) {
-		super(
-			scene,
-			gridToPxPosition(x),
-			gridToPxPosition(y),
-			'map',
-			`spaceco_health${gameContext.serverState.world.spaceco.health}`,
-		);
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'spaceco', randInt(0, 2));
 
-		this.setOrigin(0.5, 0.65);
+		this.setOrigin(0.5, 0.82);
 
 		this.tradeButton = scene.add.text(0, 0, '[trade]');
 		this.tradeButton.visible = false;
@@ -44,13 +38,29 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 	}
 
 	hurt() {
-		console.log(`spaceco_health${gameContext.serverState.world.spaceco.health}`);
-		this.setTexture('map', `spaceco_health${gameContext.serverState.world.spaceco.health}`);
+		if (gameContext.serverState.world.spaceco.health === 0) {
+			const player = gameContext.players.get(gameContext.playerId);
 
-		gameContext.scene.sound.play('hurt', { volume: gameContext.volume.effects });
+			const delta = {
+				x: gameContext.serverState.world.spaceco.position.x - player.position.x,
+				y: gameContext.serverState.world.spaceco.position.y - player.position.y,
+			};
+
+			gameContext.scene.cameras.main.shake(
+				1000,
+				convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
+			);
+			gameContext.scene.cameras.main.flash(600);
+			gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
+			// this.destroy();
+		} else {
+			gameContext.scene.sound.play('hurt', { volume: gameContext.volume.effects });
+		}
 	}
 
 	fall(position, speed = 800) {
+		this.hidePrompt();
+
 		this.scene.tweens.add({
 			targets: this,
 			duration: speed,
@@ -67,7 +77,7 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 		if (this.tradeButton.visible) return;
 
 		this.tradeButton.x = this.x - 33;
-		this.tradeButton.y = this.y - 80;
+		this.tradeButton.y = this.y - 160;
 
 		this.tradeButton.visible = true;
 
