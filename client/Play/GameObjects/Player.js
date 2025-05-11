@@ -6,11 +6,10 @@ import gameContext from '../gameContext';
 import { Drill } from './Drill';
 
 export class Player extends Drill {
-	constructor(scene, x, y, orientation) {
-		super(scene, x, y, orientation);
+	constructor(scene, x, y, orientation, vehicle, drill) {
+		super(scene, x, y, orientation, vehicle, drill);
 
 		this.healthBarIcon = scene.add.image(0, 0, 'icons', 1);
-		this.healthBarIcon.setScale(0.9);
 		this.healthBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
 		this.healthBar = scene.add.rectangle(
 			0,
@@ -21,7 +20,7 @@ export class Player extends Drill {
 		);
 
 		this.fuelBarIcon = scene.add.image(0, 0, 'icons', 0);
-		this.fuelBarIcon.setScale(0.8);
+		this.fuelBarIcon.setScale(0.9);
 		this.fuelBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
 		this.fuelBar = scene.add.rectangle(
 			0,
@@ -38,7 +37,7 @@ export class Player extends Drill {
 			0,
 			100,
 			3,
-			Phaser.Display.Color.ValueToColor(theme.colors.blue.toRgbString()).color,
+			Phaser.Display.Color.ValueToColor(theme.colors.dark(theme.colors.green).toRgbString()).color,
 		);
 
 		this.showStatusBars(false);

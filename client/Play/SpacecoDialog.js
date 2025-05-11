@@ -98,14 +98,14 @@ export default class SpacecoDialog extends Dialog {
 						Math.max(
 							0.01,
 							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
-								(800 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
+								(500 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 				} else
 					price =
 						Math.max(
 							0.01,
 							gameContext.serverState.world.densities[key] /
-								(1600 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
+								(1000 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 
 				credits += price;
@@ -167,34 +167,7 @@ export default class SpacecoDialog extends Dialog {
 	render_upgrade() {
 		const player = gameContext.players.get(gameContext.playerId);
 
-		const drills = [
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-		];
-
-		const vehicles = [
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
-			{ name: '', price: 0, description: '' },
+		const spacecoVariants = [
 			{ name: '', price: 0, description: '' },
 			{ name: '', price: 0, description: '' },
 			{ name: '', price: 0, description: '' },
@@ -202,7 +175,65 @@ export default class SpacecoDialog extends Dialog {
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			drills.map(({ name, price, description }, index) => {
+			Object.entries(gameContext.serverState.world.drills).map(
+				([name, { price, description, spriteIndex, maxHealth, maxFuel }]) => {
+					return new Label(
+						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+						description && new Elem({
+							tag: 'p',
+							content: description,
+							style: {
+								color: theme.colors.lighter(theme.colors.gray),
+								borderLeft: '3px solid',
+								paddingLeft: '6px',
+							},
+						}),
+						new Elem({ tag: 'pre', content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}`, style: { margin: 0 } }),
+						new SpriteSheetImage('img/drills.png', spriteIndex, 30, 56),
+						new Button({
+							content: `Buy ($${price})`,
+							onPointerPress: () => {
+								const player = gameContext.players.get(gameContext.playerId);
+
+								player.sprite.drill.setTexture('drills', spriteIndex);
+							},
+							disabled: price > player.credits,
+						}),
+					);
+				},
+			),
+			Object.entries(gameContext.serverState.world.vehicles).map(
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, tracks }]) => {
+					return new Label(
+						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+						description && new Elem({
+							tag: 'p',
+							content: description,
+							style: {
+								color: theme.colors.lighter(theme.colors.gray),
+								borderLeft: '3px solid',
+								paddingLeft: '6px',
+							},
+						}),
+						new Elem({
+							tag: 'pre',
+							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nmaxCargo: +${maxCargo}\n${tracks ? 'tracks' : 'wheels'}`,
+							style: { margin: 0 },
+						}),
+						new SpriteSheetImage('img/vehicles.png', spriteIndex, 64, 64),
+						new Button({
+							content: `Buy ($${price})`,
+							onPointerPress: () => {
+								const player = gameContext.players.get(gameContext.playerId);
+
+								player.sprite.setTexture('vehicles', spriteIndex);
+							},
+							disabled: price > player.credits,
+						}),
+					);
+				},
+			),
+			spacecoVariants.map(({ name, price, description }, index) => {
 				return new Label(
 					{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
 					new Elem({
@@ -214,37 +245,11 @@ export default class SpacecoDialog extends Dialog {
 							paddingLeft: '6px',
 						},
 					}),
-					new SpriteSheetImage('img/drills.png', index, 30, 56),
+					new SpriteSheetImage('img/spaceco.png', index, 192, 192, { transform: 'scale(0.6) translate(-27%)' }),
 					new Button({
 						content: `Buy ($${price})`,
 						onPointerPress: () => {
-							const player = gameContext.players.get(gameContext.playerId);
-
-							player.sprite.drill.setTexture('drills', index);
-						},
-						disabled: price > player.credits,
-					}),
-				);
-			}),
-			vehicles.map(({ name, price, description }, index) => {
-				return new Label(
-					{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
-					new Elem({
-						tag: 'p',
-						content: description,
-						style: {
-							color: theme.colors.lighter(theme.colors.gray),
-							borderLeft: '3px solid',
-							paddingLeft: '6px',
-						},
-					}),
-					new SpriteSheetImage('img/vehicles.png', index, 64, 64),
-					new Button({
-						content: `Buy ($${price})`,
-						onPointerPress: () => {
-							const player = gameContext.players.get(gameContext.playerId);
-
-							player.sprite.setTexture('vehicles', index);
+							gameContext.spaceco.setTexture('spaceco', index);
 						},
 						disabled: price > player.credits,
 					}),

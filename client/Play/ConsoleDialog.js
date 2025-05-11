@@ -93,14 +93,14 @@ export default class ConsoleDialog extends Dialog {
 						Math.max(
 							0.01,
 							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
-								(800 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
+								(500 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 				} else
 					price =
 						Math.max(
 							0.01,
 							gameContext.serverState.world.densities[key] /
-								(1600 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
+								(1000 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 
 				const mineralColorIndex = {
@@ -130,6 +130,9 @@ export default class ConsoleDialog extends Dialog {
 
 	render_status() {
 		const player = gameContext.players.get(gameContext.playerId);
+		console.log(player);
+		const vehicleConfig = gameContext.serverState.world.vehicles[player.configuration.vehicle];
+		const drillConfig = gameContext.serverState.world.drills[player.configuration.drill];
 
 		this._body.append(
 			new Label('Position', `X: ${player.position.x} | Y: ${player.position.y}`),
@@ -145,11 +148,18 @@ export default class ConsoleDialog extends Dialog {
 			),
 			new Label(
 				'Configuration',
-				new SpriteSheetImage('img/vehicles.png', randInt(0, 12), 128, 128),
-				new SpriteSheetImage('img/drills.png', randInt(0, 12), 30, 56),
-				Object.entries(player.configuration).flatMap(([key, value]) =>
-					typeof value === 'object' ? [] : [new Label(key, value.toString())],
-				),
+				new SpriteSheetImage('img/vehicles.png', player.sprite.frame.name, 64, 64),
+				new Elem({
+					tag: 'pre',
+					content: `Vehicle: ${player.configuration.vehicle}\n\tmaxHealth: +${vehicleConfig.maxHealth}\n\tmaxFuel: +${vehicleConfig.maxFuel}\n\tmaxCargo: +${vehicleConfig.maxCargo}\n\t${vehicleConfig.tracks ? 'tracks' : 'wheels'}`,
+					style: { margin: 0 },
+				}),
+				new SpriteSheetImage('img/drills.png', player.sprite.drill.frame.name, 30, 56),
+				new Elem({
+					tag: 'pre',
+					content: `Drill: ${player.configuration.drill}\n\tmaxHealth: +${drillConfig.maxHealth}\n\tmaxFuel: +${drillConfig.maxFuel}`,
+					style: { margin: 0 },
+				}),
 			),
 		);
 	}

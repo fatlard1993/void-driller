@@ -66,6 +66,41 @@ const items = {
 };
 const itemNames = Object.keys(items);
 
+const vehicles = {
+	TY37: { price: 30, spriteIndex: 0, tracks: true, maxHealth: 5, maxFuel: 5, maxCargo: 20 },
+	T2B20: { price: 25, spriteIndex: 1, tracks: true, maxHealth: 15, maxFuel: 5, maxCargo: 5 },
+	WB70: { price: 40, spriteIndex: 2, wheels: true, maxHealth: 20, maxFuel: 10, maxCargo: 10 },
+	TB74: { price: 35, spriteIndex: 3, tracks: true, maxHealth: 20, maxFuel: 10, maxCargo: 5 },
+	WB20: { price: 35, spriteIndex: 4, wheels: true, maxHealth: 10, maxFuel: 20, maxCargo: 5 },
+	WY37: { price: 35, spriteIndex: 5, wheels: true, maxHealth: 5, maxFuel: 15, maxCargo: 15 },
+	TO24: { price: 60, spriteIndex: 6, tracks: true, maxHealth: 20, maxFuel: 20, maxCargo: 20 },
+	T2O24: { price: 30, spriteIndex: 7, tracks: true, maxHealth: 15, maxFuel: 10, maxCargo: 5 },
+	WY37C: { price: 40, spriteIndex: 8, wheels: true, maxHealth: 10, maxFuel: 10, maxCargo: 20 },
+	WB20F: { price: 40, spriteIndex: 9, wheels: true, maxHealth: 10, maxFuel: 20, maxCargo: 10 },
+	T2Y37: { price: 50, spriteIndex: 10, tracks: true, maxHealth: 20, maxFuel: 10, maxCargo: 20 },
+	WO24: { price: 30, spriteIndex: 11, wheels: true, maxHealth: 10, maxFuel: 10, maxCargo: 10 },
+	TB20: { price: 35, spriteIndex: 12, tracks: true, maxHealth: 10, maxFuel: 10, maxCargo: 15 },
+	TY37X: { price: 45, spriteIndex: 13, tracks: true, maxHealth: 15, maxFuel: 15, maxCargo: 15 },
+};
+const vehicleNames = Object.keys(vehicles);
+
+const drills = {
+	QTD5: { price: 20, spriteIndex: 0, maxHealth: 20, maxFuel: 0 },
+	T2Q5: { price: 17, spriteIndex: 1, maxHealth: 11, maxFuel: 6 },
+	M3: { price: 14, spriteIndex: 2, maxHealth: 7, maxFuel: 7 },
+	DT2: { price: 9, spriteIndex: 3, maxHealth: 5, maxFuel: 4 },
+	PD2: { price: 11, spriteIndex: 4, maxHealth: 5, maxFuel: 6 },
+	P2: { price: 14, spriteIndex: 5, maxHealth: 4, maxFuel: 10 },
+	EP4: { price: 15, spriteIndex: 6, maxHealth: 5, maxFuel: 10 },
+	T2E1: { price: 13, spriteIndex: 7, maxHealth: 6, maxFuel: 7 },
+	E4: { price: 8, spriteIndex: 8, maxHealth: 5, maxFuel: 3 },
+	EQ1: { price: 20, spriteIndex: 9, maxHealth: 10, maxFuel: 10 },
+	T2: { price: 14, spriteIndex: 10, maxHealth: 6, maxFuel: 8 },
+	T2M2: { price: 16, spriteIndex: 11, maxHealth: 9, maxFuel: 7 },
+	D3: { price: 12, spriteIndex: 12, maxHealth: 6, maxFuel: 6 },
+};
+const drillNames = Object.keys(drills);
+
 export const games = {};
 
 class Players extends Map {
@@ -125,31 +160,30 @@ export default class Game {
 
 	addPlayer(name) {
 		const id = simpleId();
-		const newPlayer = {
+		this.players.set(id, {
 			id,
 			name,
 			position: { x: randInt(1, this.world.width - 1), y: this.world.airGap },
 			orientation: 'right',
 			configuration: {
-				tracks: 'standard:~:tritanium',
-				hull: 'standard:~:tritanium',
-				cargoBay: 'standard:~:tritanium',
-				drill: 'standard:~:tritanium',
-				fuelTank: 'standard:~:tritanium',
+				vehicle: randFromArray(vehicleNames),
+				drill: randFromArray(drillNames),
 			},
 			items: {},
 			hull: {},
 			cargo: 0,
-			health: 30,
-			fuel: 30,
+			health: 0,
+			fuel: 0,
 			credits: 1000,
-		};
-
-		this.players.set(id, newPlayer);
+		});
 
 		this.updatePlayerConfiguration(id);
 
-		this.broadcast('addPlayer', { newPlayer: this.players.get(id) });
+		this.players.update(id, _ => ({ ..._, health: _.maxHealth, fuel: _.maxFuel, credits: _.credits - vehicles[_.configuration.vehicle].price - drills[_.configuration.drill].price }));
+
+		const newPlayer = this.players.get(id);
+
+		this.broadcast('addPlayer', { newPlayer });
 
 		return newPlayer;
 	}
@@ -158,13 +192,19 @@ export default class Game {
 		if (configuration) this.players.update(id, _ => ({ ..._, configuration }));
 
 		const player = this.players.get(id);
+		const vehicleConfig = vehicles[player.configuration.vehicle];
+		const drillConfig = drills[player.configuration.drill];
+
 		let maxHealth = 30;
 		let maxFuel = 30;
 		let maxCargo = 30;
 
-		if (player.configuration.hull.startsWith('enhanced')) maxHealth += 10;
-		if (player.configuration.fuelTank.startsWith('large')) maxFuel += 10;
-		if (player.configuration.cargoBay.startsWith('large')) maxCargo += 10;
+		if (vehicleConfig.maxHealth) maxHealth += vehicleConfig.maxHealth;
+		if (vehicleConfig.maxFuel) maxFuel += vehicleConfig.maxFuel;
+		if (vehicleConfig.maxCargo) maxCargo += vehicleConfig.maxCargo;
+		if (drillConfig.maxHealth) maxHealth += drillConfig.maxHealth;
+		if (drillConfig.maxFuel) maxFuel += drillConfig.maxFuel;
+		if (drillConfig.maxCargo) maxCargo += drillConfig.maxCargo;
 
 		this.players.update(id, _ => ({ ..._, maxHealth, maxFuel, maxCargo }));
 	}
@@ -188,9 +228,9 @@ export default class Game {
 		Object.entries(player.hull).forEach(([key, count]) => {
 			if (key.startsWith('mineral')) {
 				gain +=
-					Math.max(0.01, densities[key.replace('mineral_', '')] / (800 + (this.world.spaceco.hull?.[key] || 0))) *
+					Math.max(0.01, densities[key.replace('mineral_', '')] / (500 + (this.world.spaceco.hull?.[key] || 0))) *
 					count;
-			} else gain += Math.max(0.01, densities[key] / (1600 + (this.world.spaceco.hull?.[key] || 0))) * count;
+			} else gain += Math.max(0.01, densities[key] / (1000 + (this.world.spaceco.hull?.[key] || 0))) * count;
 
 			this.world.spaceco.hull[key] = this.world.spaceco.hull?.[key] || 0;
 			this.world.spaceco.hull[key] += count;
@@ -425,6 +465,11 @@ export default class Game {
 			groundEffects,
 			densities,
 			mineralNames,
+			itemNames,
+			vehicles,
+			vehicleNames,
+			drills,
+			drillNames,
 			spaceco: {
 				items,
 				health: 9,

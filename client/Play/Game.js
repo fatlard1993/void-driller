@@ -55,6 +55,8 @@ export default class Game extends (styled.Component`
 							data.player.position.x,
 							data.player.position.y,
 							data.player.orientation,
+							gameContext.serverState.world.vehicles[data.player.configuration.vehicle].spriteIndex,
+							gameContext.serverState.world.drills[data.player.configuration.drill].spriteIndex,
 						);
 
 						gameContext.players.set(data.player.id, { ...player, ...data.player, sprite });
@@ -83,6 +85,8 @@ export default class Game extends (styled.Component`
 						data.newPlayer.position.x,
 						data.newPlayer.position.y,
 						data.newPlayer.orientation,
+						gameContext.serverState.world.vehicles[data.newPlayer.configuration.vehicle].spriteIndex,
+						gameContext.serverState.world.drills[data.newPlayer.configuration.drill].spriteIndex,
 					);
 
 					gameContext.players.set(data.newPlayer.id, { ...data.newPlayer, sprite });
