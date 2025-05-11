@@ -10,11 +10,13 @@ export class Drill extends Phaser.GameObjects.Sprite {
 	 * @param {number} x - Grid x
 	 * @param {number} y - Grid y
 	 * @param { "left" | "right" | "up" | "down" | "up_left" | "down_right" | "down_left" | "up_right" } orientation - The orientation of the drill
+	 * @param {number} vehicle - vehicle index 0-14
+	 * @param {number} drill - vehicle index 0-12
 	 */
-	constructor(scene, x, y, orientation = 'right') {
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'vehicles', randInt(0, 14));
+	constructor(scene, x, y, orientation = 'right', vehicle = randInt(0, 14), drill = randInt(0, 12)) {
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'vehicles', vehicle);
 
-		this.drill = scene.add.image(gridToPxPosition(x), gridToPxPosition(y), 'drills', randInt(0, 12));
+		this.drill = scene.add.image(gridToPxPosition(x), gridToPxPosition(y), 'drills', drill);
 
 		this.drill.setScale(0.5);
 
@@ -81,7 +83,7 @@ export class Drill extends Phaser.GameObjects.Sprite {
 			onComplete: () => {
 				this.anims.stop();
 				this.drill.visible = true;
-				this.setTexture('vehicles', randInt(0, 12))
+				this.setTexture('vehicles', randInt(0, 12));
 				this.move(position, 0, this.orientation);
 			},
 		});

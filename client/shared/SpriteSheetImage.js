@@ -8,6 +8,7 @@ export default class SpriteSheetImage extends Elem {
 				backgroundPosition: `-${index * width}px -${index * height}px`,
 				width: `${width}px`,
 				height: `${height}px`,
+				margin: 0,
 				...style,
 			},
 		});
