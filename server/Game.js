@@ -9,6 +9,7 @@ import {
 	getSurroundingRadius,
 	getImmediateSurrounds,
 	hasFooting,
+	shuffleArray,
 } from '../utils';
 import worlds from '../worlds';
 import gamesDatabase from './database/games';
@@ -61,8 +62,6 @@ const items = {
 	repair_nanites: { price: 30, description: 'Repair yourself on the go' },
 	timed_charge: { price: 13, description: '3s delay 3 radius explosive charge' },
 	remote_charge: { price: 22, description: '5 radius explosive charge with a remote detonator' },
-	// timed_freeze_charge: { price: 9, description: '3s delay 3 radius chem charge - Freezes gas/lava' },
-	// remote_freeze_charge: { price: 16, description: '5 radius chem charge with a remote detonator - Freezes gas/lava' },
 };
 const itemNames = Object.keys(items);
 
@@ -100,6 +99,22 @@ const drills = {
 	D3: { price: 12, spriteIndex: 12, maxHealth: 6, maxFuel: 6 },
 };
 const drillNames = Object.keys(drills);
+
+const engines = {
+	OTMD: { price: 20, spriteIndex: 0, fuelType: 'oil', maxHealth: 6, maxFuel: 10 },
+	OTMDE: { price: 17, spriteIndex: 1, fuelType: 'oil', maxHealth: 4, maxFuel: 15 },
+	OQTDME: { price: 14, spriteIndex: 2, fuelType: 'oil', maxHealth: 20, maxFuel: 5 },
+	ODETP: { price: 9, spriteIndex: 3, fuelType: 'oil', maxHealth: 12, maxFuel: 5 },
+	BTDE: { price: 11, spriteIndex: 4, fuelType: 'battery', maxHealth: 8, maxFuel: 5 },
+	BTDMP: { price: 14, spriteIndex: 5, fuelType: 'battery', maxHealth: 5, maxFuel: 5 },
+	BBDPE: { price: 15, spriteIndex: 6, fuelType: 'battery', maxHealth: 10, maxFuel: 10 },
+	BQEDPT: { price: 13, spriteIndex: 7, fuelType: 'battery', maxHealth: 20, maxFuel: 10 },
+	SSODQMTB: { price: 8, spriteIndex: 8, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 5 },
+	SBQODTM: { price: 20, spriteIndex: 9, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 10 },
+	STQED: { price: 14, spriteIndex: 10, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 10, maxFuel: 10 },
+	SEQ: { price: 16, spriteIndex: 11, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 20, maxFuel: 10 },
+};
+const engineNames = Object.keys(engines);
 
 export const games = {};
 
@@ -168,6 +183,7 @@ export default class Game {
 			configuration: {
 				vehicle: randFromArray(vehicleNames),
 				drill: randFromArray(drillNames),
+				engine: randFromArray(engineNames),
 			},
 			items: {},
 			hull: {},
@@ -179,7 +195,12 @@ export default class Game {
 
 		this.updatePlayerConfiguration(id);
 
-		this.players.update(id, _ => ({ ..._, health: _.maxHealth, fuel: _.maxFuel, credits: _.credits - vehicles[_.configuration.vehicle].price - drills[_.configuration.drill].price }));
+		this.players.update(id, _ => ({
+			..._,
+			health: _.maxHealth,
+			fuel: _.maxFuel,
+			credits: _.credits - vehicles[_.configuration.vehicle].price - drills[_.configuration.drill].price,
+		}));
 
 		const newPlayer = this.players.get(id);
 
@@ -303,18 +324,29 @@ export default class Game {
 		this.broadcast('spacecoBuyItem', { playerId, updates, item, count, cost });
 	}
 
-	spacecoBuyUpgrade(playerId, upgrade) {
+	spacecoBuyUpgrade(playerId, upgrade, type) {
 		const player = this.players.get(playerId);
-		const cost = this.world.spaceco.parts[upgrade];
+		const upgradeConfig = this.world.spaceco[type][upgrade];
+
+		if (!upgradeConfig) return;
 
 		const updates = {
-			configuration: { ...player.configuration, [upgrade.split(':~:')[2]]: upgrade },
-			credits: player.credits - cost,
+			configuration: { ...player.configuration, [type.replace(/s$/, '')]: upgrade },
+			credits: player.credits - upgradeConfig.price,
 		};
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-		this.broadcast('spacecoBuyUpgrade', { playerId, updates, upgrade, cost });
+		delete this.world.spaceco[type][upgrade];
+
+		this.broadcast('spacecoBuyUpgrade', {
+			playerId,
+			updates,
+			upgrade,
+			type,
+			cost: upgradeConfig.price,
+			spacecoUpdates: { [type]: this.world.spaceco[type] },
+		});
 	}
 
 	useItem(playerId, item) {
@@ -361,24 +393,6 @@ export default class Game {
 
 				playersToFall.forEach(playerId => this.playerFall(playerId));
 			}, 3000);
-		} else if (item === 'timed_freeze_charge') {
-			this.players.update(playerId, _ => ({ ..._, ...updates }));
-			const bombPosition = { ...player.position };
-
-			// TODO update player & update world to show bomb
-
-			setTimeout(() => {
-				getSurroundingRadius(bombPosition, 3).forEach(({ x, y }) => {
-					if (!this.world.grid[x]?.[y] || this.world.grid[x][y].ground?.type || !this.world.grid[x][y].hazards.length) {
-						return;
-					}
-
-					this.world.grid[x][y].hazards = [];
-					this.world.grid[x][y].ground = { type: 'white' };
-				});
-
-				this.broadcast('useItem', { playerId, updates, item, position: bombPosition });
-			}, 3000);
 		} else {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
@@ -394,53 +408,62 @@ export default class Game {
 	}
 
 	generatePart() {
-		const type = randFromArray(['tracks', 'hull', 'cargoBay', 'drill', 'fuelTank']);
-		const material = weightedChance({
-			tritanium: 20,
-			duranium: 18,
-			pentrilium: 16,
-			byzanium: 14,
-			etherium: 12,
-			mithril: 8,
-			octanium: 5,
-			saronite: 4,
-			adamantite: 1,
-			quadium: 2,
-		});
-		const subTypes = {
-			tracks: { boosted_1: 40, boosted_2: 30, boosted_3: 20, antigravidic: 10 },
-			hull: { enhanced: 70, reinforced: 20, gasRefiner: 10 },
-			cargoBay: { large: 70, bulky: 30 },
-			drill: { quadratic: 50, precision_1: 30, precision_2: 20 },
-			fuelTank: { large: 30, bulky: 20, pressurized: 25, battery: 15, condenser: 10 },
-		};
-		const subType = weightedChance(subTypes[type]);
-
-		const typePrice = { tracks: 1, hull: 1, cargoBay: 1, drill: 1, fuelTank: 1 };
-		const materialPrice = {
-			tritanium: 1,
-			duranium: 5,
-			pentrilium: 15,
-			byzanium: 20,
-			etherium: 30,
-			mithril: 35,
-			octanium: 40,
-			saronite: 45,
-			adamantite: 55,
-			quadium: 70,
-		};
-		const subtypePrices = {
-			tracks: { boosted_1: 20, boosted_2: 30, boosted_3: 40, antigravidic: 50 },
-			hull: { enhanced: 20, reinforced: 40, gasRefiner: 60 },
-			cargoBay: { large: 20, bulky: 40 },
-			drill: { quadratic: 20, precision_1: 30, precision_2: 50 },
-			fuelTank: { large: 20, bulky: 30, pressurized: 40, battery: 55, condenser: 70 },
+		const part = {
+			name: simpleId(),
+			price: 10,
+			spritesheet: 'img/items.png',
+			spriteIndex: randInt(0, 47),
+			maxHealth: 0,
+			maxFuel: 0,
+			maxCargo: 0,
 		};
 
-		const partName = `${subType}:~:${material}:~:${type}`;
-		const partPrice = subtypePrices[type][subType] + materialPrice[material] + typePrice[type];
+		part.type = randFromArray(['tracks', 'wheels', 'hull', 'fuelTank']);
 
-		return { name: partName, price: partPrice };
+		if (part.type === 'tracks') {
+			part.tracks = true;
+			part.subType = weightedChance({ boosted: 70, hardened: 20, antigravidic: 10 });
+
+			if (part.subType === 'boosted') {
+				part.maxFuel += 10;
+			} else if (part.subType === 'hardened') {
+				part.maxHealth += 10;
+			} else if (part.subType === 'antigravidic') {
+				part.maxFuel += 15;
+			}
+		} else if (part.type === 'wheels') {
+			part.wheels = true;
+			part.subType = weightedChance({ boosted: 40, hardened: 60 });
+
+			if (part.subType === 'boosted') {
+				part.maxFuel += 10;
+			} else if (part.subType === 'hardened') {
+				part.maxHealth += 10;
+			}
+		} else if (part.type === 'hull') {
+			part.wheels = true;
+			part.subType = weightedChance({ enhanced: 70, reinforced: 30 });
+
+			if (part.subType === 'enhanced') {
+				part.maxFuel += 10;
+			} else if (part.subType === 'reinforced') {
+				part.maxHealth += 20;
+			}
+		} else if (part.type === 'fuelTank') {
+			part.wheels = true;
+			part.subType = weightedChance({ large: 30, bulky: 50, pressurized: 20 });
+
+			if (part.subType === 'large') {
+				part.maxFuel += 10;
+			} else if (part.subType === 'bulky') {
+				part.maxHealth -= 5;
+				part.maxFuel += 15;
+			} else if (part.subType === 'pressurized') {
+				part.maxFuel += 20;
+			}
+		}
+
+		return part;
 	}
 
 	generateWorld(options) {
@@ -459,7 +482,6 @@ export default class Game {
 			width: [30, 50],
 			depth: [180, 250],
 			gravity: [350, 500],
-			spacecoPartCount: [13, 21],
 			...options,
 			grid: [],
 			groundEffects,
@@ -470,6 +492,8 @@ export default class Game {
 			vehicleNames,
 			drills,
 			drillNames,
+			engines,
+			engineNames,
 			spaceco: {
 				items,
 				health: 9,
@@ -481,17 +505,33 @@ export default class Game {
 			if (world[key] instanceof Array) world[key] = randInt(...world[key]);
 		});
 
+		world.spaceco.vehicles = Object.fromEntries(
+			shuffleArray(vehicleNames)
+				.slice(0, randInt(3, vehicleNames.length + 1))
+				.map(name => [name, vehicles[name]]),
+		);
+		world.spaceco.drills = Object.fromEntries(
+			shuffleArray(drillNames)
+				.slice(0, randInt(3, drillNames.length + 1))
+				.map(name => [name, drills[name]]),
+		);
+		world.spaceco.engines = Object.fromEntries(
+			shuffleArray(engineNames)
+				.slice(0, randInt(3, engineNames.length + 1))
+				.map(name => [name, engines[name]]),
+		);
+
 		if (!world.spaceco.position) world.spaceco.position = { x: randInt(3, world.width - 3), y: world.airGap };
 
 		if (!world.spaceco.parts) {
 			world.spaceco.parts = {};
 
-			if (world.spacecoPartCount instanceof Array) world.spacecoPartCount = randInt(...world.spacecoPartCount);
+			const partCount = randInt(3, 9);
 
-			for (let x = 0; x < world.spacecoPartCount; ++x) {
-				const { name, price } = this.generatePart();
+			for (let x = 0; x < partCount; ++x) {
+				const part = this.generatePart();
 
-				world.spaceco.parts[name] = price;
+				world.spaceco.parts[part.name] = part;
 			}
 		}
 

@@ -35,5 +35,7 @@ module.exports = {
 		'wav',
 		'svg',
 		'spritesheet',
+		'keyof',
+		'soln',
 	],
 };

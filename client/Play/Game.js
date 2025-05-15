@@ -259,7 +259,6 @@ export default class Game extends (styled.Component`
 
 					gameContext.spaceco.dialog.options.view = 'success';
 				} else if (data.update === 'spacecoBuyUpgrade') {
-					console.log('spacecoBuyUpgrade', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
 					[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
@@ -270,6 +269,8 @@ export default class Game extends (styled.Component`
 					);
 
 					gameContext.spaceco.dialog.options.view = 'success';
+
+					gameContext.serverState.world.spaceco[data.type] = data.spacecoUpdates[data.type];
 				} else if (data.update === 'useItem') {
 					console.log('useItem', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
@@ -306,35 +307,6 @@ export default class Game extends (styled.Component`
 							[...gridConfig.items, ...gridConfig.hazards].forEach(one => one.sprite.destroy());
 
 							gameContext.serverState.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
-						});
-					} else if (data.item === 'timed_freeze_charge') {
-						const player = gameContext.players.get(data.playerId);
-
-						const delta = {
-							x: data.position.x - player.position.x,
-							y: data.position.y - player.position.y,
-						};
-						gameContext.scene.cameras.main.shake(
-							1000,
-							convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
-						);
-						gameContext.scene.cameras.main.flash(600);
-						gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
-
-						getSurroundingRadius(data.position, 3).forEach(({ x, y }) => {
-							if (
-								!this.world.grid[x]?.[y] ||
-								this.world.grid[x][y].ground?.type ||
-								!this.world.grid[x][y].hazards.length
-							) {
-								return;
-							}
-
-							this.world.grid[x][y].hazards = [];
-							this.world.grid[x][y].ground = { type: 'white' };
-
-							gameContext.serverState.world.grid[x][y].ground.sprite = new Ground(this, x, y, 'white');
-							gameContext.sceneLayers.ground.add(gameContext.serverState.world.grid[x][y].ground.sprite);
 						});
 					} else {
 						console.warn(`unknown item ${data.item}`);
