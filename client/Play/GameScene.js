@@ -30,6 +30,7 @@ export default class GameScene extends Phaser.Scene {
 	preload() {
 		this.load.spritesheet('drills', 'img/drills.png', { frameWidth: 30, frameHeight: 56 });
 		this.load.spritesheet('spaceco', 'img/spaceco.png', { frameWidth: 192, frameHeight: 192 });
+		this.load.spritesheet('engines', 'img/engines.png', { frameWidth: 128, frameHeight: 128 });
 
 		this.load.spritesheet('vehicles', 'img/vehicles.png', { frameWidth: 64, frameHeight: 64 });
 		this.load.spritesheet('teleport', 'img/teleport.png', { frameWidth: 64, frameHeight: 64 });
@@ -116,6 +117,7 @@ export default class GameScene extends Phaser.Scene {
 
 		gameContext.serverState.players.forEach(player => {
 			if (gameContext.playerId === player.id) {
+				console.log('player', player)
 				const sprite = new Player(
 					this,
 					player.position.x,

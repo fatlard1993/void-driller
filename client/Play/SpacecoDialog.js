@@ -1,6 +1,15 @@
 import { Dialog, Label, Button, Elem, capitalize, theme } from 'vanilla-bean-components';
 
-import SpriteSheetImage from '../shared/SpriteSheetImage';
+import {
+	DrillImage,
+	EngineImage,
+	IconImage,
+	ItemImage,
+	MineralImage,
+	PartsImage,
+	SpacecoImage,
+	VehicleImage,
+} from '../shared/SpriteSheetImage';
 import { spacecoBuyItem, spacecoBuyUpgrade, spacecoRefuel, spacecoRepair, spacecoSell } from '../api';
 import gameContext from './gameContext';
 
@@ -8,6 +17,10 @@ export default class SpacecoDialog extends Dialog {
 	constructor(options = {}) {
 		super({
 			size: 'standard',
+			style: {
+				width: 'clamp(420px, 80vw, 1700px)',
+				height: 'clamp(420px, 60vh, 1200px)',
+			},
 			header: 'Spaceco',
 			buttons: ['Close'],
 			view: gameContext.serverState.world.spaceco.health > 0 ? 'Sell' : 'destroyed',
@@ -43,7 +56,7 @@ export default class SpacecoDialog extends Dialog {
 						onPointerPress: () => {
 							this.options.view = view;
 						},
-						disabled: this.options.view === view,
+						disabled: this.options.view.toLowerCase().startsWith(view.toLowerCase()),
 					}),
 			),
 		);
@@ -110,26 +123,13 @@ export default class SpacecoDialog extends Dialog {
 
 				credits += price;
 
-				const mineralColorIndex = {
-					teal: 0,
-					blue: 1,
-					red: 2,
-					purple: 3,
-					pink: 4,
-					orange: 5,
-					green: 6,
-					yellow: 7,
-					black: 8,
-					white: 9,
-				};
-
 				return new Label(
 					{
 						label: `${key.startsWith('mineral') ? 'Concentrated ' : ''}${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
 						style: { width: 'auto' },
 					},
 					`x${count.toString()} = $${price.toFixed(2)}`,
-					new SpriteSheetImage('img/minerals.png', mineralColorIndex[key.replace('mineral_', '')], 32, 32),
+					new MineralImage(key.replace('mineral_', '')),
 				);
 			}),
 		);
@@ -141,30 +141,218 @@ export default class SpacecoDialog extends Dialog {
 		new Elem({ tag: 'p', content: 'Thank you', appendTo: this._body });
 	}
 
-	render_upgrade_old() {
-		const player = gameContext.players.get(gameContext.playerId);
-
+	renderUpgradeMenu() {
 		new Elem(
-			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			Object.entries(gameContext.serverState.world.spaceco.parts).map(([key, price]) => {
-				return new Label(
-					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
+			{ style: { display: 'flex', flexWrap: 'wrap-reverse', gap: '6px', margin: '6px' }, appendTo: this._body },
+			['Vehicles', 'Drills', 'Engines', 'Parts', 'Spaceco'].map(
+				view =>
 					new Button({
-						content: `Buy ($${price})`,
-						onPointerPress: () =>
-							spacecoBuyUpgrade({
-								gameId: gameContext.serverState.id,
-								playerId: gameContext.playerId,
-								upgrade: key,
-							}),
-						disabled: price > player.credits,
+						content: view,
+						style: { flex: '1' },
+						onPointerPress: () => {
+							this.options.view = `upgrade_${view}`;
+						},
+						disabled: this.options.view === `upgrade_${view}`,
 					}),
-				);
-			}),
+			),
 		);
 	}
 
 	render_upgrade() {
+		this.options.view = 'upgrade_Vehicles';
+	}
+
+	render_upgrade_vehicles() {
+		this.renderUpgradeMenu();
+
+		const player = gameContext.players.get(gameContext.playerId);
+
+		new Elem(
+			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+			Object.entries(gameContext.serverState.world.spaceco.vehicles).map(
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, tracks }]) => {
+					return new Label(
+						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+						new VehicleImage(spriteIndex),
+						new Button({
+							content: `Buy ($${price})`,
+							onPointerPress: () => {
+								const player = gameContext.players.get(gameContext.playerId);
+
+								player.sprite.setTexture('vehicles', spriteIndex);
+
+								spacecoBuyUpgrade({
+									gameId: gameContext.gameId,
+									playerId: gameContext.playerId,
+									upgrade: name,
+									type: 'vehicles',
+								});
+							},
+							disabled: price > player.credits,
+						}),
+						description &&
+							new Elem({
+								tag: 'p',
+								content: description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new Elem({
+							tag: 'pre',
+							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nmaxCargo: +${maxCargo}\n${tracks ? 'tracks' : 'wheels'}`,
+							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						}),
+					);
+				},
+			),
+		);
+	}
+
+	render_upgrade_engines() {
+		this.renderUpgradeMenu();
+
+		const player = gameContext.players.get(gameContext.playerId);
+
+		new Elem(
+			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+			Object.entries(gameContext.serverState.world.spaceco.engines).map(
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, fuelType }]) => {
+					return new Label(
+						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+						new EngineImage(spriteIndex),
+						new Button({
+							content: `Buy ($${price})`,
+							onPointerPress: () => {
+								spacecoBuyUpgrade({
+									gameId: gameContext.gameId,
+									playerId: gameContext.playerId,
+									upgrade: name,
+									type: 'engines',
+								});
+							},
+							disabled: price > player.credits,
+						}),
+						description &&
+							new Elem({
+								tag: 'p',
+								content: description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new Elem({
+							tag: 'pre',
+							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nfuelType: ${capitalize(fuelType.replaceAll('_', ' '), true)}`,
+							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						}),
+					);
+				},
+			),
+		);
+	}
+
+	render_upgrade_drills() {
+		this.renderUpgradeMenu();
+
+		const player = gameContext.players.get(gameContext.playerId);
+
+		new Elem(
+			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+			Object.entries(gameContext.serverState.world.spaceco.drills).map(
+				([name, { price, description, spriteIndex, maxHealth, maxFuel }]) => {
+					return new Label(
+						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+						new DrillImage(spriteIndex),
+						new Button({
+							content: `Buy ($${price})`,
+							onPointerPress: () => {
+								const player = gameContext.players.get(gameContext.playerId);
+
+								player.sprite.drill.setTexture('drills', spriteIndex);
+
+								spacecoBuyUpgrade({
+									gameId: gameContext.gameId,
+									playerId: gameContext.playerId,
+									upgrade: name,
+									type: 'drills',
+								});
+							},
+							disabled: price > player.credits,
+						}),
+						description &&
+							new Elem({
+								tag: 'p',
+								content: description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new Elem({
+							tag: 'pre',
+							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}`,
+							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						}),
+					);
+				},
+			),
+		);
+	}
+
+	render_upgrade_parts() {
+		this.renderUpgradeMenu();
+
+		const player = gameContext.players.get(gameContext.playerId);
+
+		new Elem(
+			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+			Object.entries(gameContext.serverState.world.spaceco.parts).map(
+				([name, { price, description, spriteIndex, type, subType, maxHealth, maxFuel, maxCargo }]) => {
+					return new Label(
+						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+						spriteIndex >= 0 && new PartsImage(spriteIndex),
+						new Button({
+							content: `Buy ($${price})`,
+							onPointerPress: () => {
+								spacecoBuyUpgrade({
+									gameId: gameContext.gameId,
+									playerId: gameContext.playerId,
+									upgrade: name,
+									type: 'parts',
+								});
+							},
+							disabled: price > player.credits,
+						}),
+						description &&
+							new Elem({
+								tag: 'p',
+								content: description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new Elem({
+							tag: 'pre',
+							content: `Part Type: ${subType} ${type}\nmaxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nmaxCargo: +${maxCargo}`,
+							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						}),
+					);
+				},
+			),
+		);
+	}
+
+	render_upgrade_spaceco() {
+		this.renderUpgradeMenu();
+
 		const player = gameContext.players.get(gameContext.playerId);
 
 		const spacecoVariants = [
@@ -175,67 +363,17 @@ export default class SpacecoDialog extends Dialog {
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			Object.entries(gameContext.serverState.world.drills).map(
-				([name, { price, description, spriteIndex, maxHealth, maxFuel }]) => {
-					return new Label(
-						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
-						description && new Elem({
-							tag: 'p',
-							content: description,
-							style: {
-								color: theme.colors.lighter(theme.colors.gray),
-								borderLeft: '3px solid',
-								paddingLeft: '6px',
-							},
-						}),
-						new Elem({ tag: 'pre', content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}`, style: { margin: 0 } }),
-						new SpriteSheetImage('img/drills.png', spriteIndex, 30, 56),
-						new Button({
-							content: `Buy ($${price})`,
-							onPointerPress: () => {
-								const player = gameContext.players.get(gameContext.playerId);
-
-								player.sprite.drill.setTexture('drills', spriteIndex);
-							},
-							disabled: price > player.credits,
-						}),
-					);
-				},
-			),
-			Object.entries(gameContext.serverState.world.vehicles).map(
-				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, tracks }]) => {
-					return new Label(
-						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
-						description && new Elem({
-							tag: 'p',
-							content: description,
-							style: {
-								color: theme.colors.lighter(theme.colors.gray),
-								borderLeft: '3px solid',
-								paddingLeft: '6px',
-							},
-						}),
-						new Elem({
-							tag: 'pre',
-							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nmaxCargo: +${maxCargo}\n${tracks ? 'tracks' : 'wheels'}`,
-							style: { margin: 0 },
-						}),
-						new SpriteSheetImage('img/vehicles.png', spriteIndex, 64, 64),
-						new Button({
-							content: `Buy ($${price})`,
-							onPointerPress: () => {
-								const player = gameContext.players.get(gameContext.playerId);
-
-								player.sprite.setTexture('vehicles', spriteIndex);
-							},
-							disabled: price > player.credits,
-						}),
-					);
-				},
-			),
 			spacecoVariants.map(({ name, price, description }, index) => {
 				return new Label(
 					{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
+					new SpacecoImage(index, { transform: 'scale(0.6) translate(-27%)' }),
+					new Button({
+						content: `Buy ($${price})`,
+						onPointerPress: () => {
+							gameContext.spaceco.setTexture('spaceco', index);
+						},
+						disabled: price > player.credits,
+					}),
 					new Elem({
 						tag: 'p',
 						content: description,
@@ -244,14 +382,6 @@ export default class SpacecoDialog extends Dialog {
 							borderLeft: '3px solid',
 							paddingLeft: '6px',
 						},
-					}),
-					new SpriteSheetImage('img/spaceco.png', index, 192, 192, { transform: 'scale(0.6) translate(-27%)' }),
-					new Button({
-						content: `Buy ($${price})`,
-						onPointerPress: () => {
-							gameContext.spaceco.setTexture('spaceco', index);
-						},
-						disabled: price > player.credits,
 					}),
 				);
 			}),
@@ -271,7 +401,7 @@ export default class SpacecoDialog extends Dialog {
 		}
 
 		this._body.append(
-			new Label('Fuel Type: Oil', new SpriteSheetImage('img/items.png', 6, 64, 64)),
+			new Label('Fuel Type: Oil', new ItemImage('gas')),
 			new Button({
 				content: `Fill ($${cost.toFixed(2)})`,
 				onPointerPress: () => spacecoRefuel({ gameId: gameContext.serverState.id, playerId: gameContext.playerId }),
@@ -321,10 +451,7 @@ export default class SpacecoDialog extends Dialog {
 		} else {
 			new Button({
 				textContent: `Full Repair ($${cost.toFixed(2)})`,
-				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, {
-					display: 'inline-block',
-					margin: '-5px 0 -10px -10px',
-				}),
+				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: playerRepairs,
 				onPointerPress: () =>
 					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'player' }),
@@ -339,10 +466,7 @@ export default class SpacecoDialog extends Dialog {
 
 			new Button({
 				textContent: `Full Repair ($${spacecoRepairCost})`,
-				prepend: new SpriteSheetImage('img/icons.png', 1, 32, 32, {
-					display: 'inline-block',
-					margin: '-5px 0 -10px -10px',
-				}),
+				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: spacecoRepairs,
 				onPointerPress: () =>
 					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'outpost' }),
@@ -356,31 +480,12 @@ export default class SpacecoDialog extends Dialog {
 	render_shop() {
 		const player = gameContext.players.get(gameContext.playerId);
 
-		const itemIndex = {
-			repair_nanites: 0,
-			teleporter: 1,
-			responder: 3,
-			responder_teleporter: 5,
-			gas: 6,
-			timed_charge: 7,
-			remote_charge: 8,
-		};
-
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
 			Object.entries(gameContext.serverState.world.spaceco.items).map(([key, { price, description }]) => {
 				return new Label(
 					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'clamp(130px, 27%, 300px)' } },
-					new Elem({
-						tag: 'p',
-						content: description,
-						style: {
-							color: theme.colors.lighter(theme.colors.gray),
-							borderLeft: '3px solid',
-							paddingLeft: '6px',
-						},
-					}),
-					new SpriteSheetImage('img/items.png', itemIndex[key], 64, 64),
+					new ItemImage(key),
 					new Button({
 						content: `Buy ($${price})`,
 						onPointerPress: () =>
@@ -390,6 +495,15 @@ export default class SpacecoDialog extends Dialog {
 								item: key,
 							}),
 						disabled: price > player.credits,
+					}),
+					new Elem({
+						tag: 'p',
+						content: description,
+						style: {
+							color: theme.colors.lighter(theme.colors.gray),
+							borderLeft: '3px solid',
+							paddingLeft: '6px',
+						},
 					}),
 				);
 			}),

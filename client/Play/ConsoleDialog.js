@@ -8,10 +8,9 @@ import {
 	Label,
 	Select,
 	Button,
-	randInt,
 } from 'vanilla-bean-components';
 
-import SpriteSheetImage from '../shared/SpriteSheetImage';
+import { DrillImage, EngineImage, ItemImage, MineralImage, VehicleImage } from '../shared/SpriteSheetImage';
 import { useItem } from '../api';
 import gameContext from './gameContext';
 
@@ -45,6 +44,10 @@ export default class ConsoleDialog extends Dialog {
 	constructor(options = {}) {
 		super({
 			size: 'standard',
+			style: {
+				width: 'clamp(420px, 80vw, 1700px)',
+				height: 'clamp(420px, 60vh, 1200px)',
+			},
 			header: 'Console',
 			buttons: ['Close'],
 			view: localStorage.getItem('console_defaultMenu') || 'Help',
@@ -103,26 +106,13 @@ export default class ConsoleDialog extends Dialog {
 								(1000 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
 						) * count;
 
-				const mineralColorIndex = {
-					teal: 0,
-					blue: 1,
-					red: 2,
-					purple: 3,
-					pink: 4,
-					orange: 5,
-					green: 6,
-					yellow: 7,
-					black: 8,
-					white: 9,
-				};
-
 				return new Label(
 					{
 						label: `${key.startsWith('mineral') ? 'Concentrated ' : ''}${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
 						style: { width: 'auto' },
 					},
 					`x${count.toString()} = $${price.toFixed(2)}`,
-					new SpriteSheetImage('img/minerals.png', mineralColorIndex[key.replace('mineral_', '')], 32, 32),
+					new MineralImage(key.replace('mineral_', '')),
 				);
 			}),
 		);
@@ -133,6 +123,7 @@ export default class ConsoleDialog extends Dialog {
 		console.log(player);
 		const vehicleConfig = gameContext.serverState.world.vehicles[player.configuration.vehicle];
 		const drillConfig = gameContext.serverState.world.drills[player.configuration.drill];
+		const engineConfig = gameContext.serverState.world.engines[player.configuration.engine];
 
 		this._body.append(
 			new Label('Position', `X: ${player.position.x} | Y: ${player.position.y}`),
@@ -148,16 +139,22 @@ export default class ConsoleDialog extends Dialog {
 			),
 			new Label(
 				'Configuration',
-				new SpriteSheetImage('img/vehicles.png', player.sprite.frame.name, 64, 64),
+				new VehicleImage(player.sprite.frame.name),
 				new Elem({
 					tag: 'pre',
 					content: `Vehicle: ${player.configuration.vehicle}\n\tmaxHealth: +${vehicleConfig.maxHealth}\n\tmaxFuel: +${vehicleConfig.maxFuel}\n\tmaxCargo: +${vehicleConfig.maxCargo}\n\t${vehicleConfig.tracks ? 'tracks' : 'wheels'}`,
 					style: { margin: 0 },
 				}),
-				new SpriteSheetImage('img/drills.png', player.sprite.drill.frame.name, 30, 56),
+				new DrillImage(player.sprite.drill.frame.name),
 				new Elem({
 					tag: 'pre',
 					content: `Drill: ${player.configuration.drill}\n\tmaxHealth: +${drillConfig.maxHealth}\n\tmaxFuel: +${drillConfig.maxFuel}`,
+					style: { margin: 0 },
+				}),
+				new EngineImage(engineConfig.spriteIndex),
+				new Elem({
+					tag: 'pre',
+					content: `Engine: ${player.configuration.engine}\n\tmaxHealth: +${engineConfig.maxHealth}\n\tmaxFuel: +${engineConfig.maxFuel}\n\tfuelType: ${engineConfig.fuelType}`,
 					style: { margin: 0 },
 				}),
 			),
@@ -172,21 +169,11 @@ export default class ConsoleDialog extends Dialog {
 			Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
-				const itemIndex = {
-					repair_nanites: 0,
-					teleporter: 1,
-					responder: 3,
-					responder_teleporter: 5,
-					gas: 6,
-					timed_charge: 7,
-					remote_charge: 8,
-				};
-
 				return [
 					new Label(
 						{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
 						`x${count.toString()}`,
-						new SpriteSheetImage('img/items.png', itemIndex[key], 64, 64),
+						new ItemImage(key),
 						new Button({
 							content: 'Use',
 							onPointerPress: () => {
