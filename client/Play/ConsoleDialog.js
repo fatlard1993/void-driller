@@ -222,6 +222,10 @@ export default class ConsoleDialog extends Dialog {
 			}),
 			new Elem({
 				tag: 'p',
+				content: `Once you've collected enough minerals here; purchase transport to another rock to collect more.`,
+			}),
+			new Elem({
+				tag: 'p',
 				content: 'Configure your default menu (in settings) to skip opening the console when you join.',
 			}),
 		);

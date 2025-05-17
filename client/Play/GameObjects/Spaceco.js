@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { convertRange, gridToPxPosition, randInt } from '../../../utils';
+import { convertRange, gridToPxPosition } from '../../../utils';
 import SpacecoDialog from '../SpacecoDialog';
 import gameContext from '../gameContext';
 
@@ -10,9 +10,10 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 	 * @param {object} scene - The scene
 	 * @param {number} x - Grid x
 	 * @param {number} y - Grid y
+	 * @param {number} variant - Which image variant to use
 	 */
-	constructor(scene, x, y) {
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'spaceco', randInt(0, 2));
+	constructor(scene, x, y, variant = 0) {
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'spaceco', variant);
 
 		this.setOrigin(0.5, 0.82);
 

@@ -64,6 +64,13 @@ export const spacecoBuyUpgrade = async ({ gameId, playerId, upgrade, type }, opt
 		...options,
 	});
 
+	export const spacecoBuyTransport = async ({ gameId, playerId }, options) =>
+	await POST('/games/:gameId/:playerId/spaceco/transport', {
+		invalidates: ['games'],
+		urlParameters: { gameId, playerId },
+		...options,
+	});
+
 export const useItem = async ({ gameId, playerId, item }, options) =>
 	await POST('/games/:gameId/:playerId/useItem', {
 		invalidates: ['games'],

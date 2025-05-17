@@ -104,18 +104,18 @@ const drills = {
 const drillNames = Object.keys(drills);
 
 const engines = {
-	OTMD: { price: 20, spriteIndex: 0, fuelType: 'oil', maxHealth: 6, maxFuel: 10 },
-	OTMDE: { price: 17, spriteIndex: 1, fuelType: 'oil', maxHealth: 4, maxFuel: 15 },
-	OQTDME: { price: 14, spriteIndex: 2, fuelType: 'oil', maxHealth: 20, maxFuel: 5 },
-	ODETP: { price: 9, spriteIndex: 3, fuelType: 'oil', maxHealth: 12, maxFuel: 5 },
-	BTDE: { price: 11, spriteIndex: 4, fuelType: 'battery', maxHealth: 8, maxFuel: 5 },
-	BTDMP: { price: 14, spriteIndex: 5, fuelType: 'battery', maxHealth: 5, maxFuel: 5 },
-	BBDPE: { price: 15, spriteIndex: 6, fuelType: 'battery', maxHealth: 10, maxFuel: 10 },
-	BQEDPT: { price: 13, spriteIndex: 7, fuelType: 'battery', maxHealth: 20, maxFuel: 10 },
-	SSODQMTB: { price: 8, spriteIndex: 8, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 5 },
-	SBQODTM: { price: 20, spriteIndex: 9, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 10 },
-	STQED: { price: 14, spriteIndex: 10, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 10, maxFuel: 10 },
-	SEQ: { price: 16, spriteIndex: 11, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 20, maxFuel: 10 },
+	OTMD: { price: 20, spriteIndex: 0, fuelType: 'oil', maxHealth: 6, maxFuel: 10, fuelEfficiency: 4 },
+	OTMDE: { price: 17, spriteIndex: 1, fuelType: 'oil', maxHealth: 4, maxFuel: 15, fuelEfficiency: 3 },
+	OQTDME: { price: 14, spriteIndex: 2, fuelType: 'oil', maxHealth: 20, maxFuel: 5, fuelEfficiency: 2 },
+	ODETP: { price: 9, spriteIndex: 3, fuelType: 'oil', maxHealth: 12, maxFuel: 5, fuelEfficiency: 2 },
+	BTDE: { price: 11, spriteIndex: 4, fuelType: 'battery', maxHealth: 8, maxFuel: 5, fuelEfficiency: 4 },
+	BTDMP: { price: 14, spriteIndex: 5, fuelType: 'battery', maxHealth: 5, maxFuel: 5, fuelEfficiency: 5 },
+	BBDPE: { price: 15, spriteIndex: 6, fuelType: 'battery', maxHealth: 10, maxFuel: 10, fuelEfficiency: 5 },
+	BQEDPT: { price: 13, spriteIndex: 7, fuelType: 'battery', maxHealth: 20, maxFuel: 10, fuelEfficiency: 4 },
+	SSODQMTB: { price: 8, spriteIndex: 8, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 5, fuelEfficiency: 4 },
+	SBQODTM: { price: 20, spriteIndex: 9, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 10, fuelEfficiency: 6 },
+	STQED: { price: 14, spriteIndex: 10, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 10, maxFuel: 10, fuelEfficiency: 5 },
+	SEQ: { price: 16, spriteIndex: 11, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 20, maxFuel: 10, fuelEfficiency: 5 },
 };
 const engineNames = Object.keys(engines);
 
@@ -276,7 +276,8 @@ export default class Game {
 
 	spacecoRefuel(playerId, amount) {
 		const player = this.players.get(playerId);
-		const pricePerLiter = 0.9;
+		const engineConfig = engines[player.configuration.engine];
+		const pricePerLiter = { oil: 0.9, battery: 1.3, super_oxygen_liquid_nitrogen: 1.7 }[engineConfig.fuelType];
 		const purchasedFuel = amount ? amount / pricePerLiter : player.maxFuel - player.fuel;
 		const cost = purchasedFuel * pricePerLiter;
 
@@ -360,6 +361,25 @@ export default class Game {
 			type,
 			cost: upgradeConfig.price,
 			spacecoUpdates: { [type]: this.world.spaceco[type] },
+		});
+	}
+
+	spacecoBuyTransport(playerId) {
+		const player = this.players.get(playerId);
+		const price = 100;
+
+		const updates = {
+			credits: player.credits - price,
+		};
+
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		this.world = this.generateWorld(WORLDS[randFromArray(Object.keys(WORLDS))]);
+
+		this.broadcast('spacecoBuyTransport', {
+			playerId,
+			updates,
+			cost: price,
 		});
 	}
 
@@ -512,6 +532,7 @@ export default class Game {
 			engineNames,
 			spaceco: {
 				items,
+				variant: randInt(0, 2),
 				health: 9,
 				hull: {},
 			},
@@ -973,8 +994,9 @@ export default class Game {
 
 		if (this.world.grid[position.x][position.y].ground?.type) {
 			const { type } = this.world.grid[position.x][position.y].ground;
+			const engineConfig = engines[player.configuration.engine];
 
-			updatedPlayer.fuel = Math.max(0, updatedPlayer.fuel - densities[type] / 3000);
+			updatedPlayer.fuel = Math.max(0, updatedPlayer.fuel - densities[type] / (engineConfig.fuelEfficiency * 1000));
 
 			updatedPlayer.hull[type] = updatedPlayer.hull[type] || 0;
 			++updatedPlayer.hull[type];

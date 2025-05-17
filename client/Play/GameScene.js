@@ -111,6 +111,7 @@ export default class GameScene extends Phaser.Scene {
 			this,
 			gameContext.serverState.world.spaceco.position.x,
 			gameContext.serverState.world.spaceco.position.y,
+			gameContext.serverState.world.spaceco.variant,
 		);
 
 		gameContext.sceneLayers.hazards.add(gameContext.spaceco);
