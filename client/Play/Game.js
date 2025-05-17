@@ -12,7 +12,7 @@ import { move as movePlayer } from '../api';
 import socket, { onMessage } from '../socket';
 import gameContext from './gameContext';
 import GameScene from './GameScene';
-import { Drill, Lava, Gas, Ground } from './GameObjects';
+import { Drill, Lava, Gas } from './GameObjects';
 import ConsoleDialog from './ConsoleDialog';
 import { destroyGround, explode } from './effects';
 
@@ -273,6 +273,20 @@ export default class Game extends (styled.Component`
 					gameContext.spaceco.dialog.options.view = 'success';
 
 					gameContext.serverState.world.spaceco[data.type] = data.spacecoUpdates[data.type];
+				}  else if (data.update === 'spacecoBuyTransport') {
+					console.log('spacecoBuyTransport', data);
+					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+					[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
+						setTimeout(
+							() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }),
+							index * randInt(40, 70),
+						),
+					);
+
+					gameContext.spaceco.dialog.options.view = 'success';
+
+					setTimeout(window.location.reload(), 1500);
 				} else if (data.update === 'useItem') {
 					console.log('useItem', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));

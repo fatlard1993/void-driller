@@ -155,6 +155,19 @@ const _game = async request => {
 		return Response.json({}, { status: 200 });
 	}
 
+	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/transport', request);
+	if (match) {
+		const { gameId, playerId } = match;
+
+		if (!playerId || !games[gameId]?.players?.has(playerId)) {
+			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
+		}
+
+		games[gameId].spacecoBuyTransport(playerId);
+
+		return Response.json({}, { status: 200 });
+	}
+
 	match = requestMatch('POST', '/games/:gameId/:playerId/triggerEffect', request);
 	if (match) {
 		const body = await request.json();
