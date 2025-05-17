@@ -57,6 +57,9 @@ const densities = {
 	black: 900,
 };
 const items = {
+	oil: { price: 20, description: 'A portable gas can' },
+	battery: { price: 30, description: 'A replacement energy cell' },
+	super_oxygen_liquid_nitrogen: { price: 50, description: 'A portable SOLN fuel cell' },
 	teleporter: { price: 7, description: 'Teleport back to spaceco' },
 	responder_teleporter: { price: 9, description: 'Place a responder, then teleport back to it later' },
 	repair_nanites: { price: 30, description: 'Repair yourself on the go' },
@@ -312,6 +315,8 @@ export default class Game {
 	}
 
 	spacecoBuyItem(playerId, item, count = 1) {
+		if (!this.world.spaceco.items[item].stock) return;
+
 		const player = this.players.get(playerId);
 		const cost = 10;
 
@@ -321,7 +326,16 @@ export default class Game {
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-		this.broadcast('spacecoBuyItem', { playerId, updates, item, count, cost });
+		this.world.spaceco.items[item].stock -= count;
+
+		this.broadcast('spacecoBuyItem', {
+			playerId,
+			updates,
+			item,
+			count,
+			cost,
+			spacecoUpdates: { items: this.world.spaceco.items },
+		});
 	}
 
 	spacecoBuyUpgrade(playerId, upgrade, type) {
@@ -463,6 +477,8 @@ export default class Game {
 			}
 		}
 
+		part.price = part.maxHealth + part.maxFuel + part.maxCargo;
+
 		return part;
 	}
 
@@ -520,6 +536,16 @@ export default class Game {
 				.slice(0, randInt(3, engineNames.length + 1))
 				.map(name => [name, engines[name]]),
 		);
+
+		world.spaceco.items.oil.stock = randInt(0, 9);
+		world.spaceco.items.battery.stock = randInt(0, 9);
+		world.spaceco.items.battery.stock = randInt(0, 9);
+		world.spaceco.items.super_oxygen_liquid_nitrogen.stock = randInt(0, 9);
+		world.spaceco.items.teleporter.stock = randInt(9, 99);
+		world.spaceco.items.responder_teleporter.stock = randInt(9, 39);
+		world.spaceco.items.repair_nanites.stock = randInt(3, 13);
+		world.spaceco.items.timed_charge.stock = randInt(9, 99);
+		world.spaceco.items.remote_charge.stock = randInt(9, 99);
 
 		if (!world.spaceco.position) world.spaceco.position = { x: randInt(3, world.width - 3), y: world.airGap };
 
