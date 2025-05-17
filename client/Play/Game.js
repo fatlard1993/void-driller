@@ -258,6 +258,8 @@ export default class Game extends (styled.Component`
 					);
 
 					gameContext.spaceco.dialog.options.view = 'success';
+
+					gameContext.serverState.world.spaceco.items = data.spacecoUpdates.items;
 				} else if (data.update === 'spacecoBuyUpgrade') {
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 

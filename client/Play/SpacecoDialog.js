@@ -1,4 +1,4 @@
-import { Dialog, Label, Button, Elem, capitalize, theme } from 'vanilla-bean-components';
+import { Dialog, Label, Button, Elem, capitalize, theme, rand, randInt } from 'vanilla-bean-components';
 
 import {
 	DrillImage,
@@ -103,34 +103,54 @@ export default class SpacecoDialog extends Dialog {
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			Object.entries(player.hull).map(([key, count]) => {
-				let price;
+			Object.keys(gameContext.serverState.world.mineralNames).flatMap(name => {
+				const dirtyCount = player.hull[name] || 0;
+				const pureCount = player.hull[`mineral_${name}`] || 0;
 
-				if (key.startsWith('mineral')) {
-					price =
-						Math.max(
-							0.01,
-							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
-								(500 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
-						) * count;
-				} else
-					price =
-						Math.max(
-							0.01,
-							gameContext.serverState.world.densities[key] /
-								(1000 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
-						) * count;
+				if (!dirtyCount && !pureCount) return [];
 
-				credits += price;
+				const dirtyPrice =
+					Math.max(
+						0.01,
+						gameContext.serverState.world.densities[name] /
+							(1000 + (gameContext.serverState.world.spaceco.hull?.[name] || 0)),
+					) * dirtyCount;
+				const purePrice =
+					Math.max(
+						0.01,
+						gameContext.serverState.world.densities[name] /
+							(500 + (gameContext.serverState.world.spaceco.hull?.[name] || 0)),
+					) * pureCount;
 
-				return new Label(
-					{
-						label: `${key.startsWith('mineral') ? 'Concentrated ' : ''}${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
-						style: { width: 'auto' },
-					},
-					`x${count.toString()} = $${price.toFixed(2)}`,
-					new MineralImage(key.replace('mineral_', '')),
-				);
+				credits += dirtyPrice + purePrice;
+
+				return [
+					new Label(
+						{
+							label: capitalize(gameContext.serverState.world.mineralNames[name]),
+							style: { width: '216px', paddingBottom: '48px' },
+						},
+						new Elem({
+							tag: 'pre',
+							content: `Dirty: x${dirtyCount.toString()} = $${dirtyPrice.toFixed(2)}\nPure: x${pureCount.toString()} = $${purePrice.toFixed(2)}`,
+							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						}),
+						...[...Array(Math.min(dirtyCount, 50))].map(
+							() =>
+								new MineralImage(name.replace('mineral_', ''), {
+									position: 'absolute',
+									transform: `scale(${rand(0.3, 0.5)}) translate(${randInt(-22, 258)}px, ${randInt(-10, 20)}px)`,
+								}),
+						),
+						...[...Array(Math.min(pureCount, 50))].map(
+							() =>
+								new MineralImage(name.replace('mineral_', ''), {
+									position: 'absolute',
+									transform: `scale(${rand(0.5, 0.8)}) translate(${randInt(-22, 258)}px, ${randInt(-10, 20)}px)`,
+								}),
+						),
+					),
+				];
 			}),
 		);
 
@@ -313,7 +333,7 @@ export default class SpacecoDialog extends Dialog {
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
 			Object.entries(gameContext.serverState.world.spaceco.parts).map(
-				([name, { price, description, spriteIndex, type, subType, maxHealth, maxFuel, maxCargo }]) => {
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo }]) => {
 					return new Label(
 						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
 						spriteIndex >= 0 && new PartsImage(spriteIndex),
@@ -341,7 +361,7 @@ export default class SpacecoDialog extends Dialog {
 							}),
 						new Elem({
 							tag: 'pre',
-							content: `Part Type: ${subType} ${type}\nmaxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nmaxCargo: +${maxCargo}`,
+							content: `maxHealth: ${maxHealth > 0 ? '+' : ''}${maxHealth}\nmaxFuel: ${maxFuel > 0 ? '+' : ''}${maxFuel}\nmaxCargo: ${maxCargo > 0 ? '+' : ''}${maxCargo}`,
 							style: { margin: 0, whiteSpace: 'pre-wrap' },
 						}),
 					);
@@ -393,6 +413,7 @@ export default class SpacecoDialog extends Dialog {
 		const pricePerLiter = 0.9;
 		const neededFuel = player.maxFuel - player.fuel;
 		const cost = neededFuel * pricePerLiter;
+		const engineConfig = gameContext.serverState.world.engines[player.configuration.engine];
 
 		if (neededFuel === 0) {
 			this._body.append(new Elem({ tag: 'p', content: 'Your full' }));
@@ -401,7 +422,10 @@ export default class SpacecoDialog extends Dialog {
 		}
 
 		this._body.append(
-			new Label('Fuel Type: Oil', new ItemImage('gas')),
+			new Label(
+				`Fuel Type: ${capitalize(engineConfig.fuelType.replaceAll('_', ' '), true)}`,
+				new ItemImage(engineConfig.fuelType),
+			),
 			new Button({
 				content: `Fill ($${cost.toFixed(2)})`,
 				onPointerPress: () => spacecoRefuel({ gameId: gameContext.serverState.id, playerId: gameContext.playerId }),
@@ -482,30 +506,35 @@ export default class SpacecoDialog extends Dialog {
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			Object.entries(gameContext.serverState.world.spaceco.items).map(([key, { price, description }]) => {
-				return new Label(
-					{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'clamp(130px, 27%, 300px)' } },
-					new ItemImage(key),
-					new Button({
-						content: `Buy ($${price})`,
-						onPointerPress: () =>
-							spacecoBuyItem({
-								gameId: gameContext.serverState.id,
-								playerId: gameContext.playerId,
-								item: key,
-							}),
-						disabled: price > player.credits,
-					}),
-					new Elem({
-						tag: 'p',
-						content: description,
-						style: {
-							color: theme.colors.lighter(theme.colors.gray),
-							borderLeft: '3px solid',
-							paddingLeft: '6px',
-						},
-					}),
-				);
+			Object.entries(gameContext.serverState.world.spaceco.items).flatMap(([key, { price, description, stock }]) => {
+				if (!stock) return [];
+
+				return [
+					new Label(
+						{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'clamp(130px, 27%, 300px)' } },
+						new ItemImage(key),
+						new Button({
+							content: `Buy ($${price})`,
+							onPointerPress: () =>
+								spacecoBuyItem({
+									gameId: gameContext.serverState.id,
+									playerId: gameContext.playerId,
+									item: key,
+								}),
+							disabled: price > player.credits,
+						}),
+						`Stock: ${stock}`,
+						new Elem({
+							tag: 'p',
+							content: description,
+							style: {
+								color: theme.colors.lighter(theme.colors.gray),
+								borderLeft: '3px solid',
+								paddingLeft: '6px',
+							},
+						}),
+					),
+				];
 			}),
 		);
 	}

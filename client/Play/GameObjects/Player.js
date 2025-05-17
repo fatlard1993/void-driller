@@ -5,6 +5,20 @@ import { getSurroundingRadius, gridToPxPosition, pxToGridPosition } from '../../
 import gameContext from '../gameContext';
 import { Drill } from './Drill';
 
+const iconIndex = {
+	oil: 0,
+	health: 1,
+	cargo: 2,
+	super_oxygen_liquid_nitrogen: 3,
+	battery: 4,
+};
+
+const fuelColors = {
+	oil: Phaser.Display.Color.ValueToColor(theme.colors.yellow.toRgbString()).color,
+	battery: Phaser.Display.Color.ValueToColor(theme.colors.blue.toRgbString()).color,
+	super_oxygen_liquid_nitrogen: Phaser.Display.Color.ValueToColor(theme.colors.teal.toRgbString()).color,
+};
+
 export class Player extends Drill {
 	constructor(scene, x, y, orientation, vehicle, drill) {
 		super(scene, x, y, orientation, vehicle, drill);
@@ -20,15 +34,8 @@ export class Player extends Drill {
 		);
 
 		this.fuelBarIcon = scene.add.image(0, 0, 'icons', 0);
-		this.fuelBarIcon.setScale(0.9);
 		this.fuelBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
-		this.fuelBar = scene.add.rectangle(
-			0,
-			0,
-			100,
-			3,
-			Phaser.Display.Color.ValueToColor(theme.colors.yellow.toRgbString()).color,
-		);
+		this.fuelBar = scene.add.rectangle(0, 0, 100, 3, fuelColors.oil);
 
 		this.cargoBarIcon = scene.add.image(0, 0, 'icons', 2);
 		this.cargoBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
@@ -77,6 +84,12 @@ export class Player extends Drill {
 			this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [1, 100]);
 			this.fuelBar.width = convertRange(player.fuel, [0, player.maxFuel], [1, 100]);
 			this.cargoBar.width = convertRange(player.cargo, [0, player.maxCargo], [1, 100]);
+
+			const engineConfig = gameContext.serverState.world.engines[player.configuration.engine];
+
+			this.fuelBarIcon.setTexture('icons', iconIndex[engineConfig.fuelType]);
+			this.fuelBarIcon.setScale(engineConfig.fuelType === 'oil' ? 0.8 : 1);
+			this.fuelBar.fillColor = fuelColors[engineConfig.fuelType];
 		}
 
 		this.showStatusBars(!!player);
@@ -104,9 +117,9 @@ export class Player extends Drill {
 			if (this.fuelBar.visible) {
 				this.scene.tweens.add({ targets: this.fuelBar, duration: speed, x, y: y - 50 });
 				this.scene.tweens.add({ targets: this.fuelBarFrame, duration: speed, x, y: y - 50 });
-				this.scene.tweens.add({ targets: this.fuelBarIcon, duration: speed, x: x + 70, y: y - 50 });
+				this.scene.tweens.add({ targets: this.fuelBarIcon, duration: speed, x: x + 60, y: y - 50 });
 			} else {
-				this.fuelBarIcon.x = x + 70;
+				this.fuelBarIcon.x = x + 60;
 				this.fuelBarIcon.y = y - 50;
 
 				this.fuelBar.x = x;

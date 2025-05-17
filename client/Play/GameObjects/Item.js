@@ -9,7 +9,7 @@ export class Item extends Phaser.GameObjects.Image {
 	 * @param {object} scene - The scene
 	 * @param {number} x - Grid x
 	 * @param {number} y - Grid y
-	 * @param { "gas" | "remote_charge" | "repair_nanites" | "responder" | "responder_teleporter" | "teleporter" | "timed_charge" } name - The item name
+	 * @param { "oil" | "remote_charge" | "repair_nanites" | "responder" | "responder_teleporter" | "teleporter" | "timed_charge" } name - The item name
 	 */
 	constructor(scene, x, y, name) {
 		const itemIndex = {
@@ -17,7 +17,7 @@ export class Item extends Phaser.GameObjects.Image {
 			teleporter: 1,
 			responder: 3,
 			responder_teleporter: 5,
-			gas: 6,
+			oil: 6,
 			timed_charge: 7,
 			remote_charge: 8,
 		};

@@ -42,10 +42,11 @@ const itemNameIndex = {
 	responder: 3,
 	responder_spaceco: 4,
 	responder_teleporter: 5,
-	gas: 6,
+	oil: 6,
 	timed_charge: 7,
 	remote_charge: 8,
 	super_oxygen_liquid_nitrogen: 9,
+	battery: 10,
 };
 
 export class ItemImage extends SpriteSheetImage {
@@ -56,10 +57,11 @@ export class ItemImage extends SpriteSheetImage {
 }
 
 const iconIndex = {
-	fuel_oil: 0,
+	oil: 0,
 	health: 1,
 	cargo: 2,
-	fuel_soln: 3,
+	super_oxygen_liquid_nitrogen: 3,
+	battery: 4,
 };
 
 export class IconImage extends SpriteSheetImage {
