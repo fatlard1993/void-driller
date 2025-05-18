@@ -112,10 +112,38 @@ const engines = {
 	BTDMP: { price: 14, spriteIndex: 5, fuelType: 'battery', maxHealth: 5, maxFuel: 5, fuelEfficiency: 5 },
 	BBDPE: { price: 15, spriteIndex: 6, fuelType: 'battery', maxHealth: 10, maxFuel: 10, fuelEfficiency: 5 },
 	BQEDPT: { price: 13, spriteIndex: 7, fuelType: 'battery', maxHealth: 20, maxFuel: 10, fuelEfficiency: 4 },
-	SSODQMTB: { price: 8, spriteIndex: 8, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 5, fuelEfficiency: 4 },
-	SBQODTM: { price: 20, spriteIndex: 9, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 15, maxFuel: 10, fuelEfficiency: 6 },
-	STQED: { price: 14, spriteIndex: 10, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 10, maxFuel: 10, fuelEfficiency: 5 },
-	SEQ: { price: 16, spriteIndex: 11, fuelType: 'super_oxygen_liquid_nitrogen', maxHealth: 20, maxFuel: 10, fuelEfficiency: 5 },
+	SSODQMTB: {
+		price: 8,
+		spriteIndex: 8,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 15,
+		maxFuel: 5,
+		fuelEfficiency: 4,
+	},
+	SBQODTM: {
+		price: 20,
+		spriteIndex: 9,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 15,
+		maxFuel: 10,
+		fuelEfficiency: 6,
+	},
+	STQED: {
+		price: 14,
+		spriteIndex: 10,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 10,
+		maxFuel: 10,
+		fuelEfficiency: 5,
+	},
+	SEQ: {
+		price: 16,
+		spriteIndex: 11,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 20,
+		maxFuel: 10,
+		fuelEfficiency: 5,
+	},
 };
 const engineNames = Object.keys(engines);
 
@@ -216,8 +244,11 @@ export default class Game {
 		if (configuration) this.players.update(id, _ => ({ ..._, configuration }));
 
 		const player = this.players.get(id);
+
 		const vehicleConfig = vehicles[player.configuration.vehicle];
 		const drillConfig = drills[player.configuration.drill];
+		const engineConfig = engines[player.configuration.engine];
+		const partConfig = this.world.parts[player.configuration.part];
 
 		let maxHealth = 30;
 		let maxFuel = 30;
@@ -226,9 +257,18 @@ export default class Game {
 		if (vehicleConfig.maxHealth) maxHealth += vehicleConfig.maxHealth;
 		if (vehicleConfig.maxFuel) maxFuel += vehicleConfig.maxFuel;
 		if (vehicleConfig.maxCargo) maxCargo += vehicleConfig.maxCargo;
+
 		if (drillConfig.maxHealth) maxHealth += drillConfig.maxHealth;
 		if (drillConfig.maxFuel) maxFuel += drillConfig.maxFuel;
 		if (drillConfig.maxCargo) maxCargo += drillConfig.maxCargo;
+
+		if (engineConfig.maxHealth) maxHealth += engineConfig.maxHealth;
+		if (engineConfig.maxFuel) maxFuel += engineConfig.maxFuel;
+		if (engineConfig.maxCargo) maxCargo += engineConfig.maxCargo;
+
+		if (partConfig.maxHealth) maxHealth += partConfig.maxHealth;
+		if (partConfig.maxFuel) maxFuel += partConfig.maxFuel;
+		if (partConfig.maxCargo) maxCargo += partConfig.maxCargo;
 
 		this.players.update(id, _ => ({ ..._, maxHealth, maxFuel, maxCargo }));
 	}
@@ -352,6 +392,8 @@ export default class Game {
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
 
+		this.updatePlayerConfiguration(playerId);
+
 		delete this.world.spaceco[type][upgrade];
 
 		this.broadcast('spacecoBuyUpgrade', {
@@ -374,7 +416,10 @@ export default class Game {
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-		this.world = this.generateWorld(WORLDS[randFromArray(Object.keys(WORLDS))]);
+		this.world = this.generateWorld({
+			...WORLDS[randFromArray(Object.keys(WORLDS))],
+			spaceco: { hull: this.world.spaceco.hull },
+		});
 
 		this.broadcast('spacecoBuyTransport', {
 			playerId,
@@ -535,6 +580,7 @@ export default class Game {
 				variant: randInt(0, 2),
 				health: 9,
 				hull: {},
+				...options.spaceco,
 			},
 		};
 
