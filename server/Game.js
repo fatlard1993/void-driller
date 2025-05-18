@@ -33,18 +33,6 @@ const mineralNames = {
 	red: 'adamantite',
 	black: 'quadium',
 };
-const groundEffects = {
-	white: ['bonus:~:2:~:white:~:[1,2]'],
-	orange: ['bonus:~:2:~:orange:~:[1,2]'],
-	yellow: ['bonus:~:2:~:yellow:~:[1,2]'],
-	green: ['poisonous_gas:~:12'],
-	teal: ['teleporting:~:5'],
-	blue: ['freezing:~:15'],
-	purple: ['noxious_gas:~:12'],
-	pink: ['bonus:~:10:~:pink:~:1', 'exploding:~:10'],
-	red: ['bonus:~:2:~:red:~:[1,2]', 'lava:~:35', 'exploding:~:5'],
-	black: ['impenetrable'],
-};
 const densities = {
 	white: 400,
 	orange: 500,
@@ -585,7 +573,6 @@ export default class Game {
 			gravity: [350, 500],
 			...options,
 			grid: [],
-			groundEffects,
 			densities,
 			mineralNames,
 			itemNames,
