@@ -169,11 +169,17 @@ export default class ConsoleDialog extends Dialog {
 			Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
+				let imageName = key;
+
+				if (key.startsWith('detonator')) imageName = 'detonator';
+				else if (key === 'advanced_teleporter') imageName = 'teleport_station';
+				else if (key.startsWith('activated_teleporter')) imageName = 'advanced_teleporter';
+
 				return [
 					new Label(
 						{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
 						`x${count.toString()}`,
-						new ItemImage(key.startsWith('detonator') ? 'detonator' : key),
+						new ItemImage(imageName),
 						new Button({
 							content: 'Use',
 							onPointerPress: () => {

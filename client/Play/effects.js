@@ -2,7 +2,9 @@ import { convertRange, getSurroundingRadius } from '../../utils';
 import gameContext from './gameContext';
 
 export const destroyGround = ({ x, y }) => {
-	const gridConfig = gameContext.serverState.world.grid[x][y];
+	const gridConfig = gameContext.serverState.world.grid?.[x]?.[y];
+
+	if (!gridConfig) return;
 
 	if (gridConfig.ground.sprite?.scene) gridConfig.ground.sprite.dig();
 
@@ -24,10 +26,10 @@ export const explode = ({ position, radius }) => {
 	[position, ...getSurroundingRadius(position, radius)].forEach(({ x, y }) => {
 		destroyGround({ x, y, silent: true });
 
-		const gridConfig = gameContext.serverState.world.grid[x][y];
-
-		gridConfig.items.forEach(item => {
-			if (item.sprite?.scene) item.sprite.destroy();
+		gameContext.serverState.world.grid[x][y].items.forEach(item => {
+			if (item.sprite?.scene) item.sprite[item.name === 'oil' || item.name.endsWith('charge') ? 'explode' : 'destroy']();
 		});
+
+		gameContext.serverState.world.grid[x][y].items = [];
 	});
 };

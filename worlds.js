@@ -50,6 +50,20 @@ export default [
 		],
 	},
 	{
+		name: 'oil',
+		safeDepth: 3,
+		holeChance: 80,
+		hazardChance: 30,
+		itemChance: 90,
+		hazards: 'gas',
+		items: 'oil',
+		layers: [
+			{ ground: { black: 50, purple: 40, random: 10 } },
+			{ ground: { red: 30, purple: 50, random: 20 } },
+			{ ground: 'random' },
+		],
+	},
+	{
 		name: 'random',
 		holeChance: 50,
 		mineralChance: 50,
