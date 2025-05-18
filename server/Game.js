@@ -14,6 +14,7 @@ import {
 import worlds from '../worlds';
 import gamesDatabase from './database/games';
 import { url, socketBroadcast } from './server';
+import { explode } from './effects';
 
 const WORLDS = {
 	...Object.fromEntries(worlds.map(world => [world.name, world])),
@@ -248,7 +249,7 @@ export default class Game {
 		const vehicleConfig = vehicles[player.configuration.vehicle];
 		const drillConfig = drills[player.configuration.drill];
 		const engineConfig = engines[player.configuration.engine];
-		const partConfig = this.world.parts[player.configuration.part];
+		const partConfig = this.world.parts[player.configuration.part] || {};
 
 		let maxHealth = 30;
 		let maxFuel = 30;
@@ -418,6 +419,7 @@ export default class Game {
 
 		this.world = this.generateWorld({
 			...WORLDS[randFromArray(Object.keys(WORLDS))],
+			parts: this.world.parts,
 			spaceco: { hull: this.world.spaceco.hull },
 		});
 
@@ -446,32 +448,25 @@ export default class Game {
 		} else if (item === 'timed_charge') {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			const bombPosition = { ...player.position };
-			const radius = 3;
 
-			// TODO update player & update world to show bomb
-			// this.broadcast('useItem', { playerId, updates, item, position: bombPosition });
+			this.world.grid[bombPosition.x][bombPosition.y].items.push({ name: item });
 
-			setTimeout(() => {
-				const playersToFall = [];
+			this.broadcast('useItem', { playerId, updates, item, bombPosition });
 
-				getSurroundingRadius(bombPosition, radius).forEach(({ x, y }) => {
-					if (this.world.grid[x]?.[y]) this.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+			setTimeout(() => explode({ game: this, position: bombPosition, radius: 2 }), 3000);
+		} else if (item === 'remote_charge') {
+			const bombPosition = { ...player.position };
 
-					if (this.world.spaceco.position.x === x && this.world.spaceco.position.y === y) {
-						this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
-					}
+			this.world.grid[bombPosition.x][bombPosition.y].items.push({ name: item });
 
-					this.players.forEach(player => {
-						if (player.position.x === x && player.position.y === y) playersToFall.push(player.id);
-					});
-				});
+			updates.items = { ...updates.items, [`detonator_${bombPosition.x}_${bombPosition.y}`]: 1 };
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-				this.broadcast('explodeBomb', { playerId, item, radius, position: bombPosition });
+			this.broadcast('useItem', { playerId, updates, item, bombPosition });
+		} else if (item.startsWith('detonator')) {
+			const [, x, y] = item.split('_');
 
-				this.spacecoFall();
-
-				playersToFall.forEach(playerId => this.playerFall(playerId));
-			}, 3000);
+			explode({ game: this, position: { x: parseInt(x, 10), y: parseInt(y, 10) }, radius: 4 });
 		} else {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
@@ -617,13 +612,15 @@ export default class Game {
 		if (!world.spaceco.position) world.spaceco.position = { x: randInt(3, world.width - 3), y: world.airGap };
 
 		if (!world.spaceco.parts) {
-			world.spaceco.parts = {};
+			world.parts = world.parts || {};
+			world.spaceco.parts = world.spaceco.parts || {};
 
 			const partCount = randInt(3, 9);
 
 			for (let x = 0; x < partCount; ++x) {
 				const part = this.generatePart();
 
+				world.parts[part.name] = part;
 				world.spaceco.parts[part.name] = part;
 			}
 		}

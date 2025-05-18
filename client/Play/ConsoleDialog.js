@@ -173,7 +173,7 @@ export default class ConsoleDialog extends Dialog {
 					new Label(
 						{ label: capitalize(key.replaceAll('_', ' '), true), style: { width: 'auto' } },
 						`x${count.toString()}`,
-						new ItemImage(key),
+						new ItemImage(key.startsWith('detonator') ? 'detonator' : key),
 						new Button({
 							content: 'Use',
 							onPointerPress: () => {
