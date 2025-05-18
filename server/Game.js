@@ -61,8 +61,8 @@ const items = {
 	oil: { price: 20, description: 'A portable gas can' },
 	battery: { price: 30, description: 'A replacement energy cell' },
 	super_oxygen_liquid_nitrogen: { price: 50, description: 'A portable SOLN fuel cell' },
-	teleporter: { price: 7, description: 'Teleport back to spaceco' },
-	responder_teleporter: { price: 9, description: 'Place a responder, then teleport back to it later' },
+	spaceco_teleporter: { price: 7, description: 'Teleport back to spaceco' },
+	advanced_teleporter: { price: 9, description: 'Place a return station, then teleport back to it later' },
 	repair_nanites: { price: 30, description: 'Repair yourself on the go' },
 	timed_charge: { price: 13, description: '3s delay 3 radius explosive charge' },
 	remote_charge: { price: 22, description: '5 radius explosive charge with a remote detonator' },
@@ -217,7 +217,9 @@ export default class Game {
 				drill: randFromArray(drillNames),
 				engine: randFromArray(engineNames),
 			},
-			items: {},
+			items: {
+				spaceco_teleporter: 1,
+			},
 			hull: {},
 			cargo: 0,
 			health: 0,
@@ -437,7 +439,7 @@ export default class Game {
 			items: { ...player.items, [item]: (player.items[item] -= 1) },
 		};
 
-		if (item === 'teleporter') {
+		if (item === 'spaceco_teleporter') {
 			updates.position = { ...this.world.spaceco.position };
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
@@ -453,7 +455,7 @@ export default class Game {
 
 			this.broadcast('useItem', { playerId, updates, item, bombPosition });
 
-			setTimeout(() => explode({ game: this, position: bombPosition, radius: 2 }), 3000);
+			setTimeout(() => explode({ game: this, position: bombPosition, radius: 3 }), 3000);
 		} else if (item === 'remote_charge') {
 			const bombPosition = { ...player.position };
 
@@ -466,9 +468,32 @@ export default class Game {
 		} else if (item.startsWith('detonator')) {
 			const [, x, y] = item.split('_');
 
-			explode({ game: this, position: { x: parseInt(x, 10), y: parseInt(y, 10) }, radius: 4 });
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			this.broadcast('useItem', { playerId, updates, item });
+
+			explode({ game: this, position: { x: parseInt(x, 10), y: parseInt(y, 10) }, radius: 5 });
+		} else if (item === 'advanced_teleporter') {
+			const stationPosition = { ...player.position };
+
+			this.world.grid[stationPosition.x][stationPosition.y].items.push({ name: 'teleport_station' });
+
+			updates.items = { ...updates.items, [`activated_teleporter_${stationPosition.x}_${stationPosition.y}`]: 1 };
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			this.broadcast('useItem', { playerId, updates, item, stationPosition });
+		} else if (item.startsWith('activated_teleporter')) {
+			const [, , x, y] = item.split('_');
+			updates.position = { x: parseInt(x, 10), y: parseInt(y, 10) };
+
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			this.world.grid[x][y].items = this.world.grid[x][y].items.filter(item => item.name !== 'teleport_station');
+
+			this.broadcast('useItem', { playerId, updates, item });
 		} else {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
 			this.broadcast('useItem', { playerId, updates, item });
 		}
 	}
@@ -601,10 +626,9 @@ export default class Game {
 
 		world.spaceco.items.oil.stock = randInt(0, 9);
 		world.spaceco.items.battery.stock = randInt(0, 9);
-		world.spaceco.items.battery.stock = randInt(0, 9);
 		world.spaceco.items.super_oxygen_liquid_nitrogen.stock = randInt(0, 9);
-		world.spaceco.items.teleporter.stock = randInt(9, 99);
-		world.spaceco.items.responder_teleporter.stock = randInt(9, 39);
+		world.spaceco.items.spaceco_teleporter.stock = randInt(9, 99);
+		world.spaceco.items.advanced_teleporter.stock = randInt(9, 39);
 		world.spaceco.items.repair_nanites.stock = randInt(3, 13);
 		world.spaceco.items.timed_charge.stock = randInt(9, 99);
 		world.spaceco.items.remote_charge.stock = randInt(9, 99);
@@ -990,7 +1014,7 @@ export default class Game {
 
 			this.playerFall(playerId, true);
 		} else if (falling) {
-			this.broadcast('playerFall', { updates: { position: player.position, health: player.health } });
+			this.broadcast('playerFall', { playerId, updates: { position: player.position, health: player.health } });
 		}
 	}
 

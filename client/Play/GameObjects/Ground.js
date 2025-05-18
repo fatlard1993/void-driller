@@ -81,7 +81,7 @@ export class Ground extends Phaser.GameObjects.Sprite {
 
 		this.crack.anims.create({
 			key: 'dig',
-			frames: this.anims.generateFrameNumbers('crack', [0, 1, 2, 3, 4]),
+			frames: this.anims.generateFrameNumbers('crack'),
 			duration: 500,
 			repeat: 0,
 		});

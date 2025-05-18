@@ -90,14 +90,11 @@ export class Drill extends Phaser.GameObjects.Sprite {
 	}
 
 	fall(position, speed = 800) {
-		this.scene.tweens.add({
-			targets: this,
-			duration: speed,
-			...gridToPxPosition(position),
-			onComplete: () => {
-				this.anims.stop();
-			},
-		});
+		const pxPosition = gridToPxPosition(position);
+
+		this.scene.tweens.add({ targets: this, duration: speed, ...pxPosition });
+
+		this.scene.tweens.add({ targets: this.drill, duration: speed, ...pxPosition });
 	}
 
 	/**

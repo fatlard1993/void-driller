@@ -4,8 +4,15 @@ export const explode = ({ game, position, radius }) => {
 	console.log('explode', { position, radius });
 	const playersToFall = [];
 
-	[position, ...getSurroundingRadius(position, radius)].forEach(({ x, y }) => {
-		if (game.world.grid[x]?.[y]) game.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+	getSurroundingRadius(position, radius).forEach(({ x, y }) => {
+		if (game.world.grid[x]?.[y]) {
+			game.world.grid[x][y].items.forEach(item => {
+				if ((item.name === 'oil' || item.name.endsWith('charge')) && !(x === position.x && y === position.y)) {
+					explode({ game, position: { x, y }, radius: 3 });
+				}
+			});
+			game.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+		}
 
 		if (game.world.spaceco.position.x === x && game.world.spaceco.position.y === y) {
 			game.world.spaceco.health = Math.max(0, game.world.spaceco.health - 1);

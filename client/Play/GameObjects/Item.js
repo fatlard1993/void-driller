@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { gridToPxPosition, randInt } from '../../../utils';
 import gameContext from '../gameContext';
 
-export class Item extends Phaser.GameObjects.Image {
+export class Item extends Phaser.GameObjects.Sprite {
 	/**
 	 * Create an Item
 	 * @param {object} scene - The scene
@@ -30,6 +30,21 @@ export class Item extends Phaser.GameObjects.Image {
 		this.name = name;
 
 		scene.add.existing(this);
+
+		this.anims.create({
+			key: 'explode',
+			frames: this.anims.generateFrameNumbers('explosion'),
+			frameRate: 4,
+			repeat: 0,
+		});
+
+		this.on('animationcomplete-explode', () => {
+			this.destroy();
+		});
+	}
+
+	explode() {
+		this.anims.play('explode', false);
 	}
 
 	collect() {

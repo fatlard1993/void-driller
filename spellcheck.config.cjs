@@ -19,7 +19,6 @@ module.exports = {
 		'teleporter',
 		'teleporters',
 		'teleporting',
-		'responder',
 		'antigravidic',
 		'zelda',
 		'phaser',

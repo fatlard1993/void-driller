@@ -251,9 +251,9 @@ export default class Game extends (styled.Component`
 						),
 					);
 
-					gameContext.spaceco.dialog.options.view = 'success';
-
 					gameContext.serverState.world.spaceco.items = data.spacecoUpdates.items;
+
+					gameContext.spaceco.dialog.options.view = 'shop';
 				} else if (data.update === 'spacecoBuyUpgrade') {
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
@@ -285,8 +285,19 @@ export default class Game extends (styled.Component`
 					console.log('useItem', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
-					if (data.item === 'teleporter') {
+					if (data.item === 'spaceco_teleporter' || data.item.startsWith('activated_teleporter')) {
 						gameContext.players.get(data.playerId).sprite.teleport(data.updates.position, 1000);
+
+						if (data.item.startsWith('activated_teleporter')) {
+							gameContext.serverState.world.grid[data.stationPosition.x][data.stationPosition.y].items =
+								gameContext.serverState.world.grid[data.stationPosition.x][data.stationPosition.y].items.filter(
+									item => {
+										if (item.name !== 'teleport_station') return true;
+
+										if (item.sprite?.scene) item.sprite.destroy();
+									},
+								);
+						}
 					} else if (data.item === 'repair_nanites') {
 						[...Array(randInt(2, 40))].forEach((_, index) =>
 							setTimeout(
@@ -297,6 +308,18 @@ export default class Game extends (styled.Component`
 						const player = gameContext.players.get(data.playerId);
 
 						player.sprite.move(player.position, 0, player.orientation);
+					} else if (data.item === 'advanced_teleporter') {
+						const sprite = new Item(
+							gameContext.scene,
+							data.stationPosition.x,
+							data.stationPosition.y,
+							'teleport_station',
+						);
+
+						gameContext.serverState.world.grid[data.stationPosition.x][data.stationPosition.y].items.push({
+							name: 'teleport_station',
+							sprite,
+						});
 					} else if (data.item === 'timed_charge' || data.item === 'remote_charge') {
 						const sprite = new Item(gameContext.scene, data.bombPosition.x, data.bombPosition.y, data.item);
 
@@ -317,7 +340,7 @@ export default class Game extends (styled.Component`
 					console.log('playerFall', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
-					gameContext.players.get(gameContext.playerId).sprite.fall(data.updates.position);
+					gameContext.players.get(data.playerId).sprite.fall(data.updates.position);
 				} else if (data.update === 'updatePlayer') {
 					console.log('sync player', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));

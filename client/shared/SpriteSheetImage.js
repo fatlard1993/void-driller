@@ -37,11 +37,10 @@ export class MineralImage extends SpriteSheetImage {
 
 const itemNameIndex = {
 	repair_nanites: 0,
-	teleporter: 1,
+	spaceco_teleporter: 1,
 	detonator: 2,
-	responder: 3,
-	responder_spaceco: 4,
-	responder_teleporter: 5,
+	teleport_station: 3,
+	advanced_teleporter: 5,
 	oil: 6,
 	timed_charge: 7,
 	remote_charge: 8,
