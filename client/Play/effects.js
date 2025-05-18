@@ -1,5 +1,5 @@
 import { convertRange, getSurroundingRadius } from '../../utils';
-import gameContext from './gameContext';
+import gameContext from '../shared/gameContext';
 
 export const destroyGround = ({ x, y }) => {
 	const gridConfig = gameContext.serverState.world.grid?.[x]?.[y];
@@ -12,7 +12,7 @@ export const destroyGround = ({ x, y }) => {
 };
 
 export const explode = ({ position, radius }) => {
-	const player = gameContext.players.get(gameContext.playerId);
+	const player = gameContext.players.currentPlayer;
 
 	const delta = {
 		x: position.x - player.position.x,

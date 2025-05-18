@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import { getImmediateSurrounds, gridToPxPosition, hasFooting, pxToGridPosition } from '../../utils';
 import { move as movePlayer } from '../api';
 import socket, { onMessage } from '../socket';
-import gameContext from './gameContext';
+import gameContext from '../shared/gameContext';
 import GameScene from './GameScene';
 import { Drill, Lava, Gas, Item } from './GameObjects';
 import ConsoleDialog from './ConsoleDialog';
@@ -382,7 +382,7 @@ export default class Game extends (styled.Component`
 				});
 			});
 
-			movePlayer({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, path: move });
+			movePlayer({ path: move });
 
 			move.length = 0;
 			path.length = 0;
@@ -399,24 +399,11 @@ export default class Game extends (styled.Component`
 			gameContext.cursor.x = gridSnappedPxPosition.x;
 			gameContext.cursor.y = gridSnappedPxPosition.y;
 
-			const player = gameContext.players.get(gameContext.playerId);
+			const player = gameContext.players.currentPlayer;
 			const delta = {
 				x: Math.abs(gridPosition.x - player.position.x),
 				y: Math.abs(gridPosition.y - player.position.y),
 			};
-
-			// if (delta.x > 2 || delta.y > 2) {
-			// 	console.log('Far click -- Effect Test');
-
-			// 	triggerEffect({
-			// 		gameId: gameContext.serverState.id,
-			// 		playerId,
-			// 		effect: 'teleport',
-			// 		position: gridPosition,
-			// 	});
-
-			// 	return;
-			// }
 
 			if (delta.x > 1 || delta.y > 1 || (delta.x === 0 && delta.y === 0)) return;
 
@@ -437,7 +424,7 @@ export default class Game extends (styled.Component`
 
 				if (gameObjects.some(one => one === gameContext.spaceco.tradeButton)) return;
 
-				const player = gameContext.players.get(gameContext.playerId);
+				const player = gameContext.players.currentPlayer;
 
 				if (!player) return console.log('missing player', gameContext.players);
 

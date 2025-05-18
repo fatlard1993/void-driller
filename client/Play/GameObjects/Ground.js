@@ -2,7 +2,7 @@
 import Phaser from 'phaser';
 
 import { chance, getImmediateSurrounds, gridToPxPosition, randInt } from '../../../utils';
-import gameContext from '../gameContext';
+import gameContext from '../../shared/gameContext';
 
 export class Ground extends Phaser.GameObjects.Sprite {
 	/**

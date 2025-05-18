@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { gridToPxPosition, randInt } from '../../../utils';
-import gameContext from '../gameContext';
+import gameContext from '../../shared/gameContext';
 
 export class Drill extends Phaser.GameObjects.Sprite {
 	/**

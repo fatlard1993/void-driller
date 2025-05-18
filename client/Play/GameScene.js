@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
 import { rand } from '../../utils';
+import gameContext from '../shared/gameContext';
 import { Ground, Item, Mineral, Spaceco, Drill, Chomper, Lava, Gas } from './GameObjects';
-import gameContext from './gameContext';
 import { Player } from './GameObjects/Player';
 
 const sounds = [

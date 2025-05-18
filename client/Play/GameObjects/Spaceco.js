@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import { convertRange, gridToPxPosition } from '../../../utils';
 import SpacecoDialog from '../SpacecoDialog';
-import gameContext from '../gameContext';
+import gameContext from '../../shared/gameContext';
 
 export class Spaceco extends Phaser.GameObjects.Sprite {
 	/**
@@ -40,7 +40,7 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 
 	hurt() {
 		if (gameContext.serverState.world.spaceco.health === 0) {
-			const player = gameContext.players.get(gameContext.playerId);
+			const player = gameContext.players.currentPlayer;
 
 			const delta = {
 				x: gameContext.serverState.world.spaceco.position.x - player.position.x,
