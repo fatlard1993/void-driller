@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { gridToPxPosition, rand, randInt } from '../../../utils';
-import gameContext from '../gameContext';
+import gameContext from '../../shared/gameContext';
 
 export class Mineral extends Phaser.GameObjects.Image {
 	/**
@@ -38,7 +38,7 @@ export class Mineral extends Phaser.GameObjects.Image {
 	}
 
 	collect() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		this.scene.tweens.add({
 			targets: this,

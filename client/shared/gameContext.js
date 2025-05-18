@@ -9,6 +9,10 @@ class Players extends Map {
 	update(id, updater = current => current) {
 		this.set(id, updater(this.get(id)));
 	}
+
+	get currentPlayer() {
+		return gameContext.players.get(gameContext.playerId);
+	}
 }
 
 /**

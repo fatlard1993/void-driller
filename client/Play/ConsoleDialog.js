@@ -12,7 +12,7 @@ import {
 
 import { DrillImage, EngineImage, ItemImage, MineralImage, VehicleImage } from '../shared/SpriteSheetImage';
 import { useItem } from '../api';
-import gameContext from './gameContext';
+import gameContext from '../shared/gameContext';
 
 class VolumeControl extends Component {
 	render() {
@@ -52,7 +52,7 @@ export default class ConsoleDialog extends Dialog {
 			buttons: ['Close'],
 			view: localStorage.getItem('console_defaultMenu') || 'Help',
 			onButtonPress: () => {
-				const player = gameContext.players.get(gameContext.playerId);
+				const player = gameContext.players.currentPlayer;
 
 				player.sprite.move(player.position, 0, player.orientation);
 
@@ -84,7 +84,7 @@ export default class ConsoleDialog extends Dialog {
 	}
 
 	render_cargo() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
@@ -119,7 +119,7 @@ export default class ConsoleDialog extends Dialog {
 	}
 
 	render_status() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 		console.log(player);
 		const vehicleConfig = gameContext.serverState.world.vehicles[player.configuration.vehicle];
 		const drillConfig = gameContext.serverState.world.drills[player.configuration.drill];
@@ -162,7 +162,7 @@ export default class ConsoleDialog extends Dialog {
 	}
 
 	render_items() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
@@ -183,7 +183,7 @@ export default class ConsoleDialog extends Dialog {
 						new Button({
 							content: 'Use',
 							onPointerPress: () => {
-								useItem({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, item: key });
+								useItem({ item: key });
 
 								this.close();
 							},

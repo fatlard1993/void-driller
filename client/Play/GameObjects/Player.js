@@ -2,7 +2,7 @@ import { convertRange, theme } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
 import { getSurroundingRadius, gridToPxPosition, pxToGridPosition } from '../../../utils';
-import gameContext from '../gameContext';
+import gameContext from '../../shared/gameContext';
 import { Drill } from './Drill';
 
 const iconIndex = {
@@ -78,7 +78,7 @@ export class Player extends Drill {
 	}
 
 	updateStatusBars({ position, speed = 0 } = {}) {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		if (player) {
 			this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [1, 100]);

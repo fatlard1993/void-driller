@@ -9,8 +9,15 @@ import {
 	PartsImage,
 	VehicleImage,
 } from '../shared/SpriteSheetImage';
-import { spacecoBuyItem, spacecoBuyTransport, spacecoBuyUpgrade, spacecoRefuel, spacecoRepair, spacecoSell } from '../api';
-import gameContext from './gameContext';
+import {
+	spacecoBuyItem,
+	spacecoBuyTransport,
+	spacecoBuyUpgrade,
+	spacecoRefuel,
+	spacecoRepair,
+	spacecoSell,
+} from '../api';
+import gameContext from '../shared/gameContext';
 
 export default class SpacecoDialog extends Dialog {
 	constructor(options = {}) {
@@ -24,7 +31,7 @@ export default class SpacecoDialog extends Dialog {
 			buttons: ['Close'],
 			view: gameContext.serverState.world.spaceco.health > 0 ? 'Sell' : 'destroyed',
 			onButtonPress: () => {
-				const player = gameContext.players.get(gameContext.playerId);
+				const player = gameContext.players.currentPlayer;
 
 				player.sprite.move(player.position, 0, player.orientation);
 
@@ -37,7 +44,7 @@ export default class SpacecoDialog extends Dialog {
 	}
 
 	renderPlayerInfo() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		this._body.append(new Label('Credits', `$${player.credits.toFixed(2)}`));
 	}
@@ -69,21 +76,20 @@ export default class SpacecoDialog extends Dialog {
 			appendTo: this._body,
 		});
 
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
 
 		new Button({
 			content: `Full Repair ($${spacecoRepairCost})`,
 			appendTo: this._body,
-			onPointerPress: () =>
-				spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'outpost' }),
+			onPointerPress: () => spacecoRepair({ type: 'outpost' }),
 			disabled: spacecoRepairCost > player.credits,
 		});
 	}
 
 	render_sell() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		if (Object.keys(player.hull).length === 0) {
 			this._body.append(new Elem({ tag: 'p', content: 'No minerals to sell' }));
@@ -94,7 +100,7 @@ export default class SpacecoDialog extends Dialog {
 		const sellButton = new Button({
 			style: { marginBottom: '9px' },
 			content: `Sell All`,
-			onPointerPress: () => spacecoSell({ gameId: gameContext.serverState.id, playerId: gameContext.playerId }),
+			onPointerPress: () => spacecoSell(),
 			appendTo: this._body,
 		});
 
@@ -184,7 +190,7 @@ export default class SpacecoDialog extends Dialog {
 	render_upgrade_vehicles() {
 		this.renderUpgradeMenu();
 
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
@@ -196,16 +202,11 @@ export default class SpacecoDialog extends Dialog {
 						new Button({
 							content: `Buy ($${price})`,
 							onPointerPress: () => {
-								const player = gameContext.players.get(gameContext.playerId);
+								const player = gameContext.players.currentPlayer;
 
 								player.sprite.setTexture('vehicles', spriteIndex);
 
-								spacecoBuyUpgrade({
-									gameId: gameContext.gameId,
-									playerId: gameContext.playerId,
-									upgrade: name,
-									type: 'vehicles',
-								});
+								spacecoBuyUpgrade({ upgrade: name, type: 'vehicles' });
 							},
 							disabled: price > player.credits,
 						}),
@@ -233,7 +234,7 @@ export default class SpacecoDialog extends Dialog {
 	render_upgrade_engines() {
 		this.renderUpgradeMenu();
 
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
@@ -245,12 +246,7 @@ export default class SpacecoDialog extends Dialog {
 						new Button({
 							content: `Buy ($${price})`,
 							onPointerPress: () => {
-								spacecoBuyUpgrade({
-									gameId: gameContext.gameId,
-									playerId: gameContext.playerId,
-									upgrade: name,
-									type: 'engines',
-								});
+								spacecoBuyUpgrade({ upgrade: name, type: 'engines' });
 							},
 							disabled: price > player.credits,
 						}),
@@ -278,7 +274,7 @@ export default class SpacecoDialog extends Dialog {
 	render_upgrade_drills() {
 		this.renderUpgradeMenu();
 
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
@@ -290,16 +286,11 @@ export default class SpacecoDialog extends Dialog {
 						new Button({
 							content: `Buy ($${price})`,
 							onPointerPress: () => {
-								const player = gameContext.players.get(gameContext.playerId);
+								const player = gameContext.players.currentPlayer;
 
 								player.sprite.drill.setTexture('drills', spriteIndex);
 
-								spacecoBuyUpgrade({
-									gameId: gameContext.gameId,
-									playerId: gameContext.playerId,
-									upgrade: name,
-									type: 'drills',
-								});
+								spacecoBuyUpgrade({ upgrade: name, type: 'drills' });
 							},
 							disabled: price > player.credits,
 						}),
@@ -327,7 +318,7 @@ export default class SpacecoDialog extends Dialog {
 	render_upgrade_parts() {
 		this.renderUpgradeMenu();
 
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
@@ -339,12 +330,7 @@ export default class SpacecoDialog extends Dialog {
 						new Button({
 							content: `Buy ($${price})`,
 							onPointerPress: () => {
-								spacecoBuyUpgrade({
-									gameId: gameContext.gameId,
-									playerId: gameContext.playerId,
-									upgrade: name,
-									type: 'parts',
-								});
+								spacecoBuyUpgrade({ upgrade: name, type: 'parts' });
 							},
 							disabled: price > player.credits,
 						}),
@@ -370,7 +356,7 @@ export default class SpacecoDialog extends Dialog {
 	}
 
 	render_refuel() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 		const engineConfig = gameContext.serverState.world.engines[player.configuration.engine];
 		const pricePerLiter = { oil: 0.9, battery: 1.3, super_oxygen_liquid_nitrogen: 1.7 }[engineConfig.fuelType];
 		const neededFuel = player.maxFuel - player.fuel;
@@ -389,7 +375,7 @@ export default class SpacecoDialog extends Dialog {
 			),
 			new Button({
 				content: `Fill ($${cost.toFixed(2)})`,
-				onPointerPress: () => spacecoRefuel({ gameId: gameContext.serverState.id, playerId: gameContext.playerId }),
+				onPointerPress: () => spacecoRefuel(),
 				disabled: cost > player.credits,
 			}),
 		);
@@ -400,8 +386,7 @@ export default class SpacecoDialog extends Dialog {
 					this._body.append(
 						new Button({
 							content: `$${amount}`,
-							onPointerPress: () =>
-								spacecoRefuel({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, amount }),
+							onPointerPress: () => spacecoRefuel({ amount }),
 						}),
 					);
 				}
@@ -412,8 +397,6 @@ export default class SpacecoDialog extends Dialog {
 					content: `$${player.credits.toFixed(2)}`,
 					onPointerPress: () =>
 						spacecoRefuel({
-							gameId: gameContext.serverState.id,
-							playerId: gameContext.playerId,
 							amount: player.credits,
 						}),
 				}),
@@ -425,7 +408,7 @@ export default class SpacecoDialog extends Dialog {
 		const playerRepairs = new Label('Repair your Drill');
 		const spacecoRepairs = new Label('Repair Spaceco Outpost');
 
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		const pricePerHealth = 1.3;
 		const neededHealth = player.maxHealth - player.health;
@@ -438,8 +421,7 @@ export default class SpacecoDialog extends Dialog {
 				textContent: `Full Repair ($${cost.toFixed(2)})`,
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: playerRepairs,
-				onPointerPress: () =>
-					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'player' }),
+				onPointerPress: () => spacecoRepair({ type: 'player' }),
 				disabled: cost > player.credits,
 			});
 		}
@@ -453,8 +435,7 @@ export default class SpacecoDialog extends Dialog {
 				textContent: `Full Repair ($${spacecoRepairCost})`,
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: spacecoRepairs,
-				onPointerPress: () =>
-					spacecoRepair({ gameId: gameContext.serverState.id, playerId: gameContext.playerId, type: 'outpost' }),
+				onPointerPress: () => spacecoRepair({ type: 'outpost' }),
 				disabled: spacecoRepairCost > player.credits,
 			});
 		}
@@ -463,7 +444,7 @@ export default class SpacecoDialog extends Dialog {
 	}
 
 	render_shop() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
@@ -476,12 +457,7 @@ export default class SpacecoDialog extends Dialog {
 						new ItemImage(key),
 						new Button({
 							content: `Buy ($${price})`,
-							onPointerPress: () =>
-								spacecoBuyItem({
-									gameId: gameContext.serverState.id,
-									playerId: gameContext.playerId,
-									item: key,
-								}),
+							onPointerPress: () => spacecoBuyItem({ item: key }),
 							disabled: price > player.credits,
 						}),
 						`Stock: ${stock}`,
@@ -501,18 +477,14 @@ export default class SpacecoDialog extends Dialog {
 	}
 
 	render_transport() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		const price = 100;
 
 		new Button({
 			appendTo: this._body,
 			content: `Buy Transport ($${price})`,
-			onPointerPress: () =>
-				spacecoBuyTransport({
-					gameId: gameContext.serverState.id,
-					playerId: gameContext.playerId,
-				}),
+			onPointerPress: () => spacecoBuyTransport(),
 			disabled: price > player.credits,
 		});
 	}

@@ -1,5 +1,16 @@
 import { GET, POST, DELETE } from 'vanilla-bean-components';
 
+import gameContext from '../shared/gameContext';
+
+const apiContext = {
+	get gameId() {
+		return gameContext.gameId;
+	},
+	get playerId() {
+		return gameContext.playerId;
+	},
+};
+
 export const getGames = async options => await GET('/games', { id: 'games', ...options });
 
 export const getGame = async (id, options) =>
@@ -10,80 +21,72 @@ export const createGame = async options => await POST('/games', { invalidates: [
 export const joinGame = async (id, options) =>
 	await POST('/games/:id/join', { invalidates: ['games'], urlParameters: { id }, ...options });
 
-export const exitGame = async ({ gameId, playerId }, options) =>
+export const exitGame = async options =>
 	await POST('/games/:gameId/:playerId/exit', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		...options,
 	});
 
-export const move = async ({ gameId, playerId, path }, options) =>
+export const move = async ({ path }, options) =>
 	await POST('/games/:gameId/:playerId/move', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		body: { path },
 		...options,
 	});
 
-export const spacecoSell = async ({ gameId, playerId }, options) =>
+export const spacecoSell = async options =>
 	await POST('/games/:gameId/:playerId/spaceco/sell', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		...options,
 	});
 
-export const spacecoRefuel = async ({ gameId, playerId, amount }, options) =>
+export const spacecoRefuel = async ({ amount } = {}, options) =>
 	await POST('/games/:gameId/:playerId/spaceco/refuel', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		body: { amount },
 		...options,
 	});
 
-export const spacecoRepair = async ({ gameId, playerId, amount, type }, options) =>
+export const spacecoRepair = async ({ amount, type }, options) =>
 	await POST('/games/:gameId/:playerId/spaceco/repair', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		body: { amount, type },
 		...options,
 	});
 
-export const spacecoBuyItem = async ({ gameId, playerId, item }, options) =>
+export const spacecoBuyItem = async ({ item }, options) =>
 	await POST('/games/:gameId/:playerId/spaceco/item', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		body: { item },
 		...options,
 	});
 
-export const spacecoBuyUpgrade = async ({ gameId, playerId, upgrade, type }, options) =>
+export const spacecoBuyUpgrade = async ({ upgrade, type }, options) =>
 	await POST('/games/:gameId/:playerId/spaceco/upgrade', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		body: { upgrade, type },
 		...options,
 	});
 
-	export const spacecoBuyTransport = async ({ gameId, playerId }, options) =>
+export const spacecoBuyTransport = async options =>
 	await POST('/games/:gameId/:playerId/spaceco/transport', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		...options,
 	});
 
-export const useItem = async ({ gameId, playerId, item }, options) =>
+export const useItem = async ({ item }, options) =>
 	await POST('/games/:gameId/:playerId/useItem', {
 		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
+		urlParameters: apiContext,
 		body: { item },
-		...options,
-	});
-
-export const triggerEffect = async ({ gameId, playerId, position, effect }, options) =>
-	await POST('/games/:gameId/:playerId/triggerEffect', {
-		invalidates: ['games'],
-		urlParameters: { gameId, playerId },
-		body: { position, effect },
 		...options,
 	});
 

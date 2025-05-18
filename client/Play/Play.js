@@ -3,7 +3,7 @@ import { Button, Dialog, Label, Input } from 'vanilla-bean-components';
 import Notify from '../shared/Notify';
 import { View } from '../layout';
 import { exitGame, getGame } from '../api';
-import gameContext from './gameContext';
+import gameContext from '../shared/gameContext';
 import Game from './Game';
 import ConsoleDialog from './ConsoleDialog';
 
@@ -46,10 +46,7 @@ export default class Play extends View {
 									onButtonPress: async ({ button, closeDialog }) => {
 										if (button === 'Exit') {
 											if (this.options.removePlayerOnExit) {
-												const { response, body } = await exitGame({
-													gameId: gameContext.gameId,
-													playerId: gameContext.playerId,
-												});
+												const { response, body } = await exitGame();
 
 												if (response.status !== 200) {
 													new Notify({ type: 'error', content: body?.message || response.statusText });

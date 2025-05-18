@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { gridToPxPosition, randInt } from '../../../utils';
-import gameContext from '../gameContext';
+import gameContext from '../../shared/gameContext';
 
 export class Item extends Phaser.GameObjects.Sprite {
 	/**
@@ -48,7 +48,7 @@ export class Item extends Phaser.GameObjects.Sprite {
 	}
 
 	collect() {
-		const player = gameContext.players.get(gameContext.playerId);
+		const player = gameContext.players.currentPlayer;
 
 		this.scene.tweens.add({
 			targets: this,

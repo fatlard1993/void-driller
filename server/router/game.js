@@ -168,21 +168,6 @@ const _game = async request => {
 		return Response.json({}, { status: 200 });
 	}
 
-	match = requestMatch('POST', '/games/:gameId/:playerId/triggerEffect', request);
-	if (match) {
-		const body = await request.json();
-		const { gameId, playerId } = match;
-		const { effect, position } = body;
-
-		if (!playerId || !games[gameId]?.players?.has(playerId)) {
-			return Response.json({ message: `Could not find player "${playerId}"` }, { status: 404 });
-		}
-
-		games[gameId].triggerEffect(playerId, effect, position);
-
-		return Response.json({}, { status: 200 });
-	}
-
 	match = requestMatch('POST', '/games/:gameId/:playerId/useItem', request);
 	if (match) {
 		const body = await request.json();
