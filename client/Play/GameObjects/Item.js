@@ -9,23 +9,25 @@ export class Item extends Phaser.GameObjects.Image {
 	 * @param {object} scene - The scene
 	 * @param {number} x - Grid x
 	 * @param {number} y - Grid y
-	 * @param { "oil" | "remote_charge" | "repair_nanites" | "responder" | "responder_teleporter" | "teleporter" | "timed_charge" } name - The item name
+	 * @param { "oil" | "battery" | "super_oxygen_liquid_nitrogen" | "detonator" | "remote_charge" | "timed_charge" | "repair_nanites" | "teleport_station" | "advanced_teleporter" | "spaceco_teleporter" } name - The item name
 	 */
 	constructor(scene, x, y, name) {
 		const itemIndex = {
 			repair_nanites: 0,
-			teleporter: 1,
-			responder: 3,
-			responder_teleporter: 5,
+			spaceco_teleporter: 1,
+			detonator: 2,
+			teleport_station: 3,
+			advanced_teleporter: 5,
 			oil: 6,
 			timed_charge: 7,
 			remote_charge: 8,
+			super_oxygen_liquid_nitrogen: 9,
+			battery: 10,
 		};
+
 		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'items', itemIndex[name]);
 
 		this.name = name;
-
-		this.setOrigin(0.5, -0.01);
 
 		scene.add.existing(this);
 	}

@@ -1,18 +1,12 @@
 import { styled, throttle, debounce, convertRange, randInt } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
-import {
-	getSurroundingRadius,
-	getImmediateSurrounds,
-	gridToPxPosition,
-	hasFooting,
-	pxToGridPosition,
-} from '../../utils';
+import { getImmediateSurrounds, gridToPxPosition, hasFooting, pxToGridPosition } from '../../utils';
 import { move as movePlayer } from '../api';
 import socket, { onMessage } from '../socket';
 import gameContext from './gameContext';
 import GameScene from './GameScene';
-import { Drill, Lava, Gas } from './GameObjects';
+import { Drill, Lava, Gas, Item } from './GameObjects';
 import ConsoleDialog from './ConsoleDialog';
 import { destroyGround, explode } from './effects';
 
@@ -273,7 +267,7 @@ export default class Game extends (styled.Component`
 					gameContext.spaceco.dialog.options.view = 'success';
 
 					gameContext.serverState.world.spaceco[data.type] = data.spacecoUpdates[data.type];
-				}  else if (data.update === 'spacecoBuyTransport') {
+				} else if (data.update === 'spacecoBuyTransport') {
 					console.log('spacecoBuyTransport', data);
 					gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
@@ -303,26 +297,12 @@ export default class Game extends (styled.Component`
 						const player = gameContext.players.get(data.playerId);
 
 						player.sprite.move(player.position, 0, player.orientation);
-					} else if (data.item === 'timed_charge') {
-						const player = gameContext.players.get(data.playerId);
+					} else if (data.item === 'timed_charge' || data.item === 'remote_charge') {
+						const sprite = new Item(gameContext.scene, data.bombPosition.x, data.bombPosition.y, data.item);
 
-						const delta = {
-							x: data.position.x - player.position.x,
-							y: data.position.y - player.position.y,
-						};
-						gameContext.scene.cameras.main.shake(
-							1000,
-							convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
-						);
-						gameContext.scene.cameras.main.flash(600);
-						gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
-
-						getSurroundingRadius(data.position, 3).forEach(({ x, y }) => {
-							const gridConfig = gameContext.serverState.world.grid[x][y];
-							if (gridConfig.ground.sprite?.scene) gridConfig.ground.sprite.dig();
-							[...gridConfig.items, ...gridConfig.hazards].forEach(one => one.sprite.destroy());
-
-							gameContext.serverState.world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+						gameContext.serverState.world.grid[data.bombPosition.x][data.bombPosition.y].items.push({
+							name: data.item,
+							sprite,
 						});
 					} else {
 						console.warn(`unknown item ${data.item}`);

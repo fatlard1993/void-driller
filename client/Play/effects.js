@@ -21,7 +21,13 @@ export const explode = ({ position, radius }) => {
 	gameContext.scene.cameras.main.flash(600);
 	gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
 
-	getSurroundingRadius(position, radius).forEach(({ x, y }) => {
+	[position, ...getSurroundingRadius(position, radius)].forEach(({ x, y }) => {
 		destroyGround({ x, y, silent: true });
+
+		const gridConfig = gameContext.serverState.world.grid[x][y];
+
+		gridConfig.items.forEach(item => {
+			if (item.sprite?.scene) item.sprite.destroy();
+		});
 	});
 };

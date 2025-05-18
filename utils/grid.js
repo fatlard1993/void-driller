@@ -54,14 +54,15 @@ export const getImmediateSurrounds = (
 };
 
 export const getSurroundingRadius = (position, radius, grid = []) => {
-	const x_from = position.x - radius,
-		x_to = position.x + radius;
-	const y_from = position.y - radius,
-		y_to = position.y + radius;
 	const surroundingRadius = [];
+	const roundedRadius = Math.round(radius);
 
-	for (let x = x_from, y; x <= x_to; ++x) {
-		for (y = y_from; y <= y_to; ++y) surroundingRadius.push({ x: x, y: y, ...(grid?.[x]?.[y] || {}) });
+	for (let x = position.x - roundedRadius; x <= position.x + roundedRadius; x++) {
+		for (let y = position.y - roundedRadius; y <= position.y + roundedRadius; y++) {
+			if (Math.pow(x - position.x, 2) + Math.pow(y - position.y, 2) <= Math.pow(radius, 2)) {
+				surroundingRadius.push({ x, y, ...(grid?.[x]?.[y] || {}) });
+			}
+		}
 	}
 
 	return surroundingRadius;
