@@ -30,7 +30,7 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 			this.tradeButton.setTint(0xffffff);
 		});
 		this.tradeButton.on('pointerdown', () => {
-			this.dialog = new SpacecoDialog();
+			gameContext.openDialog = this.dialog = new SpacecoDialog();
 		});
 
 		scene.add.existing(this);

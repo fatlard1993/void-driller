@@ -20,7 +20,7 @@ export default class Play extends View {
 							onPointerPress: () => {
 								this.options.removePlayerOnExit = true;
 
-								new Dialog({
+								gameContext.openDialog = new Dialog({
 									size: 'small',
 									style: { height: '144px' },
 									header: 'Exiting',
@@ -62,7 +62,14 @@ export default class Play extends View {
 							},
 						}),
 					],
-					right: [new Button({ content: 'Console', onPointerPress: () => new ConsoleDialog() })],
+					right: [
+						new Button({
+							content: 'Console',
+							onPointerPress: () => {
+								gameContext.openDialog = new ConsoleDialog();
+							},
+						}),
+					],
 				},
 			},
 			...children,

@@ -28,7 +28,7 @@ export const exitGame = async options =>
 		...options,
 	});
 
-export const move = async ({ path }, options) =>
+export const playerMove = async ({ path }, options) =>
 	await POST('/games/:gameId/:playerId/move', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
