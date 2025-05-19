@@ -33,7 +33,7 @@ const mineralNames = {
 	red: 'adamantite',
 	black: 'quadium',
 };
-const densities = {
+const mineralDensity = {
 	white: 400,
 	orange: 500,
 	yellow: 560,
@@ -44,6 +44,30 @@ const densities = {
 	pink: 780,
 	red: 800,
 	black: 900,
+};
+const mineralValue = {
+	white: 0.4,
+	orange: 0.5,
+	yellow: 0.56,
+	green: 0.62,
+	teal: 0.7,
+	blue: 0.74,
+	purple: 0.76,
+	pink: 0.78,
+	red: 0.8,
+	black: 0.9,
+};
+const mineralWeight = {
+	white: 0.4,
+	orange: 0.5,
+	yellow: 0.56,
+	green: 0.62,
+	teal: 0.7,
+	blue: 0.3,
+	purple: 0.76,
+	pink: 0.78,
+	red: 0.8,
+	black: 1,
 };
 const items = {
 	oil: { price: 20, description: 'A portable gas can' },
@@ -212,7 +236,7 @@ export default class Game {
 			cargo: 0,
 			health: 0,
 			fuel: 0,
-			credits: 1000,
+			credits: 200,
 		});
 
 		this.updatePlayerConfiguration(id);
@@ -269,8 +293,8 @@ export default class Game {
 		let cargo = 0;
 
 		Object.entries(player.hull).forEach(([key, value]) => {
-			if (key.startsWith('mineral')) cargo += (densities[key.replace('mineral_', '')] / 2000) * value;
-			else cargo += (densities[key] / 1000) * value;
+			if (key.startsWith('mineral')) cargo += (mineralWeight[key.replace('mineral_', '')] / 2) * value;
+			else cargo += mineralWeight[key] * value;
 		});
 
 		this.players.update(id, _ => ({ ..._, cargo: Math.min(cargo, player.maxCargo) }));
@@ -281,11 +305,12 @@ export default class Game {
 		let gain = 0;
 
 		Object.entries(player.hull).forEach(([key, count]) => {
-			if (key.startsWith('mineral')) {
-				gain +=
-					Math.max(0.01, densities[key.replace('mineral_', '')] / (500 + (this.world.spaceco.hull?.[key] || 0))) *
-					count;
-			} else gain += Math.max(0.01, densities[key] / (1000 + (this.world.spaceco.hull?.[key] || 0))) * count;
+			const mineralColor = key.replace('mineral_', '');
+			const isPure = key.startsWith('mineral');
+			const demandDrop = (this.world.spaceco.hull?.[mineralColor] || 0) / 1000;
+			const baseValue = mineralValue[mineralColor] / (isPure ? 1 : 2);
+
+			gain += (baseValue - demandDrop) * count;
 
 			this.world.spaceco.hull[key] = this.world.spaceco.hull?.[key] || 0;
 			this.world.spaceco.hull[key] += count;
@@ -435,6 +460,10 @@ export default class Game {
 			updates.health = player.maxHealth;
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
+		} else if (item === 'oil' || item === 'battery' || item === 'super_oxygen_liquid_nitrogen') {
+			updates.fuel = player.maxFuel;
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+			this.broadcast('useItem', { playerId, updates, item });
 		} else if (item === 'timed_charge') {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			const bombPosition = { ...player.position };
@@ -573,7 +602,9 @@ export default class Game {
 			gravity: [350, 500],
 			...options,
 			grid: [],
-			densities,
+			mineralDensity,
+			mineralWeight,
+			mineralValue,
 			mineralNames,
 			itemNames,
 			vehicles,
@@ -1050,7 +1081,10 @@ export default class Game {
 			const { type } = this.world.grid[position.x][position.y].ground;
 			const engineConfig = engines[player.configuration.engine];
 
-			updatedPlayer.fuel = Math.max(0, updatedPlayer.fuel - densities[type] / (engineConfig.fuelEfficiency * 1000));
+			updatedPlayer.fuel = Math.max(
+				0,
+				updatedPlayer.fuel - mineralDensity[type] / (engineConfig.fuelEfficiency * 1000),
+			);
 
 			updatedPlayer.hull[type] = updatedPlayer.hull[type] || 0;
 			++updatedPlayer.hull[type];

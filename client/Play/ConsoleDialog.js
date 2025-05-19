@@ -8,6 +8,8 @@ import {
 	Label,
 	Select,
 	Button,
+	rand,
+	randInt,
 } from 'vanilla-bean-components';
 
 import { DrillImage, EngineImage, ItemImage, MineralImage, VehicleImage } from '../shared/SpriteSheetImage';
@@ -85,37 +87,60 @@ export default class ConsoleDialog extends Dialog {
 
 	render_cargo() {
 		const player = gameContext.players.currentPlayer;
+		let credits = 0;
+
+		const total = new Elem({
+			content: `Total`,
+			appendTo: this._body,
+		});
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
-			Object.entries(player.hull).map(([key, count]) => {
-				let price;
+			Object.keys(gameContext.serverState.world.mineralNames).flatMap(name => {
+				const dirtyCount = player.hull[name] || 0;
+				const pureCount = player.hull[`mineral_${name}`] || 0;
 
-				if (key.startsWith('mineral')) {
-					price =
-						Math.max(
-							0.01,
-							gameContext.serverState.world.densities[key.replace('mineral_', '')] /
-								(500 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
-						) * count;
-				} else
-					price =
-						Math.max(
-							0.01,
-							gameContext.serverState.world.densities[key] /
-								(1000 + (gameContext.serverState.world.spaceco.hull?.[key] || 0)),
-						) * count;
+				if (!dirtyCount && !pureCount) return [];
 
-				return new Label(
-					{
-						label: `${key.startsWith('mineral') ? 'Concentrated ' : ''}${capitalize(gameContext.serverState.world.mineralNames[key.replace('mineral_', '')])}`,
-						style: { width: 'auto' },
-					},
-					`x${count.toString()} = $${price.toFixed(2)}`,
-					new MineralImage(key.replace('mineral_', '')),
-				);
+				const demandDrop = (gameContext.serverState.world.spaceco.hull?.[name] || 0) / 1000;
+				const baseValue = gameContext.serverState.world.mineralValue[name];
+
+				const dirtyPrice = dirtyCount ? Math.max(0.01, (baseValue / 2 - demandDrop) * dirtyCount) : 0;
+				const purePrice = pureCount ? Math.max(0.01, (baseValue - demandDrop) * pureCount) : 0;
+
+				credits += dirtyPrice + purePrice;
+
+				return [
+					new Label(
+						{
+							label: capitalize(gameContext.serverState.world.mineralNames[name]),
+							style: { width: '216px', paddingBottom: '48px' },
+						},
+						new Elem({
+							tag: 'pre',
+							content: `Dirty: x${dirtyCount.toString()} = $${dirtyPrice.toFixed(2)}\nPure: x${pureCount.toString()} = $${purePrice.toFixed(2)}`,
+							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						}),
+						...[...Array(Math.min(dirtyCount, 50))].map(
+							() =>
+								new MineralImage(name.replace('mineral_', ''), {
+									position: 'absolute',
+									transform: `scale(${rand(0.3, 0.5)}) translate(${randInt(-22, 258)}px, ${randInt(-10, 20)}px)`,
+								}),
+						),
+						...[...Array(Math.min(pureCount, 50))].map(
+							() =>
+								new MineralImage(name.replace('mineral_', ''), {
+									position: 'absolute',
+									transform: `scale(${rand(0.5, 0.8)}) translate(${randInt(-22, 258)}px, ${randInt(-10, 20)}px)`,
+								}),
+						),
+					),
+				];
 			}),
 		);
+
+		total.content(`Total: $${credits.toFixed(2)}`);
 	}
 
 	render_status() {
