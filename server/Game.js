@@ -46,16 +46,16 @@ const mineralDensity = {
 	black: 900,
 };
 const mineralValue = {
-	white: 0.4,
-	orange: 0.5,
-	yellow: 0.56,
-	green: 0.62,
-	teal: 0.7,
-	blue: 0.74,
-	purple: 0.76,
-	pink: 0.78,
-	red: 0.8,
-	black: 0.9,
+	white: 1.4,
+	orange: 1.5,
+	yellow: 1.56,
+	green: 1.62,
+	teal: 1.7,
+	blue: 1.74,
+	purple: 1.76,
+	pink: 1.78,
+	red: 1.8,
+	black: 1.9,
 };
 const mineralWeight = {
 	white: 0.4,
@@ -82,37 +82,37 @@ const items = {
 const itemNames = Object.keys(items);
 
 const vehicles = {
-	TY37: { price: 30, spriteIndex: 0, tracks: true, maxHealth: 5, maxFuel: 5, maxCargo: 20 },
-	T2B20: { price: 25, spriteIndex: 1, tracks: true, maxHealth: 15, maxFuel: 5, maxCargo: 5 },
-	WB70: { price: 40, spriteIndex: 2, wheels: true, maxHealth: 20, maxFuel: 10, maxCargo: 10 },
-	TB74: { price: 35, spriteIndex: 3, tracks: true, maxHealth: 20, maxFuel: 10, maxCargo: 5 },
-	WB20: { price: 35, spriteIndex: 4, wheels: true, maxHealth: 10, maxFuel: 20, maxCargo: 5 },
-	WY37: { price: 35, spriteIndex: 5, wheels: true, maxHealth: 5, maxFuel: 15, maxCargo: 15 },
-	TO24: { price: 60, spriteIndex: 6, tracks: true, maxHealth: 20, maxFuel: 20, maxCargo: 20 },
-	T2O24: { price: 30, spriteIndex: 7, tracks: true, maxHealth: 15, maxFuel: 10, maxCargo: 5 },
-	WY37C: { price: 40, spriteIndex: 8, wheels: true, maxHealth: 10, maxFuel: 10, maxCargo: 20 },
-	WB20F: { price: 40, spriteIndex: 9, wheels: true, maxHealth: 10, maxFuel: 20, maxCargo: 10 },
-	T2Y37: { price: 50, spriteIndex: 10, tracks: true, maxHealth: 20, maxFuel: 10, maxCargo: 20 },
-	WO24: { price: 30, spriteIndex: 11, wheels: true, maxHealth: 10, maxFuel: 10, maxCargo: 10 },
-	TB20: { price: 35, spriteIndex: 12, tracks: true, maxHealth: 10, maxFuel: 10, maxCargo: 15 },
-	TY37X: { price: 45, spriteIndex: 13, tracks: true, maxHealth: 15, maxFuel: 15, maxCargo: 15 },
+	TY37: { price: 30, spriteIndex: 0, tracks: true, maxHealth: 5, maxFuel: 5, maxCargo: 20, fuelEfficiency: 1 },
+	T2B20: { price: 25, spriteIndex: 1, tracks: true, maxHealth: 15, maxFuel: 5, maxCargo: 5, fuelEfficiency: 1 },
+	WB70: { price: 40, spriteIndex: 2, wheels: true, maxHealth: 20, maxFuel: 10, maxCargo: 10, fuelEfficiency: 0 },
+	TB74: { price: 35, spriteIndex: 3, tracks: true, maxHealth: 20, maxFuel: 10, maxCargo: 5, fuelEfficiency: 1 },
+	WB20: { price: 35, spriteIndex: 4, wheels: true, maxHealth: 10, maxFuel: 20, maxCargo: 5, fuelEfficiency: 0 },
+	WY37: { price: 35, spriteIndex: 5, wheels: true, maxHealth: 5, maxFuel: 15, maxCargo: 15, fuelEfficiency: 0 },
+	TO24: { price: 60, spriteIndex: 6, tracks: true, maxHealth: 20, maxFuel: 20, maxCargo: 20, fuelEfficiency: 1 },
+	T2O24: { price: 30, spriteIndex: 7, tracks: true, maxHealth: 15, maxFuel: 10, maxCargo: 5, fuelEfficiency: 2 },
+	WY37C: { price: 40, spriteIndex: 8, wheels: true, maxHealth: 10, maxFuel: 10, maxCargo: 20, fuelEfficiency: 0 },
+	WB20F: { price: 40, spriteIndex: 9, wheels: true, maxHealth: 10, maxFuel: 20, maxCargo: 10, fuelEfficiency: 0 },
+	T2Y37: { price: 50, spriteIndex: 10, tracks: true, maxHealth: 20, maxFuel: 10, maxCargo: 20, fuelEfficiency: 2 },
+	WO24: { price: 30, spriteIndex: 11, wheels: true, maxHealth: 10, maxFuel: 10, maxCargo: 10, fuelEfficiency: 0 },
+	TB20: { price: 35, spriteIndex: 12, tracks: true, maxHealth: 10, maxFuel: 10, maxCargo: 15, fuelEfficiency: 1 },
+	TY37X: { price: 45, spriteIndex: 13, tracks: true, maxHealth: 15, maxFuel: 15, maxCargo: 15, fuelEfficiency: 1 },
 };
 const vehicleNames = Object.keys(vehicles);
 
 const drills = {
-	QTD5: { price: 20, spriteIndex: 0, maxHealth: 20, maxFuel: 0 },
-	T2Q5: { price: 17, spriteIndex: 1, maxHealth: 11, maxFuel: 6 },
-	M3: { price: 14, spriteIndex: 2, maxHealth: 7, maxFuel: 7 },
-	DT2: { price: 9, spriteIndex: 3, maxHealth: 5, maxFuel: 4 },
-	PD2: { price: 11, spriteIndex: 4, maxHealth: 5, maxFuel: 6 },
-	P2: { price: 14, spriteIndex: 5, maxHealth: 4, maxFuel: 10 },
-	EP4: { price: 15, spriteIndex: 6, maxHealth: 5, maxFuel: 10 },
-	T2E1: { price: 13, spriteIndex: 7, maxHealth: 6, maxFuel: 7 },
-	E4: { price: 8, spriteIndex: 8, maxHealth: 5, maxFuel: 3 },
-	EQ1: { price: 20, spriteIndex: 9, maxHealth: 10, maxFuel: 10 },
-	T2: { price: 14, spriteIndex: 10, maxHealth: 6, maxFuel: 8 },
-	T2M2: { price: 16, spriteIndex: 11, maxHealth: 9, maxFuel: 7 },
-	D3: { price: 12, spriteIndex: 12, maxHealth: 6, maxFuel: 6 },
+	QTD5: { price: 20, spriteIndex: 0, maxHealth: 20, maxFuel: 0, fuelEfficiency: 0 },
+	T2Q5: { price: 17, spriteIndex: 1, maxHealth: 11, maxFuel: 0, fuelEfficiency: 0 },
+	M3: { price: 14, spriteIndex: 2, maxHealth: 7, maxFuel: 0, fuelEfficiency: 1 },
+	DT2: { price: 9, spriteIndex: 3, maxHealth: 5, maxFuel: 0, fuelEfficiency: 2 },
+	PD2: { price: 11, spriteIndex: 4, maxHealth: 5, maxFuel: 0, fuelEfficiency: 2 },
+	P2: { price: 14, spriteIndex: 5, maxHealth: 4, maxFuel: 0, fuelEfficiency: 2 },
+	EP4: { price: 15, spriteIndex: 6, maxHealth: 5, maxFuel: 0, fuelEfficiency: 2 },
+	T2E1: { price: 13, spriteIndex: 7, maxHealth: 6, maxFuel: 0, fuelEfficiency: 1 },
+	E4: { price: 8, spriteIndex: 8, maxHealth: 5, maxFuel: 0, fuelEfficiency: 0 },
+	EQ1: { price: 20, spriteIndex: 9, maxHealth: 10, maxFuel: 0, fuelEfficiency: 2 },
+	T2: { price: 14, spriteIndex: 10, maxHealth: 6, maxFuel: 0, fuelEfficiency: 1 },
+	T2M2: { price: 16, spriteIndex: 11, maxHealth: 9, maxFuel: 0, fuelEfficiency: 1 },
+	D3: { price: 12, spriteIndex: 12, maxHealth: 6, maxFuel: 0, fuelEfficiency: 0 },
 };
 const drillNames = Object.keys(drills);
 
@@ -265,27 +265,19 @@ export default class Game {
 		const engineConfig = engines[player.configuration.engine];
 		const partConfig = this.world.parts[player.configuration.part] || {};
 
-		let maxHealth = 30;
-		let maxFuel = 30;
-		let maxCargo = 30;
+		let maxHealth = 0;
+		let maxFuel = 0;
+		let maxCargo = 0;
+		let fuelEfficiency = 0;
 
-		if (vehicleConfig.maxHealth) maxHealth += vehicleConfig.maxHealth;
-		if (vehicleConfig.maxFuel) maxFuel += vehicleConfig.maxFuel;
-		if (vehicleConfig.maxCargo) maxCargo += vehicleConfig.maxCargo;
+		[vehicleConfig, drillConfig, engineConfig, partConfig].forEach(config => {
+			if (config.maxHealth) maxHealth += config.maxHealth;
+			if (config.maxFuel) maxFuel += config.maxFuel;
+			if (config.maxCargo) maxCargo += config.maxCargo;
+			if (config.fuelEfficiency) fuelEfficiency += config.fuelEfficiency;
+		});
 
-		if (drillConfig.maxHealth) maxHealth += drillConfig.maxHealth;
-		if (drillConfig.maxFuel) maxFuel += drillConfig.maxFuel;
-		if (drillConfig.maxCargo) maxCargo += drillConfig.maxCargo;
-
-		if (engineConfig.maxHealth) maxHealth += engineConfig.maxHealth;
-		if (engineConfig.maxFuel) maxFuel += engineConfig.maxFuel;
-		if (engineConfig.maxCargo) maxCargo += engineConfig.maxCargo;
-
-		if (partConfig.maxHealth) maxHealth += partConfig.maxHealth;
-		if (partConfig.maxFuel) maxFuel += partConfig.maxFuel;
-		if (partConfig.maxCargo) maxCargo += partConfig.maxCargo;
-
-		this.players.update(id, _ => ({ ..._, maxHealth, maxFuel, maxCargo }));
+		this.players.update(id, _ => ({ ..._, maxHealth, maxFuel, maxCargo, fuelEfficiency }));
 	}
 
 	updatePlayerCargo(id) {
@@ -529,57 +521,17 @@ export default class Game {
 			price: 10,
 			spritesheet: 'img/items.png',
 			spriteIndex: randInt(0, 47),
-			maxHealth: 0,
-			maxFuel: 0,
-			maxCargo: 0,
+			restrictions: [
+				...(chance(50) ? [weightedChance({ wheels: 50, tracks: 50 })] : []),
+				...(chance(50) ? [weightedChance({ oil: 40, battery: 40, super_oxygen_liquid_nitrogen: 20 })] : []),
+			],
+			maxHealth: randInt(0, 10),
+			maxFuel: randInt(0, 10),
+			maxCargo: randInt(0, 10),
+			fuelEfficiency: randInt(0, 3),
 		};
 
-		part.type = randFromArray(['tracks', 'wheels', 'hull', 'fuelTank']);
-
-		if (part.type === 'tracks') {
-			part.tracks = true;
-			part.subType = weightedChance({ boosted: 70, hardened: 20, antigravidic: 10 });
-
-			if (part.subType === 'boosted') {
-				part.maxFuel += 10;
-			} else if (part.subType === 'hardened') {
-				part.maxHealth += 10;
-			} else if (part.subType === 'antigravidic') {
-				part.maxFuel += 15;
-			}
-		} else if (part.type === 'wheels') {
-			part.wheels = true;
-			part.subType = weightedChance({ boosted: 40, hardened: 60 });
-
-			if (part.subType === 'boosted') {
-				part.maxFuel += 10;
-			} else if (part.subType === 'hardened') {
-				part.maxHealth += 10;
-			}
-		} else if (part.type === 'hull') {
-			part.wheels = true;
-			part.subType = weightedChance({ enhanced: 70, reinforced: 30 });
-
-			if (part.subType === 'enhanced') {
-				part.maxFuel += 10;
-			} else if (part.subType === 'reinforced') {
-				part.maxHealth += 20;
-			}
-		} else if (part.type === 'fuelTank') {
-			part.wheels = true;
-			part.subType = weightedChance({ large: 30, bulky: 50, pressurized: 20 });
-
-			if (part.subType === 'large') {
-				part.maxFuel += 10;
-			} else if (part.subType === 'bulky') {
-				part.maxHealth -= 5;
-				part.maxFuel += 15;
-			} else if (part.subType === 'pressurized') {
-				part.maxFuel += 20;
-			}
-		}
-
-		part.price = part.maxHealth + part.maxFuel + part.maxCargo;
+		part.price = part.maxHealth + part.maxFuel + part.maxCargo + part.fuelEfficiency;
 
 		return part;
 	}
@@ -1079,12 +1031,8 @@ export default class Game {
 
 		if (this.world.grid[position.x][position.y].ground?.type) {
 			const { type } = this.world.grid[position.x][position.y].ground;
-			const engineConfig = engines[player.configuration.engine];
 
-			updatedPlayer.fuel = Math.max(
-				0,
-				updatedPlayer.fuel - mineralDensity[type] / (engineConfig.fuelEfficiency * 1000),
-			);
+			updatedPlayer.fuel = Math.max(0, updatedPlayer.fuel - mineralDensity[type] / (player.fuelEfficiency * 1000));
 
 			updatedPlayer.hull[type] = updatedPlayer.hull[type] || 0;
 			++updatedPlayer.hull[type];

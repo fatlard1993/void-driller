@@ -10,9 +10,11 @@ import {
 	Button,
 	rand,
 	randInt,
+	theme,
+	styled,
 } from 'vanilla-bean-components';
 
-import { DrillImage, EngineImage, ItemImage, MineralImage, VehicleImage } from '../shared/SpriteSheetImage';
+import { DrillImage, EngineImage, ItemImage, MineralImage, PartImage, VehicleImage } from '../shared/SpriteSheetImage';
 import { useItem } from '../api';
 import gameContext from '../shared/gameContext';
 
@@ -39,6 +41,25 @@ class VolumeControl extends Component {
 				},
 			}),
 		);
+	}
+}
+
+class ConfigStat extends (styled.Component`
+	display: flex;
+`) {
+	render() {
+		super.render();
+
+		if (this.options.value === 0 || this.options.value === undefined) return;
+
+		const isNumber = typeof this.options.value === 'number';
+
+		new Elem({ appendTo: this, content: this.options.label, style: { flex: 1 } });
+
+		new Elem({
+			appendTo: this,
+			content: `${isNumber && this.options.value > 0 ? '+' : ''}${this.options.value}`,
+		});
 	}
 }
 
@@ -149,6 +170,7 @@ export default class ConsoleDialog extends Dialog {
 		const vehicleConfig = gameContext.serverState.world.vehicles[player.configuration.vehicle];
 		const drillConfig = gameContext.serverState.world.drills[player.configuration.drill];
 		const engineConfig = gameContext.serverState.world.engines[player.configuration.engine];
+		const partConfig = gameContext.serverState.world.parts[player.configuration.part];
 
 		this._body.append(
 			new Label('Position', `X: ${player.position.x} | Y: ${player.position.y}`),
@@ -164,24 +186,81 @@ export default class ConsoleDialog extends Dialog {
 			),
 			new Label(
 				'Configuration',
-				new VehicleImage(player.sprite.frame.name),
-				new Elem({
-					tag: 'pre',
-					content: `Vehicle: ${player.configuration.vehicle}\n\tmaxHealth: +${vehicleConfig.maxHealth}\n\tmaxFuel: +${vehicleConfig.maxFuel}\n\tmaxCargo: +${vehicleConfig.maxCargo}\n\t${vehicleConfig.tracks ? 'tracks' : 'wheels'}`,
-					style: { margin: 0 },
-				}),
-				new DrillImage(player.sprite.drill.frame.name),
-				new Elem({
-					tag: 'pre',
-					content: `Drill: ${player.configuration.drill}\n\tmaxHealth: +${drillConfig.maxHealth}\n\tmaxFuel: +${drillConfig.maxFuel}`,
-					style: { margin: 0 },
-				}),
-				new EngineImage(engineConfig.spriteIndex),
-				new Elem({
-					tag: 'pre',
-					content: `Engine: ${player.configuration.engine}\n\tmaxHealth: +${engineConfig.maxHealth}\n\tmaxFuel: +${engineConfig.maxFuel}\n\tfuelType: ${engineConfig.fuelType}`,
-					style: { margin: 0 },
-				}),
+				new Elem(
+					{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
+					new Label(
+						{ label: `Vehicle: ${player.configuration.vehicle}`, style: { width: 'clamp(130px, 27%, 300px)' } },
+						new VehicleImage(vehicleConfig.spriteIndex),
+						vehicleConfig.description &&
+							new Elem({
+								tag: 'p',
+								content: vehicleConfig.description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new ConfigStat({ label: 'Max Health', value: vehicleConfig.maxHealth }),
+						new ConfigStat({ label: 'Max Fuel', value: vehicleConfig.maxFuel }),
+						new ConfigStat({ label: 'Max Cargo', value: vehicleConfig.maxCargo }),
+						new ConfigStat({ label: 'Fuel Efficiency', value: vehicleConfig.fuelEfficiency }),
+					),
+					new Label(
+						{ label: `Drill: ${player.configuration.drill}`, style: { width: 'clamp(130px, 27%, 300px)' } },
+						new DrillImage(drillConfig.spriteIndex),
+						drillConfig.description &&
+							new Elem({
+								tag: 'p',
+								content: drillConfig.description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new ConfigStat({ label: 'Max Health', value: drillConfig.maxHealth }),
+						new ConfigStat({ label: 'Max Fuel', value: drillConfig.maxFuel }),
+						new ConfigStat({ label: 'Max Cargo', value: drillConfig.maxCargo }),
+						new ConfigStat({ label: 'Fuel Efficiency', value: drillConfig.fuelEfficiency }),
+					),
+					new Label(
+						{ label: `Engine: ${player.configuration.engine}`, style: { width: 'clamp(130px, 27%, 300px)' } },
+						new EngineImage(engineConfig.spriteIndex),
+						engineConfig.description &&
+							new Elem({
+								tag: 'p',
+								content: engineConfig.description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new ConfigStat({ label: 'Max Health', value: engineConfig.maxHealth }),
+						new ConfigStat({ label: 'Max Fuel', value: engineConfig.maxFuel }),
+						new ConfigStat({ label: 'Max Cargo', value: engineConfig.maxCargo }),
+						new ConfigStat({ label: 'Fuel Efficiency', value: engineConfig.fuelEfficiency }),
+					),
+					new Label(
+						{ label: `Part: ${player.configuration.part}`, style: { width: 'clamp(130px, 27%, 300px)' } },
+						new PartImage(partConfig.spriteIndex),
+						partConfig.description &&
+							new Elem({
+								tag: 'p',
+								content: partConfig.description,
+								style: {
+									color: theme.colors.lighter(theme.colors.gray),
+									borderLeft: '3px solid',
+									paddingLeft: '6px',
+								},
+							}),
+						new ConfigStat({ label: 'Max Health', value: partConfig.maxHealth }),
+						new ConfigStat({ label: 'Max Fuel', value: partConfig.maxFuel }),
+						new ConfigStat({ label: 'Max Cargo', value: partConfig.maxCargo }),
+						new ConfigStat({ label: 'Fuel Efficiency', value: partConfig.fuelEfficiency }),
+					),
+				),
 			),
 		);
 	}

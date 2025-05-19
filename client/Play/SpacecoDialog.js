@@ -1,4 +1,15 @@
-import { Dialog, Label, Button, Elem, capitalize, theme, rand, randInt } from 'vanilla-bean-components';
+import {
+	Component,
+	Dialog,
+	Label,
+	Button,
+	Elem,
+	capitalize,
+	theme,
+	rand,
+	randInt,
+	styled,
+} from 'vanilla-bean-components';
 
 import {
 	DrillImage,
@@ -6,7 +17,7 @@ import {
 	IconImage,
 	ItemImage,
 	MineralImage,
-	PartsImage,
+	PartImage,
 	VehicleImage,
 } from '../shared/SpriteSheetImage';
 import {
@@ -18,6 +29,34 @@ import {
 	spacecoSell,
 } from '../api';
 import gameContext from '../shared/gameContext';
+
+class UpgradeStat extends (styled.Component`
+	display: flex;
+`) {
+	render() {
+		super.render();
+
+		const isNumber = typeof this.options.value === 'number';
+		const diff = isNumber && this.options.value - (this.options.current ?? 0);
+
+		if (isNumber ? this.options.value === 0 && !diff : this.options.value === undefined) return;
+
+		new Elem({ appendTo: this, content: this.options.label, style: { flex: 1 } });
+
+		new Elem({
+			appendTo: this,
+			content: `${isNumber && this.options.value > 0 ? '+' : ''}${this.options.value}`,
+		});
+
+		if (isNumber && diff !== 0) {
+			new Component({
+				appendTo: this,
+				content: diff === 0 ? '==' : `${diff > 0 ? '+' : ''}${diff}`,
+				style: ({ colors }) => ({ color: colors[diff >= 0 ? 'green' : 'red'], marginLeft: '6px' }),
+			});
+		}
+	}
+}
 
 export default class SpacecoDialog extends Dialog {
 	constructor(options = {}) {
@@ -117,8 +156,6 @@ export default class SpacecoDialog extends Dialog {
 				const demandDrop = (gameContext.serverState.world.spaceco.hull?.[name] || 0) / 1000;
 				const baseValue = gameContext.serverState.world.mineralValue[name];
 
-				console.log({ demandDrop, baseValue });
-
 				const dirtyPrice = dirtyCount ? Math.max(0.01, (baseValue / 2 - demandDrop) * dirtyCount) : 0;
 				const purePrice = pureCount ? Math.max(0.01, (baseValue - demandDrop) * pureCount) : 0;
 
@@ -186,11 +223,12 @@ export default class SpacecoDialog extends Dialog {
 		this.renderUpgradeMenu();
 
 		const player = gameContext.players.currentPlayer;
+		const vehicleConfig = gameContext.serverState.world.vehicles[player.configuration.vehicle];
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
 			Object.entries(gameContext.serverState.world.spaceco.vehicles).map(
-				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, tracks }]) => {
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, fuelEfficiency, tracks }]) => {
 					return new Label(
 						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
 						new VehicleImage(spriteIndex),
@@ -215,10 +253,13 @@ export default class SpacecoDialog extends Dialog {
 									paddingLeft: '6px',
 								},
 							}),
-						new Elem({
-							tag: 'pre',
-							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nmaxCargo: +${maxCargo}\n${tracks ? 'tracks' : 'wheels'}`,
-							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						new UpgradeStat({ label: 'Max Health', value: maxHealth, current: vehicleConfig.maxHealth }),
+						new UpgradeStat({ label: 'Max Fuel', value: maxFuel, current: vehicleConfig.maxFuel }),
+						new UpgradeStat({ label: 'Max Cargo', value: maxCargo, current: vehicleConfig.maxCargo }),
+						new UpgradeStat({ label: 'Fuel Efficiency', value: fuelEfficiency, current: vehicleConfig.fuelEfficiency }),
+						new UpgradeStat({
+							label: 'Propulsion',
+							value: tracks ? ' Tracks' : 'Wheels',
 						}),
 					);
 				},
@@ -230,11 +271,12 @@ export default class SpacecoDialog extends Dialog {
 		this.renderUpgradeMenu();
 
 		const player = gameContext.players.currentPlayer;
+		const engineConfig = gameContext.serverState.world.engines[player.configuration.engine];
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
 			Object.entries(gameContext.serverState.world.spaceco.engines).map(
-				([name, { price, description, spriteIndex, maxHealth, maxFuel, fuelType, fuelEfficiency }]) => {
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, fuelType, fuelEfficiency }]) => {
 					return new Label(
 						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
 						new EngineImage(spriteIndex),
@@ -255,10 +297,13 @@ export default class SpacecoDialog extends Dialog {
 									paddingLeft: '6px',
 								},
 							}),
-						new Elem({
-							tag: 'pre',
-							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}\nfuelType: ${capitalize(fuelType.replaceAll('_', ' '), true)}\nfuelEfficiency: ${fuelEfficiency}`,
-							style: { margin: 0, whiteSpace: 'pre-wrap' },
+						new UpgradeStat({ label: 'Max Health', value: maxHealth, current: engineConfig.maxHealth }),
+						new UpgradeStat({ label: 'Max Fuel', value: maxFuel, current: engineConfig.maxFuel }),
+						new UpgradeStat({ label: 'Max Cargo', value: maxCargo, current: engineConfig.maxCargo }),
+						new UpgradeStat({ label: 'Fuel Efficiency', value: fuelEfficiency, current: engineConfig.fuelEfficiency }),
+						new UpgradeStat({
+							label: 'Fuel Type',
+							value: capitalize(fuelType.replace('super_oxygen_liquid_nitrogen', 'SOLN')),
 						}),
 					);
 				},
@@ -270,11 +315,12 @@ export default class SpacecoDialog extends Dialog {
 		this.renderUpgradeMenu();
 
 		const player = gameContext.players.currentPlayer;
+		const drillConfig = gameContext.serverState.world.drills[player.configuration.drill];
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
 			Object.entries(gameContext.serverState.world.spaceco.drills).map(
-				([name, { price, description, spriteIndex, maxHealth, maxFuel }]) => {
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, fuelEfficiency }]) => {
 					return new Label(
 						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
 						new DrillImage(spriteIndex),
@@ -299,11 +345,10 @@ export default class SpacecoDialog extends Dialog {
 									paddingLeft: '6px',
 								},
 							}),
-						new Elem({
-							tag: 'pre',
-							content: `maxHealth: +${maxHealth}\nmaxFuel: +${maxFuel}`,
-							style: { margin: 0, whiteSpace: 'pre-wrap' },
-						}),
+						new UpgradeStat({ label: 'Max Health', value: maxHealth, current: drillConfig.maxHealth }),
+						new UpgradeStat({ label: 'Max Fuel', value: maxFuel, current: drillConfig.maxFuel }),
+						new UpgradeStat({ label: 'Max Cargo', value: maxCargo, current: drillConfig.maxCargo }),
+						new UpgradeStat({ label: 'Fuel Efficiency', value: fuelEfficiency, current: drillConfig.fuelEfficiency }),
 					);
 				},
 			),
@@ -314,14 +359,15 @@ export default class SpacecoDialog extends Dialog {
 		this.renderUpgradeMenu();
 
 		const player = gameContext.players.currentPlayer;
+		const partConfig = gameContext.serverState.world.parts[player.configuration.part] || {};
 
 		new Elem(
 			{ appendTo: this._body, style: { display: 'flex', flexWrap: 'wrap', gap: '12px' } },
 			Object.entries(gameContext.serverState.world.spaceco.parts).map(
-				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo }]) => {
+				([name, { price, description, spriteIndex, maxHealth, maxFuel, maxCargo, fuelEfficiency }]) => {
 					return new Label(
 						{ label: name, style: { width: 'clamp(130px, 27%, 300px)' } },
-						spriteIndex >= 0 && new PartsImage(spriteIndex),
+						spriteIndex >= 0 && new PartImage(spriteIndex),
 						new Button({
 							content: `Buy ($${price})`,
 							onPointerPress: () => {
@@ -339,11 +385,10 @@ export default class SpacecoDialog extends Dialog {
 									paddingLeft: '6px',
 								},
 							}),
-						new Elem({
-							tag: 'pre',
-							content: `maxHealth: ${maxHealth > 0 ? '+' : ''}${maxHealth}\nmaxFuel: ${maxFuel > 0 ? '+' : ''}${maxFuel}\nmaxCargo: ${maxCargo > 0 ? '+' : ''}${maxCargo}`,
-							style: { margin: 0, whiteSpace: 'pre-wrap' },
-						}),
+						new UpgradeStat({ label: 'Max Health', value: maxHealth, current: partConfig.maxHealth }),
+						new UpgradeStat({ label: 'Max Fuel', value: maxFuel, current: partConfig.maxFuel }),
+						new UpgradeStat({ label: 'Max Cargo', value: maxCargo, current: partConfig.maxCargo }),
+						new UpgradeStat({ label: 'Fuel Efficiency', value: fuelEfficiency, current: partConfig.fuelEfficiency }),
 					);
 				},
 			),

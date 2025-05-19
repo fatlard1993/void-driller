@@ -91,7 +91,7 @@ export class EngineImage extends SpriteSheetImage {
 	}
 }
 
-export class PartsImage extends SpriteSheetImage {
+export class PartImage extends SpriteSheetImage {
 	constructor(index, style) {
 		const w = 15;
 		const y = index > w ? Math.ceil(index / w - 1) : 0;
