@@ -114,18 +114,13 @@ export default class SpacecoDialog extends Dialog {
 
 				if (!dirtyCount && !pureCount) return [];
 
-				const dirtyPrice =
-					Math.max(
-						0.01,
-						gameContext.serverState.world.densities[name] /
-							(1000 + (gameContext.serverState.world.spaceco.hull?.[name] || 0)),
-					) * dirtyCount;
-				const purePrice =
-					Math.max(
-						0.01,
-						gameContext.serverState.world.densities[name] /
-							(500 + (gameContext.serverState.world.spaceco.hull?.[name] || 0)),
-					) * pureCount;
+				const demandDrop = (gameContext.serverState.world.spaceco.hull?.[name] || 0) / 1000;
+				const baseValue = gameContext.serverState.world.mineralValue[name];
+
+				console.log({ demandDrop, baseValue });
+
+				const dirtyPrice = dirtyCount ? Math.max(0.01, (baseValue / 2 - demandDrop) * dirtyCount) : 0;
+				const purePrice = pureCount ? Math.max(0.01, (baseValue - demandDrop) * pureCount) : 0;
 
 				credits += dirtyPrice + purePrice;
 
