@@ -1,6 +1,6 @@
 # Void Driller
 
-![logo](./docs/logo.png)
+![logo](./img/logo.png)
 
 > **Void Driller: Mine the Belt** is a retro-style sci-fi mining game set on the edge of known space. You pilot a modular drilling rig, carving through procedurally generated asteroids to extract rare minerals, survive unpredictable hazards, and keep **SpaceCo** happy.
 >
