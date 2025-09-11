@@ -6,7 +6,7 @@
 		"./package.json": "./package.json",
 		".": "./server/index.js"
 	},
-	"description": "A Motherload inspired game built on Phaser.js",
+	"description": "Retro sci-fi mining game where you pilot a modular drill rig through procedurally generated asteroids, extracting rare minerals while surviving environmental hazards and alien encounters.",
 	"license": "GPL-3.0-or-later",
 	"browserslist": [
 		"last 1 version",
