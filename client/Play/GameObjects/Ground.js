@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 
 import { chance, getImmediateSurrounds, gridToPxPosition, randInt } from '../../../utils';
 import gameContext from '../../shared/gameContext';
+import { minerals } from '../../../constants';
 
 export class Ground extends Phaser.GameObjects.Sprite {
 	/**
@@ -15,19 +16,6 @@ export class Ground extends Phaser.GameObjects.Sprite {
 	constructor(scene, x, y, name) {
 		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'ground', randInt(0, 8));
 
-		const colorCode = {
-			purple: '#fff2fc',
-			white: '#fff',
-			green: '#c9dda8',
-			blue: '#b7e7e2',
-			red: '#c1745e',
-			pink: '#c29fc0',
-			teal: '#85ddb5',
-			orange: '#df9a58',
-			yellow: '#dac35c',
-			black: '#666',
-		};
-
 		const { left, right, top, bottom } = getImmediateSurrounds(
 			{ x, y },
 			['left', 'right', 'top', 'bottom'],
@@ -35,48 +23,50 @@ export class Ground extends Phaser.GameObjects.Sprite {
 		);
 
 		this.setTint(
-			// Phaser.Display.Color.ValueToColor(colorCode[name]).color,
 			Phaser.Display.Color.ValueToColor(
-				colorCode[
+				minerals[
 					[top.ground?.type, left.ground?.type].includes(name)
 						? name
 						: chance(70)
 							? name
 							: top.ground?.type || left.ground?.type || name
-				],
+				].tint,
 			).color,
 			Phaser.Display.Color.ValueToColor(
-				colorCode[
+				minerals[
 					[top.ground?.type, right.ground?.type].includes(name)
 						? name
 						: chance(70)
 							? name
 							: top.ground?.type || right.ground?.type || name
-				],
+				].tint,
 			).color,
 			Phaser.Display.Color.ValueToColor(
-				colorCode[
+				minerals[
 					[bottom.ground?.type, left.ground?.type].includes(name)
 						? name
 						: chance(70)
 							? name
 							: bottom.ground?.type || left.ground?.type || name
-				],
+				].tint,
 			).color,
 			Phaser.Display.Color.ValueToColor(
-				colorCode[
+				minerals[
 					[bottom.ground?.type, right.ground?.type].includes(name)
 						? name
 						: chance(70)
 							? name
 							: bottom.ground?.type || right.ground?.type || name
-				],
+				].tint,
 			).color,
 		);
 
 		this.name = name;
 
 		this.crack = scene.add.sprite(gridToPxPosition(x), gridToPxPosition(y), 'crack');
+
+		gameContext.sceneLayers.effects.add(this.crack);
+
 		this.crack.visible = false;
 
 		this.crack.anims.create({

@@ -8,10 +8,9 @@ export class Gas extends Phaser.GameObjects.Sprite {
 	 * @param {object} scene - The scene
 	 * @param {number} x - Grid x
 	 * @param {number} y - Grid y
-	 * @param { "poisonous" | "noxious" } type - The gas type
 	 * @param { "fill" | "full" } subtype - The gas subtype
 	 */
-	constructor(scene, x, y, type = 'poisonous', subtype = 'fill') {
+	constructor(scene, x, y, subtype = 'fill') {
 		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'fogs', 0);
 
 		this.anims.create({
@@ -31,7 +30,7 @@ export class Gas extends Phaser.GameObjects.Sprite {
 		this.anims.create({
 			key: 'full',
 			frames: this.anims.generateFrameNumbers('fogs', {
-				frames: shuffleArray([0, 1, 2, 3])
+				frames: shuffleArray([0, 1, 2, 3]),
 			}),
 			frameRate: 0.5,
 			repeat: -1,

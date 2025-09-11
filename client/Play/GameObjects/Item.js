@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 
 import { gridToPxPosition, randInt } from '../../../utils';
 import gameContext from '../../shared/gameContext';
+import { items } from '../../../constants';
 
 export class Item extends Phaser.GameObjects.Sprite {
 	/**
@@ -12,24 +13,14 @@ export class Item extends Phaser.GameObjects.Sprite {
 	 * @param { "oil" | "battery" | "super_oxygen_liquid_nitrogen" | "detonator" | "remote_charge" | "timed_charge" | "repair_nanites" | "teleport_station" | "advanced_teleporter" | "spaceco_teleporter" } name - The item name
 	 */
 	constructor(scene, x, y, name) {
-		const itemIndex = {
-			repair_nanites: 0,
-			spaceco_teleporter: 1,
-			detonator: 2,
-			teleport_station: 3,
-			advanced_teleporter: 5,
-			oil: 6,
-			timed_charge: 7,
-			remote_charge: 8,
-			super_oxygen_liquid_nitrogen: 9,
-			battery: 10,
-		};
-
-		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'items', itemIndex[name]);
+		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'items', items[name].spriteIndex);
 
 		this.name = name;
 
 		scene.add.existing(this);
+
+		this.setScale(0.7);
+		this.setOrigin(0.5, 0.3);
 
 		this.anims.create({
 			key: 'explode',

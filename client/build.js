@@ -4,11 +4,12 @@ const build = async () => {
 	console.log('Building...');
 
 	const buildResults = await Bun.build({
+		target: 'browser',
 		entrypoints: ['client/index.html'],
 		outdir: 'client/build',
 		define: {
 			'process.env.AUTOPREFIXER_GRID': 'undefined',
-			'process.cwd': 'String'
+			'process.cwd': 'String',
 		},
 		...(import.meta.env === 'production' && { drop: ['console'] }),
 	});

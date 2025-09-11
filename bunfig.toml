@@ -1,3 +1,5 @@
+preload = ["./node_modules/vanilla-bean-components/plugins/loadPlugins.js"]
+
 [install]
 registry = "https://registry.npmjs.org"
 

@@ -1,53 +1,34 @@
 #!/usr/bin/env bun
 
-import os from 'os';
-import path from 'path';
+import '../byod-web-game/server/exit';
+import { serverLog } from '../utils/logger.js';
 
-import Argi from 'argi';
+import server from './server';
 
-import Game, { games } from './Game';
-import database from './database';
-import server, { spawnBuild } from './server';
+const spawnBuild = async () => {
+	const buildProcess = Bun.spawn(['bun', 'run', 'build:watch']);
 
-import './exit';
-import gamesDatabase from './database/games';
+	for await (const chunk of buildProcess.stdout) {
+		const line = new TextDecoder().decode(chunk);
 
-const { options } = new Argi({
-	options: {
-		database: {
-			type: 'string',
-			alias: 'd',
-			defaultValue: path.join(os.homedir(), '.phaserload.json'),
-			description: 'Database json file to use',
-		},
-		port: {
-			type: 'number',
-			alias: 'p',
-			defaultValue: 1040,
-		},
-	},
-});
+		serverLog.debug('Build output', { output: line.trim() });
 
-console.log('Options', options);
-
-await database.init({ persistent: options.persistent, path: options.database });
-
-Object.values(gamesDatabase.read()).forEach(saveState => {
-	games[saveState.id] = new Game({ saveState });
-});
-
-await server.init({ port: options.port });
+		if (line === 'build.success\n') server.reloadClients();
+	}
+};
 
 if (process.env.NODE_ENV === 'development') {
 	try {
+		spawnBuild();
+
 		for await (const line of console) {
 			if ({ stop: 1, close: 1, exit: 1 }[line]) process.kill(process.pid, 'SIGTERM');
 			else if (line === 'b') {
-				console.log('>> Building...');
+				serverLog.info('Manual build triggered');
 				spawnBuild();
 			}
 		}
 	} catch (error) {
-		console.error('Build Error', error);
+		serverLog.error('Build process error', { error: error.message });
 	}
 }

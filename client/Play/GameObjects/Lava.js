@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import { gridToPxPosition, randInt } from '../../../utils';
+import { gridToPxPosition } from '../../../utils';
 
 export class Lava extends Phaser.GameObjects.Sprite {
 	/**
