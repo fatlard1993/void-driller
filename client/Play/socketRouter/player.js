@@ -2,6 +2,7 @@ import { convertRange, randInt } from 'vanilla-bean-components';
 import gameContext from '../../shared/gameContext';
 import { destroyGround } from '../effects';
 import { Drill, Item } from '../GameObjects';
+import { Achievement } from '../../shared/Achievement';
 
 export default data => {
 	if (data.update === 'playerMove') {
@@ -116,6 +117,41 @@ export default data => {
 	} else if (data.update === 'updatePlayer') {
 		console.log('sync player', data);
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+	} else if (data.update === 'playerMovementComplete') {
+		console.log('playerMovementComplete', data);
+		gameContext.players.update(data.playerId, _ => ({ 
+			..._, 
+			moving: false,
+			_movingStartTime: null,
+			_stuckClickCount: 0
+		}));
+	} else if (data.update === 'playerCantMove') {
+		console.log('playerCantMove', data);
+		gameContext.players.update(data.playerId, _ => ({ 
+			..._, 
+			moving: false,
+			_movingStartTime: null,
+			_stuckClickCount: 0
+		}));
+	} else if (data.update === 'playerMovementInterrupted') {
+		console.log('playerMovementInterrupted', data);
+		gameContext.players.update(data.playerId, _ => ({ 
+			..._, 
+			moving: false,
+			_movingStartTime: null,
+			_stuckClickCount: 0
+		}));
+	} else if (data.update === 'playerMovementError') {
+		console.log('playerMovementError', data);
+		gameContext.players.update(data.playerId, _ => ({ 
+			..._, 
+			moving: false,
+			_movingStartTime: null,
+			_stuckClickCount: 0
+		}));
+	} else if (data.update === 'achievement') {
+		console.log('achievement', data);
+		new Achievement({ achievement: data.achievement });
 	}
 
 	return false;

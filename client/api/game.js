@@ -1,4 +1,4 @@
-import { GET, POST, DELETE } from 'vanilla-bean-components';
+import { POST } from 'vanilla-bean-components';
 
 import gameContext from '../shared/gameContext';
 
@@ -10,23 +10,6 @@ const apiContext = {
 		return gameContext.playerId;
 	},
 };
-
-export const getGames = async options => await GET('/games', { id: 'games', ...options });
-
-export const getGame = async (id, options) =>
-	await GET('/games/:id', { id: ['games', id], urlParameters: { id }, ...options });
-
-export const createGame = async options => await POST('/games', { invalidates: ['games'], ...options });
-
-export const joinGame = async (id, options) =>
-	await POST('/games/:id/join', { invalidates: ['games'], urlParameters: { id }, ...options });
-
-export const exitGame = async options =>
-	await POST('/games/:gameId/:playerId/exit', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
-		...options,
-	});
 
 export const playerMove = async ({ path }, options) =>
 	await POST('/games/:gameId/:playerId/move', {
@@ -67,6 +50,14 @@ export const spacecoBuyItem = async ({ item }, options) =>
 		...options,
 	});
 
+export const spacecoSellItem = async ({ item, count = 1 }, options) =>
+	await POST('/games/:gameId/:playerId/spaceco/sellitem', {
+		invalidates: ['games'],
+		urlParameters: apiContext,
+		body: { item, count },
+		...options,
+	});
+
 export const spacecoBuyUpgrade = async ({ upgrade, type }, options) =>
 	await POST('/games/:gameId/:playerId/spaceco/upgrade', {
 		invalidates: ['games'],
@@ -75,10 +66,18 @@ export const spacecoBuyUpgrade = async ({ upgrade, type }, options) =>
 		...options,
 	});
 
-export const spacecoBuyTransport = async options =>
+export const spacecoBuyRescue = async options =>
+	await POST('/games/:gameId/:playerId/spaceco/rescue', {
+		invalidates: ['games'],
+		urlParameters: apiContext,
+		...options,
+	});
+
+export const spacecoBuyTransport = async ({ world }, options) =>
 	await POST('/games/:gameId/:playerId/spaceco/transport', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
+		body: { world },
 		...options,
 	});
 
@@ -90,5 +89,16 @@ export const useItem = async ({ item }, options) =>
 		...options,
 	});
 
-export const deleteGame = async (id, options) =>
-	await DELETE('/games/:id', { invalidates: ['games'], urlParameters: { id }, ...options });
+export const repairPlayerPosition = async (playerId, options) =>
+	await POST('/games/:gameId/:playerId/repair-position', {
+		invalidates: ['games'],
+		urlParameters: { ...apiContext, playerId },
+		...options,
+	});
+
+export const fixPlayerMovement = async (options) =>
+	await POST('/games/:gameId/:playerId/fix-movement', {
+		invalidates: ['games'],
+		urlParameters: apiContext,
+		...options,
+	});

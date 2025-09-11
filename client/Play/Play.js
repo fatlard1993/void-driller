@@ -1,7 +1,7 @@
 import { Button, Dialog, Label, Input } from 'vanilla-bean-components';
 
 import Notify from '../shared/Notify';
-import { View } from '../layout';
+import { View } from '../../byod-web-game/client/layout';
 import { exitGame, getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import Game from './Game';
@@ -13,20 +13,19 @@ export default class Play extends View {
 			{
 				...options,
 				toolbar: {
-					heading: 'Play',
+					heading: 'Loading...',
 					left: [
 						new Button({
-							content: 'Exit',
+							content: 'Abort Contract',
 							onPointerPress: () => {
 								this.options.removePlayerOnExit = true;
 
 								gameContext.openDialog = new Dialog({
 									size: 'small',
-									style: { height: '144px' },
-									header: 'Exiting',
+									header: 'Abort Contract',
 									body: new Label(
 										{
-											label: 'Remove me from the game',
+											label: 'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
 											inline: { after: true },
 											styles: () => `
 												bottom: 48px;
@@ -42,9 +41,9 @@ export default class Play extends View {
 											},
 										}),
 									),
-									buttons: ['Exit', 'Cancel'],
+									buttons: ['Abort Contract', 'Cancel'],
 									onButtonPress: async ({ button, closeDialog }) => {
-										if (button === 'Exit') {
+										if (button === 'Abort Contract') {
 											if (this.options.removePlayerOnExit) {
 												const { response, body } = await exitGame();
 
@@ -97,6 +96,8 @@ export default class Play extends View {
 		if (this.game.response.status !== 200) {
 			new Notify({ type: 'error', content: this.game.body?.message || this.game.response.statusText });
 
+			localStorage.removeItem(this.options.gameId);
+
 			window.location.href = `#/hub`;
 
 			return;
@@ -109,6 +110,8 @@ export default class Play extends View {
 
 			return;
 		}
+
+		this._toolbar._heading.elem.textContent = this.game.body.name;
 
 		new Game({ appendTo: this._body });
 	}

@@ -1,35 +1,50 @@
-import { convertRange, getSurroundingRadius } from '../../utils';
+import { getSurroundingRadius } from '../../utils';
 import gameContext from '../shared/gameContext';
 
-export const destroyGround = ({ x, y }) => {
-	const gridConfig = gameContext.serverState.world.grid?.[x]?.[y];
-
-	if (!gridConfig) return;
-
-	if (gridConfig.ground.sprite?.scene) gridConfig.ground.sprite.dig();
-
-	gameContext.serverState.world.grid[x][y].ground = {};
+export const destroyGround = (position, radius = 0) => {
+	getSurroundingRadius(position, radius).forEach(({ x, y }) => {
+		gameContext.serverState.world.grid[x]?.[y]?.ground?.sprite?.dig();
+	});
 };
 
 export const explode = ({ position, radius }) => {
-	const player = gameContext.players.currentPlayer;
-
-	const delta = {
-		x: position.x - player.position.x,
-		y: position.y - player.position.y,
-	};
-
-	gameContext.scene.cameras.main.shake(1000, convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]));
-	gameContext.scene.cameras.main.flash(600);
+	gameContext.scene.cameras.main.shake(600, 0.01);
+	gameContext.scene.cameras.main.flash(400);
 	gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
 
-	[position, ...getSurroundingRadius(position, radius)].forEach(({ x, y }) => {
-		destroyGround({ x, y, silent: true });
+	destroyGround(position, radius);
+};
 
-		gameContext.serverState.world.grid[x][y].items.forEach(item => {
-			if (item.sprite?.scene) item.sprite[item.name === 'oil' || item.name.endsWith('charge') ? 'explode' : 'destroy']();
-		});
+export const implode = ({
+	position,
+	radius,
+	implosionType = 'gravity',
+	collectedMinerals = {},
+	collectedItems = {},
+}) => {
+	// Different visual/audio effects based on implosion type
+	if (implosionType === 'void') {
+		gameContext.scene.cameras.main.shake(800, 0.015);
+		gameContext.scene.cameras.main.flash(600, 0x6600ff); // Purple flash for void
+	} else {
+		gameContext.scene.cameras.main.shake(700, 0.012);
+		gameContext.scene.cameras.main.flash(500, 0x0066ff); // Blue flash for gravity
+	}
 
-		gameContext.serverState.world.grid[x][y].items = [];
-	});
+	// Play a different sound effect than regular explosions
+	gameContext.scene.sound.play('powerup', { volume: gameContext.volume.effects }); // Using powerup as implosion sound
+
+	destroyGround(position, radius);
+
+	// Additional visual feedback for collection
+	const totalCollected =
+		Object.values(collectedMinerals).reduce((sum, count) => sum + count, 0) +
+		Object.values(collectedItems).reduce((sum, count) => sum + count, 0);
+
+	if (totalCollected > 0) {
+		// Play collection sound
+		setTimeout(() => {
+			gameContext.scene.sound.play('pickup', { volume: gameContext.volume.effects });
+		}, 500);
+	}
 };

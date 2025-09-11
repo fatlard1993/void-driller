@@ -1,4 +1,5 @@
 import { Elem, randInt } from 'vanilla-bean-components';
+import { items, minerals } from '../../constants';
 
 export default class SpriteSheetImage extends Elem {
 	constructor({ url, size = 32, width = size, height = size, x = 0, y = 0, style = {} }) {
@@ -15,43 +16,15 @@ export default class SpriteSheetImage extends Elem {
 	}
 }
 
-const mineralColorIndex = {
-	teal: 0,
-	blue: 1,
-	red: 2,
-	purple: 3,
-	pink: 4,
-	orange: 5,
-	green: 6,
-	yellow: 7,
-	black: 8,
-	white: 9,
-};
-
 export class MineralImage extends SpriteSheetImage {
-	/** @type {(color: keyof mineralColorIndex, style: {}) => {}} */
 	constructor(color, style) {
-		super({ url: 'img/minerals.png', x: randInt(0, 5), y: mineralColorIndex[color], style });
+		super({ url: 'img/minerals.png', x: randInt(0, 5), y: minerals[color].spriteIndex, style });
 	}
 }
 
-const itemNameIndex = {
-	repair_nanites: 0,
-	spaceco_teleporter: 1,
-	detonator: 2,
-	teleport_station: 3,
-	advanced_teleporter: 5,
-	oil: 6,
-	timed_charge: 7,
-	remote_charge: 8,
-	super_oxygen_liquid_nitrogen: 9,
-	battery: 10,
-};
-
 export class ItemImage extends SpriteSheetImage {
-	/** @type {(color: keyof itemNameIndex, style: {}) => {}} */
 	constructor(name, style) {
-		super({ url: 'img/items.png', size: 64, x: itemNameIndex[name], style });
+		super({ url: 'img/items.png', size: 64, x: items[name].spriteIndex, style });
 	}
 }
 

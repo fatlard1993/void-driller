@@ -1,0 +1,148 @@
+export const engines = {
+	// OIL ENGINES (T1-T4)
+	T1: {
+		name: 'Gravolux M3',
+		price: 120,
+		spriteIndex: 1,
+		fuelType: 'oil',
+		maxHealth: 10,
+		fuelEfficiency: 1,
+		torque: 175,
+		summary: 'Basic oil-burning engine.',
+		description: 'Entry-level combustion engine with reliable output. Burns oil, makes noise, gets the job done.',
+	},
+	T2: {
+		name: 'Gravolux M5',
+		price: 180,
+		spriteIndex: 0,
+		fuelType: 'oil',
+		maxHealth: 15,
+		fuelEfficiency: 3,
+		torque: 225,
+		summary: 'Improved oil engine.',
+		description: 'Enhanced thermal regulation and better compression ratios deliver more push per drop.',
+	},
+	T3: {
+		name: 'DrillCore V4',
+		price: 260,
+		spriteIndex: 2,
+		fuelType: 'oil',
+		maxHealth: 20,
+		fuelEfficiency: 3,
+		torque: 275,
+		summary: 'Heavy-duty oil platform.',
+		description: 'Built for sustained operation under load. Reinforced internals handle demanding drill requirements.',
+	},
+	T4: {
+		name: 'Thermotek 9C',
+		price: 360,
+		spriteIndex: 3,
+		fuelType: 'oil',
+		maxHealth: 25,
+		fuelEfficiency: 4,
+		torque: 325,
+		summary: 'Peak oil engine technology.',
+		description: 'Advanced combustion cycles and precision fuel injection maximize every drop of oil.',
+	},
+
+	// BATTERY ENGINES (T5-T8)
+	T5: {
+		name: 'Voltra NX',
+		price: 480,
+		spriteIndex: 7,
+		fuelType: 'battery',
+		maxHealth: 30,
+		fuelEfficiency: 5,
+		torque: 400,
+		summary: 'Clean electric propulsion.',
+		description: 'Quiet, efficient, and emissions-free. The future of asteroid drilling starts here.',
+	},
+	T6: {
+		name: 'IonDelta R2',
+		price: 640,
+		spriteIndex: 6,
+		fuelType: 'battery',
+		maxHealth: 35,
+		fuelEfficiency: 6,
+		torque: 475,
+		summary: 'High-output electric core.',
+		description:
+			'Dense energy storage and smart discharge control deliver consistent power despite extreme environmental complications.',
+	},
+	T7: {
+		name: 'PlasmaDrive E5',
+		price: 840,
+		spriteIndex: 4,
+		fuelType: 'battery',
+		maxHealth: 40,
+		fuelEfficiency: 7,
+		torque: 550,
+		summary: 'Plasma-assisted electric drive.',
+		description:
+			'Plasma field enhancement amplifies electrical output while maintaining incredible efficiency through specialist-approved modifications.',
+	},
+	T8: {
+		name: 'TeslaNode Pro',
+		price: 1080,
+		spriteIndex: 5,
+		fuelType: 'battery',
+		maxHealth: 45,
+		fuelEfficiency: 8,
+		torque: 625,
+		summary: 'Elite electric propulsion.',
+		description:
+			'Advanced capacitor technology optimized through enhanced protocols. Performance parameters exceed original design specifications.',
+	},
+
+	// SOLN ENGINES (T9-T12)
+	T9: {
+		name: 'CryoFlux 7X',
+		price: 1400,
+		spriteIndex: 11,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 50,
+		fuelEfficiency: 10,
+		torque: 700,
+		summary: 'SOLN-powered hybrid system.',
+		description:
+			'Cryogenic propulsion system operating through optimized thermal management protocols. Efficiency metrics have been administratively enhanced.',
+	},
+	T10: {
+		name: 'CryoFlux 9M',
+		price: 1800,
+		spriteIndex: 10,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 55,
+		fuelEfficiency: 12,
+		torque: 775,
+		summary: 'Advanced SOLN platform.',
+		description:
+			'Peak cryogenic technology refined through current operational guidelines. Performance optimization proceeding as directed.',
+	},
+
+	// POST-TAKEOVER ALIEN-INFLUENCED TECH
+	T11: {
+		name: 'Resonance Drive Alpha',
+		price: 2300,
+		spriteIndex: 9,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 60,
+		fuelEfficiency: 14,
+		torque: 850,
+		summary: 'Harmonic-enhanced propulsion.',
+		description:
+			'Sacred resonance drive attuned to ancient harmonic frequencies. SOLN fuel blessed through harmonic crystallization for perfect efficiency.',
+	},
+	T12: {
+		name: 'Void-Core Engine',
+		price: 2900,
+		spriteIndex: 8,
+		fuelType: 'super_oxygen_liquid_nitrogen',
+		maxHealth: 65,
+		fuelEfficiency: 15,
+		torque: 925,
+		summary: 'Next-generation SOLN system.',
+		description:
+			'Master-crafted void propulsion guided by ancient wisdom. Fuel consumption transcends physical limitations through sacred principles.',
+	},
+};
