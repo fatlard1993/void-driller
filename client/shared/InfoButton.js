@@ -1,46 +1,59 @@
-import { Button, Elem, Component, Popover, theme } from 'vanilla-bean-components';
+import { Button, Elem, Popover, styled } from 'vanilla-bean-components';
+import gameContext from './gameContext';
 
-/**
- * Small info button that shows detailed information in a popover when clicked
- */
-export class InfoButton extends Component {
+export class InfoButton extends (styled.Component`
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+
+	.info-button {
+		font-size: 12px;
+		padding: 4px;
+		min-width: auto;
+	}
+
+	.popover-content {
+		max-width: 300px;
+	}
+
+	.popover-title {
+		font-weight: bold;
+		margin-bottom: 8px;
+		color: ${({ colors }) => colors.lighter(colors.gray)};
+		border-bottom: 1px solid ${({ colors }) => colors.dark(colors.gray)};
+		padding-bottom: 4px;
+	}
+
+	.popover-description {
+		font-size: 13px;
+		line-height: 1.4;
+	}
+`) {
 	constructor(options = {}) {
-		const defaultStyle = {
-			display: 'inline-flex',
-			alignItems: 'center',
-			gap: '4px'
-		};
-
 		super({
+			title: 'Information',
+			description: '',
 			...options,
-			style: {
-				...defaultStyle,
-				...options.style
-			}
 		});
-		
-		this.title = options.title || 'Information';
-		this.description = options.description || '';
 	}
 
 	render() {
+		super.render();
+
+		// Create the info button using default Button styling
 		this._infoButton = new Button({
-			icon: 'info-circle',
+			className: 'info-button',
+			content: this.options.buttonText || 'more',
 			appendTo: this,
-			style: {
-				fontSize: '12px',
-				padding: '4px',
-				minWidth: 'auto',
-				background: theme.colors.darker(theme.colors.blue),
-				border: `1px solid ${theme.colors.blue}`,
-				borderRadius: '50%',
-				color: theme.colors.light(theme.colors.blue),
-				cursor: 'pointer'
-			},
-			onPointerPress: () => this.showPopover()
+			onPointerPress: () => this.showPopover(),
 		});
 
-		super.render();
+		// Play sound effect like other interactive elements
+		if (gameContext?.sounds?.blip) {
+			this._infoButton.elem.addEventListener('click', () => {
+				gameContext.sounds.blip.play({ volume: gameContext.volume.interfaces });
+			});
+		}
 	}
 
 	showPopover() {
@@ -49,46 +62,65 @@ export class InfoButton extends Component {
 			return;
 		}
 
-		// Build popover content using more idiomatic vanilla-bean-components pattern
-		const content = [
-			// Title (conditionally included)
-			...(this.title ? [new Elem({
-				content: this.title,
-				style: {
-					fontWeight: 'bold',
-					marginBottom: '8px',
-					color: theme.colors.lighter(theme.colors.gray)
-				}
-			})] : []),
-			
-			// Description
-			new Elem({
-				content: this.description,
-				style: {
-					fontSize: '13px',
-					lineHeight: '1.4',
-					color: theme.colors.light(theme.colors.gray)
-				}
-			})
-		];
+		// Build popover content
+		const contentElements = [];
 
-		// Create popover using vanilla-bean-components Popover
+		// Add title if provided
+		if (this.options.title && this.options.title !== 'Information') {
+			contentElements.push(
+				new Elem({
+					className: 'popover-title',
+					content: this.options.title,
+				})
+			);
+		}
+
+		// Add description
+		if (this.options.description) {
+			contentElements.push(
+				new Elem({
+					className: 'popover-description',
+					content: this.options.description,
+				})
+			);
+		} else {
+			contentElements.push(
+				new Elem({
+					className: 'popover-description',
+					content: 'No additional information available.',
+					style: { fontStyle: 'italic' },
+				})
+			);
+		}
+
+		// Create popover container using minimal styling
+		const popoverContainer = new Elem({
+			className: 'popover-content',
+			append: contentElements,
+		});
+
+		// Get button position for popover positioning
+		const buttonRect = this._infoButton.elem.getBoundingClientRect();
+		
+		// Create popover with explicit positioning
 		this._popover = new Popover({
-			trigger: this._infoButton,
-			content: content,
-			position: 'right',
-			style: {
-				background: theme.colors.darkest(theme.colors.gray),
-				border: `2px solid ${theme.colors.gray}`,
-				borderRadius: '8px',
-				padding: '12px',
-				maxWidth: '300px',
-				boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
-			},
-			// Use vanilla-bean-components' built-in cleanup instead of setTimeout
+			trigger: this._infoButton.elem,
+			content: popoverContainer,
+			position: 'top',
+			x: buttonRect.left + buttonRect.width / 2,
+			y: buttonRect.top,
 			onClose: () => {
 				this._popover = null;
-			}
+			},
 		});
+	}
+
+	// Handle cleanup when component is destroyed
+	destroy() {
+		if (this._popover) {
+			this._popover.close();
+			this._popover = null;
+		}
+		super.destroy?.();
 	}
 }

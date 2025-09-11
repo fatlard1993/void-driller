@@ -1640,7 +1640,7 @@ export const worlds = [
 	{
 		id: 'test001',
 		name: 'Test 001',
-		description: '',
+		description: 'Development testing environment with balanced mineral distribution and standard hazard patterns.',
 		transportRequirements: [],
 		transportPrice: 0,
 		width: [25, 35],

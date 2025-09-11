@@ -23,8 +23,9 @@ import {
 	PartImage,
 	VehicleImage,
 } from '../shared/SpriteSheetImage';
-import { CardContainer } from '../shared/CardContainer';
-import { InfoButton } from '../shared/InfoButton';
+import { Card } from '../shared/Card';
+import { CardGrid } from '../shared/CardGrid';
+import { DescriptionText } from '../shared/DescriptionText';
 import {
 	spacecoBuyItem,
 	spacecoBuyTransport,
@@ -209,14 +210,14 @@ class StatChange extends (styled.Component`
 `) {
 	render() {
 		super.render();
-		
+
 		const { label, value } = this.options;
-		
+
 		this.append([
 			new Elem({ content: label, style: { flex: 1 } }),
 			new Elem({
 				content: `${value > 0 ? '+' : ''}${value}`,
-				style: { 
+				style: {
 					color: value >= 0 ? theme.colors.green : theme.colors.red,
 					fontWeight: 'bold'
 				}
@@ -611,16 +612,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		let credits = 0;
 
-		new Elem(
-			{
-				appendTo: this._menuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			Object.keys(minerals).flatMap(name => {
+		new CardGrid({
+			appendTo: this._menuBody,
+			content: Object.keys(minerals).flatMap(name => {
 				const dirtyCount = player.hull[name] || 0;
 				const pureCount = player.hull[`mineral_${name}`] || 0;
 
@@ -635,7 +629,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				credits += dirtyPrice + purePrice;
 
 				return [
-					new CardContainer({
+					new Card({
 						header: capitalize(minerals[name].name),
 						style: { width: '216px', paddingBottom: '60px', position: 'relative', overflow: 'hidden' },
 						body: new Elem({
@@ -663,8 +657,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 				];
-			}),
-		);
+			})
+		});
 
 		sellButton.options.content = `Sell All ($${credits.toFixed(2)})`;
 	}
@@ -719,15 +713,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		new Label(
 			{ label: 'Configuration', appendTo: this._subMenuBody },
-			new Elem(
-				{
-					style: {
-						display: 'grid',
-						gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-						gap: '12px',
-					},
-				},
-				new CardContainer({
+			new CardGrid({
+				content: [
+				new Card({
 					header: `Vehicle: ${vehicleConfig.name}`,
 					body: new Elem({
 						style: {
@@ -737,7 +725,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							gap: '4px',
 						},
 						append: [
-							new VehicleImage(vehicleConfig.spriteIndex),
+							new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
 							new Elem({
 								style: {
 									display: 'flex',
@@ -746,18 +734,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									justifyContent: 'center'
 								},
 								append: [
-									new Elem({
-										tag: 'span',
-										content: vehicleConfig.summary,
-										style: {
-											fontSize: '12px',
-											textAlign: 'center'
-										}
-									}),
-									new InfoButton({
+									new DescriptionText({
+										summary: vehicleConfig.summary,
+										description: vehicleConfig.description,
 										title: vehicleConfig.name,
-										description: vehicleConfig.description
-									})
+									}),
 								]
 							}),
 							new ConfigStat({ label: 'Max Health', value: vehicleConfig.maxHealth }),
@@ -767,7 +748,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						],
 					}),
 				}),
-				new CardContainer({
+				new Card({
 					header: `Drill: ${drillConfig.name}`,
 					body: new Elem({
 						style: {
@@ -777,11 +758,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							gap: '4px',
 						},
 						append: [
-							new DrillImage(drillConfig.spriteIndex),
-							new Elem({
-								tag: 'p',
-								content: drillConfig.summary,
-								className: 'description',
+							new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
+							new DescriptionText({
+								summary: drillConfig.summary,
+								description: drillConfig.description,
+								title: drillConfig.name,
 							}),
 							new ConfigStat({ label: 'Max Health', value: drillConfig.maxHealth }),
 							new ConfigStat({ label: 'Fuel Efficiency', value: drillConfig.fuelEfficiency }),
@@ -789,7 +770,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						],
 					}),
 				}),
-				new CardContainer({
+				new Card({
 					header: `Engine: ${engineConfig.name}`,
 					body: new Elem({
 						style: {
@@ -799,7 +780,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							gap: '4px',
 						},
 						append: [
-							new EngineImage(engineConfig.spriteIndex),
+							new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
 							new Elem({
 								style: {
 									display: 'flex',
@@ -808,18 +789,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									justifyContent: 'center'
 								},
 								append: [
-									new Elem({
-										tag: 'span',
-										content: engineConfig.summary,
-										style: {
-											fontSize: '12px',
-											textAlign: 'center'
-										}
-									}),
-									new InfoButton({
+									new DescriptionText({
+										summary: engineConfig.summary,
+										description: engineConfig.description,
 										title: engineConfig.name,
-										description: engineConfig.description
-									})
+									}),
 								]
 							}),
 							new ConfigStat({ label: 'Max Health', value: engineConfig.maxHealth }),
@@ -836,7 +810,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					}),
 				}),
 				partConfig &&
-					new CardContainer({
+					new Card({
 						header: `Part: ${player.configuration.part}`,
 						body: new Elem({
 							style: {
@@ -846,7 +820,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								gap: '4px',
 							},
 							append: [
-								new PartImage(partConfig.spriteIndex),
+								new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
 								new Elem({
 									tag: 'p',
 									content: partConfig.summary,
@@ -861,7 +835,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							],
 						}),
 					}),
-			),
+				]
+			}),
 		);
 	}
 
@@ -872,23 +847,16 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const vehicleConfig = vehicles[player.configuration.vehicle];
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			gameContext.serverState.world.spaceco.vehicles.map(id => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: gameContext.serverState.world.spaceco.vehicles.map(id => {
 				const { name, price, summary, spriteIndex, maxHealth, maxFuel, maxCargo, fuelEfficiency } = vehicles[id];
 
 				const tradeInDiscount = calculateTradeInDiscount(player.configuration.vehicle, upgradeConfigs, 'vehicles');
 				const finalCost = Math.max(0, price - tradeInDiscount);
 				const canAfford = player.credits >= finalCost;
 
-				return new CardContainer({
+				return new Card({
 					header: name,
 					body: new Elem({
 						style: {
@@ -898,11 +866,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							gap: '4px',
 						},
 						append: [
-							new VehicleImage(spriteIndex),
-							new Elem({
-								tag: 'p',
-								content: summary,
-								className: 'description',
+							new VehicleImage(spriteIndex, { displaySize: 96 }),
+							new DescriptionText({
+								summary: summary,
+								description: vehicles[id].description,
+								title: name,
 							}),
 							new UpgradeStat({ label: 'Max Health', value: maxHealth, current: vehicleConfig.maxHealth }),
 							new UpgradeStat({ label: 'Max Fuel', value: maxFuel, current: vehicleConfig.maxFuel }),
@@ -932,8 +900,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					],
 				});
-			}),
-		);
+			})
+		});
 	}
 
 	render_upgrade_engines() {
@@ -943,16 +911,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const engineConfig = engines[player.configuration.engine];
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			gameContext.serverState.world.spaceco.engines.map(id => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: gameContext.serverState.world.spaceco.engines.map(id => {
 				const { name, price, summary, spriteIndex, maxHealth, maxFuel, maxCargo, fuelType, torque, fuelEfficiency } =
 					engines[id];
 
@@ -961,7 +922,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const finalCost = Math.max(0, price - tradeInDiscount);
 				const canAfford = player.credits >= finalCost;
 
-				return new CardContainer({
+				return new Card({
 					header: name,
 					body: new Elem({
 						style: {
@@ -971,11 +932,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							gap: '4px',
 						},
 						append: [
-							new EngineImage(spriteIndex),
-							new Elem({
-								tag: 'p',
-								content: summary,
-								className: 'description',
+							new EngineImage(spriteIndex, { displaySize: 96 }),
+							new DescriptionText({
+								summary: summary,
+								description: engines[id].description,
+								title: name,
 							}),
 							new UpgradeStat({ label: 'Max Health', value: maxHealth, current: engineConfig.maxHealth }),
 							new UpgradeStat({ label: 'Max Fuel', value: maxFuel, current: engineConfig.maxFuel }),
@@ -1004,8 +965,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					],
 				});
-			}),
-		);
+			})
+		});
 	}
 
 	render_upgrade_drills() {
@@ -1016,16 +977,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const engineConfig = engines[player.configuration.engine];
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			gameContext.serverState.world.spaceco.drills.map(id => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: gameContext.serverState.world.spaceco.drills.map(id => {
 				const { name, price, summary, spriteIndex, maxHealth, fuelEfficiency, strength, requirements } = drills[id];
 
 				const missingRequirements = requirements?.some(([key, goal]) => (engineConfig?.[key] ?? 0) <= goal);
@@ -1043,7 +997,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					failureReason = 'Insufficient credits';
 				}
 
-				return new CardContainer({
+				return new Card({
 					header: name,
 					body: new Elem({
 						style: {
@@ -1053,11 +1007,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							gap: '4px',
 						},
 						append: [
-							new DrillImage(spriteIndex),
-							new Elem({
-								tag: 'p',
-								content: summary,
-								className: 'description',
+							new DrillImage(spriteIndex, { displaySize: 96 }),
+							new DescriptionText({
+								summary: summary,
+								description: drills[id].description,
+								title: name,
 							}),
 							new UpgradeStat({ label: 'Max Health', value: maxHealth, current: drillConfig.maxHealth }),
 							new UpgradeStat({ label: 'Fuel Efficiency', value: fuelEfficiency, current: drillConfig.fuelEfficiency }),
@@ -1093,8 +1047,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					],
 				});
-			}),
-		);
+			})
+		});
 	}
 
 	render_upgrade_parts() {
@@ -1104,16 +1058,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const currentPartConfig = parts[player.configuration.part] || {};
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			gameContext.serverState.world.spaceco.parts.map(id => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: gameContext.serverState.world.spaceco.parts.map(id => {
 				const newPartConfig = parts[id];
 				const {
 					name,
@@ -1143,7 +1090,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					fuelEfficiency: fuelEfficiency - (currentPartConfig.fuelEfficiency || 0),
 				};
 
-				return new CardContainer({
+				return new Card({
 					header: name,
 					body: new Elem({
 						style: {
@@ -1153,11 +1100,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							gap: '4px',
 						},
 						append: [
-							spriteIndex >= 0 && new PartImage(spriteIndex),
-							new Elem({
-								tag: 'p',
-								content: summary,
-								className: 'description',
+							spriteIndex >= 0 && new PartImage(spriteIndex, { displaySize: 96 }),
+							new DescriptionText({
+								summary: summary,
+								description: newPartConfig.description,
+								title: name,
 							}),
 							// Only show stats that actually change - using cleaner component pattern
 							...[
@@ -1168,9 +1115,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								{ key: 'maxItemSlots', label: 'Max Item Slots' },
 								{ key: 'fuelEfficiency', label: 'Fuel Efficiency' }
 							].filter(({ key }) => statChanges[key] !== 0)
-							 .map(({ key, label }) => new StatChange({ 
-								label, 
-								value: statChanges[key] 
+							 .map(({ key, label }) => new StatChange({
+								label,
+								value: statChanges[key]
 							})),
 							new UpgradePricing({
 								basePrice: price,
@@ -1190,8 +1137,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					],
 				});
-			}),
-		);
+			})
+		});
 	}
 
 	render_refuel() {
@@ -1221,7 +1168,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			),
 			new Label(
 				`Fuel Type: ${capitalize(engineConfig.fuelType.replaceAll('_', ' '), true)}`,
-				new ItemImage(engineConfig.fuelType),
+				new ItemImage(engineConfig.fuelType, { displaySize: 96 }),
 				...[5, 10, 20, 40, 50].map(amount => {
 					if (player.credits > amount && amount <= cost) {
 						return new Button({
@@ -1350,16 +1297,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				}),
 		);
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			Object.entries(items).flatMap(([key, { price, summary }]) => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: Object.entries(items).flatMap(([key, { price, summary }]) => {
 				const stock = gameContext.serverState.world.spaceco.shop[key];
 
 				if (!stock) return [];
@@ -1376,7 +1316,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				else if (stock <= 0) disabledReason = 'Out of stock';
 
 				return [
-					new CardContainer({
+					new Card({
 						header: capitalize(key.replaceAll('_', ' '), true),
 						style: {
 							opacity: canPurchase ? 1 : 0.6,
@@ -1389,28 +1329,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								gap: '4px',
 							},
 							append: [
-								new ItemImage(key),
-								new Elem({
-									style: {
-										display: 'flex',
-										alignItems: 'center',
-										gap: '4px',
-										justifyContent: 'center'
-									},
-									append: [
-										new Elem({
-											tag: 'span',
-											content: summary,
-											style: {
-												fontSize: '12px',
-												textAlign: 'center'
-											}
-										}),
-										new InfoButton({
-											title: items[key].name || capitalize(key.replaceAll('_', ' ')),
-											description: items[key].description
-										})
-									]
+								new ItemImage(key, { displaySize: 96 }),
+								new DescriptionText({
+									summary: summary,
+									description: items[key].description,
+									title: items[key].name || capitalize(key.replaceAll('_', ' ')),
 								}),
 								new Elem({
 									style: {
@@ -1457,8 +1380,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						],
 					}),
 				];
-			}),
-		);
+			})
+		});
 	}
 
 	render_shop_player() {
@@ -1476,16 +1399,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			return;
 		}
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			Object.entries(player.items).flatMap(([key, count]) => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
 				let imageName = key;
@@ -1502,7 +1418,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						new Label(
 							{ label: capitalize(key.replaceAll('_', ' '), true) },
 							`x${count.toString()}`,
-							new ItemImage(imageName),
+							new ItemImage(imageName, { displaySize: 96 }),
 						),
 					];
 				}
@@ -1536,7 +1452,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										gap: '6px',
 									},
 									append: [
-										new ItemImage(imageName),
+										new ItemImage(imageName, { displaySize: 96 }),
 										new Label(
 											{
 												label: 'Psykick Egg',
@@ -1627,7 +1543,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const sellPrice = Math.floor(currentMarketPrice * 0.7);
 
 				return [
-					new CardContainer({
+					new Card({
 						header: `${capitalize(key.replaceAll('_', ' '), true)} (x${count})`,
 						body: new Elem({
 							style: {
@@ -1637,7 +1553,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								gap: '4px',
 							},
 							append: [
-								new ItemImage(imageName),
+								new ItemImage(imageName, { displaySize: 96 }),
 								new Elem({
 									style: {
 										fontSize: '14px',
@@ -1707,23 +1623,16 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 				];
-			}),
-		);
+			})
+		});
 	}
 
 	render_transport() {
 		const player = gameContext.players.currentPlayer;
 
-		new Elem(
-			{
-				appendTo: this._menuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			gameContext.serverState.world.transportChoices.map(key => {
+		new CardGrid({
+			appendTo: this._menuBody,
+			content: gameContext.serverState.world.transportChoices.map(key => {
 				const { price, requirements } = gameContext.serverState.world.transports[key];
 				const missingRequirements = requirements?.some(
 					([key, goal]) => (gameContext.serverState.world.spaceco.hull?.[key] ?? 0) < goal,
@@ -1731,7 +1640,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const locked = price > player.credits || missingRequirements;
 
 				return [
-					new CardContainer({
+					new Card({
 						header: capitalize(key.replaceAll('_', ' '), true),
 						body: new Elem({
 							style: {
@@ -1790,8 +1699,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 				];
-			}),
-		);
+			})
+		});
 	}
 
 	renderStatusMenu() {
@@ -1859,22 +1768,15 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	render_status_minerals() {
 		this.renderStatusMenu();
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			Object.keys(minerals).flatMap(name => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: Object.keys(minerals).flatMap(name => {
 				const count = gameContext.serverState.world.spaceco.hull?.[name] || 0;
 
 				if (!count) return [];
 
 				return [
-					new CardContainer({
+					new Card({
 						header: capitalize(minerals[name].name),
 						body: new Elem({
 							style: {
@@ -1907,8 +1809,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 				];
-			}),
-		);
+			})
+		});
 	}
 
 	render_status_achievements() {
@@ -1928,16 +1830,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			className: 'description',
 		});
 
-		new Elem(
-			{
-				appendTo: this._subMenuBody,
-				style: {
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-					gap: '12px',
-				},
-			},
-			spacecoAchievements
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: spacecoAchievements
 				.sort(
 					orderBy([
 						{ property: 'category', direction: 'asc' },
@@ -1951,7 +1846,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					if (!gameContext.serverState.world.spaceco.achievements[achievement.id]) {
 						if (achievement.hidden) return;
 
-						return new CardContainer({
+						return new Card({
 							header: `🔒 ${achievement.name}`,
 							body: new Elem({
 								style: {
@@ -1986,7 +1881,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						});
 					}
 
-					return new CardContainer({
+					return new Card({
 						header: `✓ ${achievement.name}`,
 						style: {
 							background: theme.colors.darkest(theme.colors.green),
@@ -2028,8 +1923,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							],
 						}),
 					});
-				}),
-		);
+				})
+		});
 	}
 
 	_setOption(key, value) {
