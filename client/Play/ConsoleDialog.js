@@ -18,12 +18,14 @@ import {
 } from 'vanilla-bean-components';
 
 import { DrillImage, EngineImage, ItemImage, MineralImage, PartImage, VehicleImage } from '../shared/SpriteSheetImage';
-import { CardContainer } from '../shared/CardContainer';
+import { Card } from '../shared/Card';
+import { CardGrid } from '../shared/CardGrid';
 import { useItem } from '../api';
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
 import { drills, engines, items, minerals, parts, playerAchievements, vehicles } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
+import { DescriptionText } from '../shared/DescriptionText';
 import Notify from '../shared/Notify';
 import { formatPlayerAchievementRewards } from '../../utils';
 import {
@@ -260,11 +262,12 @@ class AutoPathControl extends Component {
 		if (gameContext.autoPath.ignore.length > 0) {
 			const ignoreList = new Elem({
 				appendTo: ignoreListContainer,
-				style: { 
-					display: 'grid', 
-					gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', 
-					gap: '6px', 
-					marginBottom: '6px' 
+				style: {
+					display: 'grid',
+					gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 150px))',
+					justifyContent: 'center',
+					gap: '6px',
+					marginBottom: '6px'
 				},
 			});
 
@@ -429,13 +432,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		const total = new Elem({ content: 'Total', appendTo: this._menuBody });
 
-		new Elem(
-			{ appendTo: this._menuBody, style: { 
-				display: 'grid', 
-				gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-				gap: '12px' 
-			} },
-			Object.keys(minerals).flatMap(name => {
+		new CardGrid({
+			appendTo: this._menuBody,
+			content: Object.keys(minerals).flatMap(name => {
 				const dirtyCount = player.hull[name] || 0;
 				const pureCount = player.hull[`mineral_${name}`] || 0;
 
@@ -450,7 +449,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				credits += dirtyPrice + purePrice;
 
 				return [
-					new CardContainer({
+					new Card({
 						header: capitalize(minerals[name].name),
 						style: { width: '216px', paddingBottom: '60px', position: 'relative', overflow: 'hidden' },
 						body: new Elem({
@@ -478,8 +477,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						}),
 					}),
 				];
-			}),
-		);
+			})
+		});
 
 		total.content(`Total: $${credits.toFixed(2)}`);
 	}
@@ -567,13 +566,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		this._subMenuBody.append(
 			new Label(
 				'Configuration',
-				new Elem(
-					{ style: { 
-						display: 'grid', 
-						gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-						gap: '12px' 
-					} },
-					new CardContainer({
+				new CardGrid({
+					content: [
+					new Card({
 						header: `Vehicle: ${vehicleConfig.name}`,
 						body: new Elem({
 							style: {
@@ -583,13 +578,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								gap: '4px'
 							},
 							append: [
-								new VehicleImage(vehicleConfig.spriteIndex),
-								vehicleConfig.description &&
-									new Elem({
-										tag: 'p',
-										content: vehicleConfig.description,
-										className: 'description',
-									}),
+								new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
+								new DescriptionText({
+									summary: vehicleConfig.summary || '',
+									description: vehicleConfig.description || '',
+									title: vehicleConfig.name,
+								}),
 								new Elem({
 									style: {
 										display: 'flex',
@@ -607,7 +601,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							]
 						}),
 					}),
-					new CardContainer({
+					new Card({
 						header: `Drill: ${drillConfig.name}`,
 						body: new Elem({
 							style: {
@@ -617,13 +611,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								gap: '4px'
 							},
 							append: [
-								new DrillImage(drillConfig.spriteIndex),
-								drillConfig.description &&
-									new Elem({
-										tag: 'p',
-										content: drillConfig.description,
-										className: 'description',
-									}),
+								new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
+								new DescriptionText({
+									summary: drillConfig.summary || '',
+									description: drillConfig.description || '',
+									title: drillConfig.name,
+								}),
 								new Elem({
 									style: {
 										display: 'flex',
@@ -640,7 +633,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							]
 						}),
 					}),
-					new CardContainer({
+					new Card({
 						header: `Engine: ${engineConfig.name}`,
 						body: new Elem({
 							style: {
@@ -650,13 +643,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								gap: '4px'
 							},
 							append: [
-								new EngineImage(engineConfig.spriteIndex),
-								engineConfig.description &&
-									new Elem({
-										tag: 'p',
-										content: engineConfig.description,
-										className: 'description',
-									}),
+								new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
+								new DescriptionText({
+									summary: engineConfig.summary || '',
+									description: engineConfig.description || '',
+									title: engineConfig.name,
+								}),
 								new Elem({
 									style: {
 										display: 'flex',
@@ -681,7 +673,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						}),
 					}),
 					partConfig &&
-						new CardContainer({
+						new Card({
 							header: `Part: ${player.configuration.part}`,
 							body: new Elem({
 								style: {
@@ -691,13 +683,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									gap: '4px'
 								},
 								append: [
-									new PartImage(partConfig.spriteIndex),
-									partConfig.description &&
-										new Elem({
-											tag: 'p',
-											content: partConfig.description,
-											className: 'description',
-										}),
+									new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
+									new DescriptionText({
+										summary: partConfig.summary || '',
+										description: partConfig.description || '',
+										title: partConfig.name,
+									}),
 									new Elem({
 										style: {
 											display: 'flex',
@@ -716,7 +707,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								]
 							}),
 						}),
-				),
+					]
+				}),
 			),
 		);
 	}
@@ -739,13 +731,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			className: 'description',
 		});
 
-		new Elem(
-			{ appendTo: this._subMenuBody, style: { 
-				display: 'grid', 
-				gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-				gap: '12px' 
-			} },
-			playerAchievements
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: playerAchievements
 				.sort(
 					orderBy([
 						{ property: 'category', direction: 'asc' },
@@ -759,7 +747,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					if (!player.achievements[achievement.id]) {
 						if (achievement.hidden) return;
 
-						return new CardContainer({
+						return new Card({
 							header: `🔒 ${achievement.name}`,
 							body: new Elem({
 								style: {
@@ -794,7 +782,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						});
 					}
 
-					return new CardContainer({
+					return new Card({
 						header: `✓ ${achievement.name}`,
 						style: {
 							background: theme.colors.darkest(theme.colors.green),
@@ -836,8 +824,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							]
 						})
 					});
-				}),
-		);
+				})
+		});
 	}
 
 	render_status_minerals() {
@@ -845,16 +833,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		const player = gameContext.players.currentPlayer;
 
-		new Elem(
-			{ appendTo: this._subMenuBody, style: { 
-				display: 'grid', 
-				gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-				gap: '12px' 
-			} },
-			Object.entries(minerals).flatMap(([color, mineral]) => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: Object.entries(minerals).flatMap(([color, mineral]) => {
 				if (!player.stats.oreTypesCollected[color]) return [];
 
-				return new CardContainer({
+				return new Card({
 					header: mineral.name,
 					style: {
 						background: theme.colors.darkest(theme.colors.green),
@@ -868,17 +852,17 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							gap: '4px'
 						},
 						append: [
-							new MineralImage(color),
-							new Elem({
-								tag: 'p',
-								content: mineral.description,
-								className: 'description',
+							new MineralImage(color, { displaySize: 96 }),
+							new DescriptionText({
+								summary: mineral.flavor || '',
+								description: mineral.description,
+								title: mineral.name,
 							}),
 						]
 					}),
 				});
-			}),
-		);
+			})
+		});
 	}
 
 	render_status_items() {
@@ -886,16 +870,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		const player = gameContext.players.currentPlayer;
 
-		new Elem(
-			{ appendTo: this._subMenuBody, style: { 
-				display: 'grid', 
-				gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-				gap: '12px' 
-			} },
-			Object.entries(items).flatMap(([name, item]) => {
+		new CardGrid({
+			appendTo: this._subMenuBody,
+			content: Object.entries(items).flatMap(([name, item]) => {
 				if (!player.stats.itemsUsed[name] && !player.items[name]) return [];
 
-				return new CardContainer({
+				return new Card({
 					header: capitalize(name.replaceAll('_', ' '), true),
 					style: {
 						background: theme.colors.darkest(theme.colors.green),
@@ -909,22 +889,22 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							gap: '4px'
 						},
 						append: [
-							new ItemImage(name),
+							new ItemImage(name, { displaySize: 96 }),
 							new Elem({
 								tag: 'p',
 								content: `Uses: ${player.stats.itemsUsed[name] ?? 0}`,
 								className: 'description',
 							}),
-							new Elem({
-								tag: 'p',
-								content: item.description,
-								className: 'description',
+							new DescriptionText({
+								summary: item.summary || '',
+								description: item.description,
+								title: item.name || capitalize(name.replaceAll('_', ' '), true),
 							}),
 						]
 					}),
 				});
-			}),
-		);
+			})
+		});
 	}
 
 	render_items() {
@@ -958,13 +938,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			return;
 		}
 
-		new Elem(
-			{ appendTo: this._menuBody, style: { 
-				display: 'grid', 
-				gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-				gap: '12px' 
-			} },
-			Object.entries(player.items).flatMap(([key, count]) => {
+		new CardGrid({
+			appendTo: this._menuBody,
+			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
 				let imageName = key;
@@ -978,7 +954,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				const disabledReason = this.getItemDisabledReason(key, player);
 
 				return [
-					new CardContainer({
+					new Card({
 						header: `${capitalize(key.replaceAll('_', ' '), true)} (x${count})`,
 						style: {
 							opacity: canUse ? 1 : 0.6,
@@ -991,11 +967,11 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								gap: '4px'
 							},
 							append: [
-								new ItemImage(imageName),
-								new Elem({
-									tag: 'p',
-									content: items[key]?.description || '',
-									className: 'description',
+								new ItemImage(imageName, { displaySize: 96 }),
+								new DescriptionText({
+									summary: items[key]?.summary || '',
+									description: items[key]?.description || 'No description available.',
+									title: items[key]?.name || capitalize(key.replaceAll('_', ' '), true),
 								}),
 								!canUse &&
 									disabledReason &&
@@ -1003,7 +979,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										tag: 'p',
 										content: disabledReason,
 										className: 'description',
-										style: { 
+										style: {
 											color: theme.colors.red,
 											fontSize: '13px',
 											marginTop: '4px'
@@ -1026,8 +1002,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						]
 					}),
 				];
-			}),
-		);
+			})
+		});
 	}
 
 	canUseItem(itemKey, player) {
@@ -1076,7 +1052,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 	render_settings() {
 		// Detect if device uses touch input without precise pointer support
-		const isTouchOnlyDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0) && 
+		const isTouchOnlyDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
 		                          !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 		const settingsControls = [

@@ -4,7 +4,7 @@ import { Component, Elem, theme } from 'vanilla-bean-components';
  * Standardized card container component with optional header, body, and footer sections
  * Based on the SpacecoDialog shop player inventory item cards reference template
  */
-export class CardContainer extends Component {
+export class Card extends Component {
 	constructor(options = {}) {
 		const defaultStyle = {
 			display: 'flex',
