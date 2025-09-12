@@ -1,4 +1,4 @@
-import { theme, debounce } from 'vanilla-bean-components';
+import { theme } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
 import {
@@ -972,9 +972,9 @@ export const submitPath = () => {
 	gameContext.scene.sound.play('path_accept', { volume: gameContext.volume.interfaces });
 
 	// Set movement start timestamp for failsafe detection
-	gameContext.players.update(gameContext.playerId, _ => ({ 
-		..._, 
-		_movingStartTime: Date.now() 
+	gameContext.players.update(gameContext.playerId, _ => ({
+		..._,
+		_movingStartTime: Date.now(),
 	}));
 
 	playerMove({ path: validation.validPath });
@@ -1032,7 +1032,7 @@ const addToManualPath = (player, position, grid) => {
 export const onPointerDown = pointer => {
 	// Don't process pointer events if a dialog is open
 	if (gameContext.openDialog?.elem?.open) return;
-	
+
 	const player = gameContext.players.currentPlayer;
 
 	if (player?.moving) {
@@ -1044,22 +1044,21 @@ export const onPointerDown = pointer => {
 			gameContext.players.update(gameContext.playerId, _ => ({ ..._, _stuckClickCount: player._stuckClickCount + 1 }));
 			return;
 		}
-		
+
 		// Failsafe: If player has been moving for more than 30 seconds OR clicked 3+ times, assume stuck state
 		const timeStuck = player._movingStartTime ? Date.now() - player._movingStartTime : 0;
 		if (timeStuck > 30000 || player._stuckClickCount >= 3) {
-			gameContext.players.update(gameContext.playerId, _ => ({ 
-				..._, 
-				moving: false, 
+			gameContext.players.update(gameContext.playerId, _ => ({
+				..._,
+				moving: false,
 				_movingStartTime: null,
-				_stuckClickCount: 0
+				_stuckClickCount: 0,
 			}));
-			
+
 			// Re-enable cursor
 			if (gameContext.cursor) {
 				gameContext.cursor.visible = true;
 			}
-			
 		} else {
 			return;
 		}
@@ -1126,7 +1125,7 @@ export const onPointerDown = pointer => {
 				const pathPos = validation.validPath[i];
 				if (!addToManualPath(player, pathPos, gameContext.serverState.world.grid)) {
 					// If any step fails validation, stop converting and use what we have
-						break;
+					break;
 				}
 			}
 		} else {
@@ -1152,12 +1151,16 @@ export const onPointerMove = (pointer, gameObjects) => {
 
 	// Don't interfere with UI buttons
 	const player = gameContext.players.currentPlayer;
-	if (gameObjects.some(one => 
-		one === gameContext.spaceco.tradeButton || 
-		one === player?.sprite?.tradeButton ||
-		one === player?.sprite?.bombButton ||
-		one === player?.sprite?.teleportButton
-	)) return;
+	if (
+		gameObjects.some(
+			one =>
+				one === gameContext.spaceco.tradeButton ||
+				one === player?.sprite?.tradeButton ||
+				one === player?.sprite?.bombButton ||
+				one === player?.sprite?.teleportButton,
+		)
+	)
+		return;
 
 	if (!player) return;
 

@@ -6,17 +6,23 @@ const validateGameMatch = ({ gameId, playerId, validatePlayer = false }, errorMe
 
 	if (!game) {
 		return {
-			error: Response.json({ 
-				message: errorMessages.gameNotFound || 'Game not found.' 
-			}, { status: 404 }),
+			error: Response.json(
+				{
+					message: errorMessages.gameNotFound || 'Game not found.',
+				},
+				{ status: 404 },
+			),
 		};
 	}
 
 	if (validatePlayer && (!playerId || !games[gameId]?.players?.has(playerId))) {
 		return {
-			error: Response.json({ 
-				message: errorMessages.playerNotFound || 'Player not found. Your session may have expired.' 
-			}, { status: 404 }),
+			error: Response.json(
+				{
+					message: errorMessages.playerNotFound || 'Player not found. Your session may have expired.',
+				},
+				{ status: 404 },
+			),
 		};
 	}
 

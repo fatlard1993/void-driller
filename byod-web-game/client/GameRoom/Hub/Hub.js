@@ -8,17 +8,23 @@ import GameInfoPopover from './GameInfoPopover';
 
 export default class Hub extends View {
 	constructor(options, ...children) {
-		console.log('Hub constructor options:', { options,containerComponent: !!options.containerComponent, noGamesText: !!options.noGamesText });
+		console.log('Hub constructor options:', {
+			options,
+			containerComponent: !!options.containerComponent,
+			noGamesText: !!options.noGamesText,
+		});
 		super(
 			{
 				...options,
 				toolbar: {
 					heading: options.toolbar?.heading || 'Game Hub',
-					right: [new Link({
-						textContent: options.toolbar?.createText || 'New Game',
-						href: options.toolbar?.createHref || '#/create',
-						variant: 'button'
-					})],
+					right: [
+						new Link({
+							textContent: options.toolbar?.createText || 'New Game',
+							href: options.toolbar?.createHref || '#/create',
+							variant: 'button',
+						}),
+					],
 				},
 			},
 			...children,
@@ -61,7 +67,11 @@ export default class Hub extends View {
 
 		if (!games.body?.length) {
 			// Allow games to provide their own container component for empty state
-			console.log('Debug options:', { containerComponent: !!this.options.containerComponent, noGamesText: !!this.options.noGamesText, options: this.options });
+			console.log('Debug options:', {
+				containerComponent: !!this.options.containerComponent,
+				noGamesText: !!this.options.noGamesText,
+				options: this.options,
+			});
 			if (this.options.containerComponent && this.options.noGamesText) {
 				const ContainerComponent = this.options.containerComponent;
 				this.container = new ContainerComponent({
@@ -110,7 +120,7 @@ export default class Hub extends View {
 					new Link({
 						content: this.options.buttons?.joinText || 'Join',
 						href: `#/join/${id}`,
-						variant: 'button'
+						variant: 'button',
 					}),
 					new GameListText({ content: `${players.length}` }),
 				],

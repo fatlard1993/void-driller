@@ -18,7 +18,11 @@ export const validateMessage = (data, gameId) => {
 
 	// Required fields
 	if (!data.id || !data.update) {
-		socketLog(2)('Invalid socket message: missing required fields', { data, hasId: !!data.id, hasUpdate: !!data.update });
+		socketLog(2)('Invalid socket message: missing required fields', {
+			data,
+			hasId: !!data.id,
+			hasUpdate: !!data.update,
+		});
 		return false;
 	}
 
@@ -35,18 +39,21 @@ export const validateMessage = (data, gameId) => {
  * @param {object} data - The socket message data
  * @returns {boolean} Whether the player message is valid
  */
-export const validatePlayerMessage = (data) => {
+export const validatePlayerMessage = data => {
 	// Player-specific message validation
 	if (data.playerId && typeof data.playerId !== 'string') {
-		socketLog(2)('Invalid player message: playerId must be string', { data, playerId: data.playerId, type: typeof data.playerId });
+		socketLog(2)('Invalid player message: playerId must be string', {
+			data,
+			playerId: data.playerId,
+			type: typeof data.playerId,
+		});
 		return false;
 	}
 
 	// Validate position updates if present
 	if (data.player?.position) {
 		const pos = data.player.position;
-		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
-			!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
+		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
 			socketLog(2)('Invalid player message: invalid position data', { data, position: data.player?.position });
 			return false;
 		}
@@ -58,7 +65,12 @@ export const validatePlayerMessage = (data) => {
 		for (const field of numericFields) {
 			if (data.player[field] !== undefined) {
 				if (typeof data.player[field] !== 'number' || !Number.isFinite(data.player[field])) {
-					socketLog(2)(`Invalid player message: ${field} must be finite number`, { data, field, value: data.player[field], type: typeof data.player[field] });
+					socketLog(2)(`Invalid player message: ${field} must be finite number`, {
+						data,
+						field,
+						value: data.player[field],
+						type: typeof data.player[field],
+					});
 					return false;
 				}
 			}
@@ -73,11 +85,10 @@ export const validatePlayerMessage = (data) => {
  * @param {object} data - The socket message data
  * @returns {boolean} Whether the position data is valid
  */
-export const validatePositionMessage = (data) => {
+export const validatePositionMessage = data => {
 	if (data.position) {
 		const pos = data.position;
-		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
-			!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
+		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
 			socketLog(2)('Invalid message: invalid position data', { data, position: data.position });
 			return false;
 		}
@@ -90,6 +101,6 @@ export const validatePositionMessage = (data) => {
  * @param {string} gameId - The game ID to check against
  * @returns {Function} Validator function
  */
-export const createMessageValidator = (gameId) => {
-	return (data) => validateMessage(data, gameId);
+export const createMessageValidator = gameId => {
+	return data => validateMessage(data, gameId);
 };

@@ -14,17 +14,19 @@ export default class GameSaveDatabase extends Low {
 
 		this.options = options;
 		this.collections = {};
-		
+
 		// Create default logger if none provided
-		this.logger = logger || new Log({ 
-			tag: 'byod-database',
-			defaults: {
-				verbosity: process.env.NODE_ENV === 'production' ? 1 : 3,
-				color: true,
-				silentTag: false,
-				methodTag: true
-			}
-		});
+		this.logger =
+			logger ||
+			new Log({
+				tag: 'byod-database',
+				defaults: {
+					verbosity: process.env.NODE_ENV === 'production' ? 1 : 3,
+					color: true,
+					silentTag: false,
+					methodTag: true,
+				},
+			});
 
 		this.logger.info(`Database connected to ${filePath}`);
 
@@ -38,30 +40,30 @@ export default class GameSaveDatabase extends Low {
 			await this.read();
 
 			const collections = Object.keys(this.data);
-			this.logger.info('Database loaded', { 
+			this.logger.info('Database loaded', {
 				collections: collections.length,
-				collectionNames: collections
+				collectionNames: collections,
 			});
 
 			const results = await Promise.allSettled(collections.map(key => this.addCollection(key)));
 			const failed = results.filter(r => r.status === 'rejected').length;
-			
+
 			if (failed > 0) {
 				this.logger.warning('Some collections failed to initialize', { failed, total: collections.length });
 			}
 
 			const duration = performance.now() - startTime;
-			this.logger.info('Database initialization completed', { 
+			this.logger.info('Database initialization completed', {
 				duration: `${duration.toFixed(2)}ms`,
-				collectionsLoaded: collections.length - failed
+				collectionsLoaded: collections.length - failed,
 			});
 
 			if (this.options.done) this.options.done(this);
 		} catch (error) {
-			this.logger.error('Database initialization failed', { 
-				error: error.message, 
+			this.logger.error('Database initialization failed', {
+				error: error.message,
 				stack: error.stack,
-				filePath: this.options.filePath
+				filePath: this.options.filePath,
 			});
 			throw error;
 		}
@@ -86,18 +88,18 @@ export default class GameSaveDatabase extends Low {
 					db.write();
 
 					const duration = performance.now() - startTime;
-					db.logger.info('Database record created', { 
-						collection: key, 
+					db.logger.info('Database record created', {
+						collection: key,
 						id: data.id,
-						duration: `${duration.toFixed(2)}ms`
+						duration: `${duration.toFixed(2)}ms`,
 					});
 
 					return data;
 				} catch (error) {
-					db.logger.error('Database create failed', { 
-						collection: key, 
-						id: data.id, 
-						error: error.message 
+					db.logger.error('Database create failed', {
+						collection: key,
+						id: data.id,
+						error: error.message,
 					});
 					throw error;
 				}
@@ -105,21 +107,21 @@ export default class GameSaveDatabase extends Low {
 			read({ id } = {}) {
 				try {
 					const result = id ? db.data[key][id] || false : db.data[key];
-					
+
 					if (id) {
-						db.logger.debug('Database read operation', { 
-							collection: key, 
-							id, 
-							found: !!result 
+						db.logger.debug('Database read operation', {
+							collection: key,
+							id,
+							found: !!result,
 						});
 					}
-					
+
 					return result;
 				} catch (error) {
-					db.logger.error('Database read failed', { 
-						collection: key, 
-						id, 
-						error: error.message 
+					db.logger.error('Database read failed', {
+						collection: key,
+						id,
+						error: error.message,
 					});
 					throw error;
 				}
@@ -139,19 +141,19 @@ export default class GameSaveDatabase extends Low {
 					db.write();
 
 					const duration = performance.now() - startTime;
-					db.logger.info('Database record updated', { 
-						collection: key, 
+					db.logger.info('Database record updated', {
+						collection: key,
 						id,
 						fields: Object.keys(update),
-						duration: `${duration.toFixed(2)}ms`
+						duration: `${duration.toFixed(2)}ms`,
 					});
 
 					return updated;
 				} catch (error) {
-					db.logger.error('Database update failed', { 
-						collection: key, 
-						id, 
-						error: error.message 
+					db.logger.error('Database update failed', {
+						collection: key,
+						id,
+						error: error.message,
 					});
 					throw error;
 				}
@@ -170,18 +172,18 @@ export default class GameSaveDatabase extends Low {
 					db.write();
 
 					const duration = performance.now() - startTime;
-					db.logger.info('Database record deleted', { 
-						collection: key, 
+					db.logger.info('Database record deleted', {
+						collection: key,
 						id,
-						duration: `${duration.toFixed(2)}ms`
+						duration: `${duration.toFixed(2)}ms`,
 					});
 
 					return id;
 				} catch (error) {
-					db.logger.error('Database delete failed', { 
-						collection: key, 
-						id, 
-						error: error.message 
+					db.logger.error('Database delete failed', {
+						collection: key,
+						id,
+						error: error.message,
 					});
 					throw error;
 				}
@@ -200,18 +202,18 @@ export default class GameSaveDatabase extends Low {
 					db.write();
 
 					const duration = performance.now() - startTime;
-					db.logger.info('Database record set', { 
-						collection: key, 
+					db.logger.info('Database record set', {
+						collection: key,
 						id,
-						duration: `${duration.toFixed(2)}ms`
+						duration: `${duration.toFixed(2)}ms`,
 					});
 
 					return data;
 				} catch (error) {
-					db.logger.error('Database set failed', { 
-						collection: key, 
-						id, 
-						error: error.message 
+					db.logger.error('Database set failed', {
+						collection: key,
+						id,
+						error: error.message,
 					});
 					throw error;
 				}

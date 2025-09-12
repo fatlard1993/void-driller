@@ -323,10 +323,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			new Card({
 				header: 'Items You Will Give',
 				body: new Elem({
-					append: [
-						this.renderTradeItems(this.tradeContext.offer, true, 'offer'),
-						this.renderAddItemSection('offer'),
-					],
+					append: [this.renderTradeItems(this.tradeContext.offer, true, 'offer'), this.renderAddItemSection('offer')],
 				}),
 			}),
 
@@ -338,8 +335,9 @@ export default class TradeDialog extends (styled(BaseDialog)`
 					width: '100%',
 				},
 				onPointerPress: () => this.sendTradeOffer(),
-				disabled: this.tradeContext.subscriber(['offer', 'request'], (offer, request) =>
-					!this.isValidTrade(offer, request)
+				disabled: this.tradeContext.subscriber(
+					['offer', 'request'],
+					(offer, request) => !this.isValidTrade(offer, request),
 				),
 			}),
 		);
@@ -367,8 +365,9 @@ export default class TradeDialog extends (styled(BaseDialog)`
 					width: '100%',
 				},
 				onPointerPress: () => this.sendTradeOffer(),
-				disabled: this.tradeContext.subscriber(['offer', 'request'], (offer, request) =>
-					!this.isValidTrade(offer, request)
+				disabled: this.tradeContext.subscriber(
+					['offer', 'request'],
+					(offer, request) => !this.isValidTrade(offer, request),
 				),
 			}),
 		);

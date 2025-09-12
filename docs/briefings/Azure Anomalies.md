@@ -48,7 +48,6 @@ Our newly appointed Xenogeology Specialist Dr. Elena Vasquez has made breakthrou
 
 **Policy Reminder:** Discussion of anomalous encounters outside official channels may result in "enhanced psychological evaluation" and "reality calibration training" for contractor wellness.
 
-
 ### 🌮 Taco Tuesday Report
 
 June's monthly taco celebration reached unprecedented attendance levels! Chef Rodriguez's "Transcendence Tacos" created quite a sensation, with employees reporting "expanded consciousness" and "enhanced empathy toward non-human entities" following consumption.

@@ -53,7 +53,7 @@ export class DescriptionText extends (styled.Component`
 				new InfoButton({
 					title: this.options.title || 'More Information',
 					description: this.options.description,
-				})
+				}),
 			);
 		}
 	}

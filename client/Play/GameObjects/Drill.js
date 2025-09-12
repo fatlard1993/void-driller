@@ -21,7 +21,7 @@ export class Drill extends Phaser.GameObjects.Sprite {
 			gameLog.error('Drill constructor called with invalid position', { x, y, name, vehicle, drill });
 			throw new Error(`Invalid position passed to Drill constructor: x=${x}, y=${y}`);
 		}
-		
+
 		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'vehicles', vehicle);
 
 		this.drill = scene.add.image(gridToPxPosition(x), gridToPxPosition(y), 'drills', drill);

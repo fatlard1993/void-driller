@@ -119,35 +119,35 @@ export default data => {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 	} else if (data.update === 'playerMovementComplete') {
 		console.log('playerMovementComplete', data);
-		gameContext.players.update(data.playerId, _ => ({ 
-			..._, 
+		gameContext.players.update(data.playerId, _ => ({
+			..._,
 			moving: false,
 			_movingStartTime: null,
-			_stuckClickCount: 0
+			_stuckClickCount: 0,
 		}));
 	} else if (data.update === 'playerCantMove') {
 		console.log('playerCantMove', data);
-		gameContext.players.update(data.playerId, _ => ({ 
-			..._, 
+		gameContext.players.update(data.playerId, _ => ({
+			..._,
 			moving: false,
 			_movingStartTime: null,
-			_stuckClickCount: 0
+			_stuckClickCount: 0,
 		}));
 	} else if (data.update === 'playerMovementInterrupted') {
 		console.log('playerMovementInterrupted', data);
-		gameContext.players.update(data.playerId, _ => ({ 
-			..._, 
+		gameContext.players.update(data.playerId, _ => ({
+			..._,
 			moving: false,
 			_movingStartTime: null,
-			_stuckClickCount: 0
+			_stuckClickCount: 0,
 		}));
 	} else if (data.update === 'playerMovementError') {
 		console.log('playerMovementError', data);
-		gameContext.players.update(data.playerId, _ => ({ 
-			..._, 
+		gameContext.players.update(data.playerId, _ => ({
+			..._,
 			moving: false,
 			_movingStartTime: null,
-			_stuckClickCount: 0
+			_stuckClickCount: 0,
 		}));
 	} else if (data.update === 'achievement') {
 		console.log('achievement', data);

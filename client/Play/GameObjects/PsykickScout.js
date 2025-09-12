@@ -26,7 +26,7 @@ export class PsykickScout extends Alien {
 		this.anims.create({
 			key: 'communicate',
 			frames: this.anims.generateFrameNumbers('aliens', {
-				frames: [spriteIndex, spriteIndex + 1, spriteIndex + 2, spriteIndex + 1]
+				frames: [spriteIndex, spriteIndex + 1, spriteIndex + 2, spriteIndex + 1],
 			}),
 			duration: 1000,
 			frameRate: 4,

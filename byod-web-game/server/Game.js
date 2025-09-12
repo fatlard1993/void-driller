@@ -19,17 +19,19 @@ export default class Game {
 		this.options = saveState.options || options;
 
 		this.server = server;
-		
+
 		// Create default logger if none provided
-		this.logger = logger || new Log({ 
-			tag: 'byod-game',
-			defaults: {
-				verbosity: process.env.NODE_ENV === 'production' ? 1 : 3,
-				color: true,
-				silentTag: false,
-				methodTag: true
-			}
-		});
+		this.logger =
+			logger ||
+			new Log({
+				tag: 'byod-game',
+				defaults: {
+					verbosity: process.env.NODE_ENV === 'production' ? 1 : 3,
+					color: true,
+					silentTag: false,
+					methodTag: true,
+				},
+			});
 
 		this.players = new Players();
 
@@ -64,7 +66,7 @@ export default class Game {
 
 	broadcast(key, data) {
 		const safeData = { id: this.id, update: key };
-		
+
 		// Copy properties from data, avoiding potential cyclic references
 		if (data && typeof data === 'object') {
 			Object.keys(data).forEach(prop => {
@@ -143,12 +145,10 @@ export default class Game {
 	 */
 	broadcastWithGameState(event, data, stateFields = [], stateKey = 'gameState') {
 		const gameStateData = this.createGameStateData(stateFields);
-		
+
 		// Only include game state if there's actual data
-		const enhancedData = Object.keys(gameStateData).length > 0 
-			? { ...data, [stateKey]: gameStateData }
-			: data;
-			
+		const enhancedData = Object.keys(gameStateData).length > 0 ? { ...data, [stateKey]: gameStateData } : data;
+
 		this.broadcast(event, enhancedData);
 	}
 }

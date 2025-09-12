@@ -57,7 +57,7 @@ _"The salsa verde is actually verde this time!"_ - Janet from Payroll
 **New Hires This Month:**
 
 - Sarah Chen - Deep Core Operations
-- Marcus "Tank" Johnson - Heavy Equipment Operations  
+- Marcus "Tank" Johnson - Heavy Equipment Operations
 - The entire Johnson family - Bulk Transport Division
 
 **Departures:**

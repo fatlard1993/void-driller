@@ -87,17 +87,16 @@ function getScaledAchievementReward(baseAmount, type, spacecoXp) {
 	return baseAmount; // XP and items don't scale
 }
 
-
 export default class Game extends BaseGame {
 	constructor({ saveState = {}, ...options }) {
-		gameLog.info('Game constructor called', { 
+		gameLog.info('Game constructor called', {
 			gameName: options.name || saveState.name || 'unnamed game',
-			hasSaveState: !!saveState && Object.keys(saveState).length > 0 
+			hasSaveState: !!saveState && Object.keys(saveState).length > 0,
 		});
-		
+
 		// Call base constructor
 		super({ saveState, server, ...options });
-		
+
 		// Initialize game-specific properties
 		this.world = saveState.world || this.generateWorld(WORLDS[options.worldName] || options);
 		this.url = server.url;
@@ -128,37 +127,46 @@ export default class Game extends BaseGame {
 		// Validate player data if present
 		if (data.player) {
 			const player = data.player;
-			
+
 			// Validate numeric fields
 			const numericFields = ['health', 'fuel', 'cargo', 'credits', 'maxHealth', 'maxFuel', 'maxCargo'];
 			for (const field of numericFields) {
 				if (player[field] !== undefined && (!Number.isFinite(player[field]) || player[field] < 0)) {
-					gameLog.warning('Invalid player field in broadcast', { broadcastKey: key, field, value: player[field], playerId: player?.id });
+					gameLog.warning('Invalid player field in broadcast', {
+						broadcastKey: key,
+						field,
+						value: player[field],
+						playerId: player?.id,
+					});
 					return false;
 				}
 			}
-			
+
 			// Validate position data
 			if (player.position) {
 				if (!Number.isFinite(player.position.x) || !Number.isFinite(player.position.y)) {
-					gameLog.warning('Invalid player position in broadcast', { broadcastKey: key, position: player.position, playerId: player?.id });
+					gameLog.warning('Invalid player position in broadcast', {
+						broadcastKey: key,
+						position: player.position,
+						playerId: player?.id,
+					});
 					return false;
 				}
 			}
 		}
-		
+
 		// Validate position data in other contexts
 		if (data.position && (!Number.isFinite(data.position.x) || !Number.isFinite(data.position.y))) {
 			gameLog.warning('Invalid position in broadcast', { broadcastKey: key, position: data.position });
 			return false;
 		}
-		
+
 		// Validate playerId if present
 		if (data.playerId && typeof data.playerId !== 'string') {
 			gameLog.warning('Invalid playerId in broadcast', { broadcastKey: key, playerId: data.playerId });
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -180,12 +188,12 @@ export default class Game extends BaseGame {
 
 			if (player && !player.achievements[achievement.id] && trigger.check({ event: data, player, world: this.world })) {
 				let updatedPlayer = { ...player, achievements: { ...player.achievements, [achievement.id]: true } };
-				
+
 				playerLog.info(`Achievement unlocked`, {
 					playerId,
 					achievementId: achievement.id,
 					achievementName: achievement.name,
-					awards: achievement.awards
+					awards: achievement.awards,
 				});
 
 				if (achievement.awards) {
@@ -249,8 +257,11 @@ export default class Game extends BaseGame {
 	findValidSpawnPosition(world = null) {
 		// Use provided world or current world
 		const targetWorld = world || this.world;
-		
-		gameLog.debug('Finding spawn position', { worldSize: `${targetWorld.width}x${targetWorld.depth}`, spacecoPosition: targetWorld.spaceco.position });
+
+		gameLog.debug('Finding spawn position', {
+			worldSize: `${targetWorld.width}x${targetWorld.depth}`,
+			spacecoPosition: targetWorld.spaceco.position,
+		});
 
 		// SIMPLE APPROACH: Find a position ON TOP OF solid ground, not floating
 		const spacecoPos = targetWorld.spaceco.position;
@@ -261,12 +272,16 @@ export default class Game extends BaseGame {
 				for (let dy = -radius; dy <= radius; dy++) {
 					const testPos = {
 						x: spacecoPos.x + dx,
-						y: spacecoPos.y + dy
+						y: spacecoPos.y + dy,
 					};
 
 					// Check bounds
-					if (testPos.x < 2 || testPos.x >= targetWorld.width - 2 ||
-					    testPos.y < 1 || testPos.y >= targetWorld.depth - 2) {
+					if (
+						testPos.x < 2 ||
+						testPos.x >= targetWorld.width - 2 ||
+						testPos.y < 1 ||
+						testPos.y >= targetWorld.depth - 2
+					) {
 						continue;
 					}
 
@@ -293,7 +308,7 @@ export default class Game extends BaseGame {
 		gameLog.warning('No spawn position found, creating landing platform');
 		const platformPos = {
 			x: spacecoPos.x + 2, // Offset from SpaceCo
-			y: targetWorld.airGap
+			y: targetWorld.airGap,
 		};
 
 		// Ensure position bounds are valid
@@ -323,12 +338,12 @@ export default class Game extends BaseGame {
 
 	addPlayer(name) {
 		const id = simpleId();
-		playerLog.info('Player session started', { 
-			playerId: id, 
-			playerName: name, 
+		playerLog.info('Player session started', {
+			playerId: id,
+			playerName: name,
 			gameId: this.id,
 			gamePlayerCount: this.players.size + 1,
-			sessionStartTime: new Date().toISOString()
+			sessionStartTime: new Date().toISOString(),
 		});
 
 		this.players.set(id, {
@@ -454,7 +469,8 @@ export default class Game extends BaseGame {
 			}
 		}
 
-		spacecoLog.info('Updated SpaceCo stock', { playerCount, 
+		spacecoLog.info('Updated SpaceCo stock', {
+			playerCount,
 			shop: this.world.spaceco.shop,
 			vehicles: this.world.spaceco.vehicles.length,
 			drills: this.world.spaceco.drills.length,
@@ -479,10 +495,11 @@ export default class Game extends BaseGame {
 		const partConfig = parts[player.configuration.part] || {};
 
 		if (!vehicleConfig || !drillConfig || !engineConfig) {
-			playerLog.error('Player has invalid configuration', { playerId: id, 
+			playerLog.error('Player has invalid configuration', {
+				playerId: id,
 				vehicle: player.configuration.vehicle,
 				drill: player.configuration.drill,
-				engine: player.configuration.engine
+				engine: player.configuration.engine,
 			});
 			return;
 		}
@@ -545,14 +562,14 @@ export default class Game extends BaseGame {
 			playerLog.warning('Player cargo exceeds capacity, clamped to max', {
 				playerId,
 				cargo: cargo.toFixed(2),
-				maxCargo: player.maxCargo
+				maxCargo: player.maxCargo,
 			});
 		}
 
 		// Only update and log if cargo actually changed
 		if (Math.abs(player.cargo - finalCargo) > 0.001) {
 			this.players.update(playerId, _ => ({ ..._, cargo: finalCargo }));
-			
+
 			if (Object.keys(cargoBreakdown).length > 0) {
 				playerLog.debug('Player cargo updated', { playerId, cargo: finalCargo.toFixed(2), breakdown: cargoBreakdown });
 			}
@@ -641,7 +658,7 @@ export default class Game extends BaseGame {
 			totalGain,
 			xpGained,
 			spacecoXpTotal: this.world.spaceco.xp,
-			transactionDetails
+			transactionDetails,
 		});
 
 		this.players.set(playerId, { ...player, ...updates });
@@ -650,67 +667,71 @@ export default class Game extends BaseGame {
 
 		gameLog.debug(`Legacy mineral sale log`, { playerId, totalGain, transactionDetails });
 
-		this.broadcastWithSpacecoState('spacecoSell', {
-			playerId,
-			updates: {
-				...updates,
-				cargo: 0, // Cargo becomes 0 after selling all minerals
+		this.broadcastWithSpacecoState(
+			'spacecoSell',
+			{
+				playerId,
+				updates: {
+					...updates,
+					cargo: 0, // Cargo becomes 0 after selling all minerals
+				},
+				gain: totalGain,
+				spacecoHull: this.world.spaceco.hull,
+				transactionDetails, // Include detailed breakdown for client
 			},
-			gain: totalGain,
-			spacecoHull: this.world.spaceco.hull,
-			transactionDetails, // Include detailed breakdown for client
-		}, ['hull']);
+			['hull'],
+		);
 	}
 
 	spacecoSellItem(playerId, item, count = 1) {
 		const player = this.players.get(playerId);
-		
+
 		if (!player) {
 			return { success: false, error: 'Player not found' };
 		}
-		
+
 		// Check if item exists in items config
 		if (!items[item]) {
 			return { success: false, error: 'Invalid item' };
 		}
-		
+
 		// Check if player has enough of the item
 		const playerItemCount = player.items[item] || 0;
 		if (playerItemCount < count) {
 			return { success: false, error: 'Insufficient items' };
 		}
-		
+
 		// Special handling for psykick_egg - endgame egg hunt submission
 		if (item === 'psykick_egg') {
 			// Remove eggs from player inventory
 			const updatedItems = { ...player.items };
 			updatedItems[item] = Math.max(0, updatedItems[item] - count);
-			
+
 			// Track egg submissions for endgame progress
 			if (!this.world.spaceco.eggHunt) {
 				this.world.spaceco.eggHunt = {
 					totalEggsSubmitted: 0,
-					playerSubmissions: new Map()
+					playerSubmissions: new Map(),
 				};
 			}
-			
+
 			const currentSubmissions = this.world.spaceco.eggHunt.playerSubmissions.get(playerId) || 0;
 			this.world.spaceco.eggHunt.playerSubmissions.set(playerId, currentSubmissions + count);
 			this.world.spaceco.eggHunt.totalEggsSubmitted += count;
-			
+
 			const updates = {
 				items: updatedItems,
 				stats: {
 					...player.stats,
-					psykickEggsSubmitted: (player.stats.psykickEggsSubmitted || 0) + count
-				}
+					psykickEggsSubmitted: (player.stats.psykickEggsSubmitted || 0) + count,
+				},
 			};
-			
+
 			// Update player
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
-			
+
 			spacecoLog.info('Player submitted psykick eggs for endgame', { playerId, count });
-			
+
 			// Broadcast the egg submission to all clients
 			this.broadcastWithSpacecoState('spacecoEggSubmission', {
 				playerId,
@@ -718,59 +739,63 @@ export default class Game extends BaseGame {
 				item,
 				count,
 				totalEggsSubmitted: this.world.spaceco.eggHunt.totalEggsSubmitted,
-				playerSubmissions: this.world.spaceco.eggHunt.playerSubmissions.get(playerId)
+				playerSubmissions: this.world.spaceco.eggHunt.playerSubmissions.get(playerId),
 			});
-			
+
 			return { success: true };
 		}
-		
+
 		// Calculate sell price (70% of current market value due to 30% restocking fee)
 		const basePrice = items[item].price;
 		const currentMarketPrice = Math.floor(basePrice * (1.0 + this.world.spaceco.xp / 100000));
 		const unitSellPrice = Math.floor(currentMarketPrice * 0.7);
 		const sellValue = unitSellPrice * count;
-		
+
 		// Update player inventory and credits
 		const updatedItems = { ...player.items };
 		updatedItems[item] = Math.max(0, updatedItems[item] - count);
-		
+
 		const updates = {
 			items: updatedItems,
 			credits: player.credits + sellValue,
 			stats: {
 				...player.stats,
-				creditsEarned: player.stats.creditsEarned + sellValue
-			}
+				creditsEarned: player.stats.creditsEarned + sellValue,
+			},
 		};
-		
+
 		// Update player
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
-		
+
 		// Update SpaceCo shop stock (add items back to stock)
 		if (this.world.spaceco.shop[item] !== undefined) {
 			this.world.spaceco.shop[item] += count;
 		}
-		
+
 		// Update SpaceCo stats
 		this.world.spaceco.stats.creditsSpent += sellValue;
 		this.world.spaceco.xp += Math.floor(sellValue / 10); // Small XP gain for SpaceCo
-		
+
 		spacecoLog.info('Item sold', { playerId, item, count, totalValue: sellValue, unitPrice: unitSellPrice });
-		
+
 		// Broadcast the sale to all clients
-		this.broadcastWithSpacecoState('spacecoSellItem', {
-			playerId,
-			updates,
-			item,
-			count,
-			sellValue,
-			unitSellPrice,
-			spacecoUpdates: {
-				shop: this.world.spaceco.shop,
-				stats: this.world.spaceco.stats
-			}
-		}, ['shop']);
-		
+		this.broadcastWithSpacecoState(
+			'spacecoSellItem',
+			{
+				playerId,
+				updates,
+				item,
+				count,
+				sellValue,
+				unitSellPrice,
+				spacecoUpdates: {
+					shop: this.world.spaceco.shop,
+					stats: this.world.spaceco.stats,
+				},
+			},
+			['shop'],
+		);
+
 		return { success: true };
 	}
 
@@ -804,7 +829,14 @@ export default class Game extends BaseGame {
 			return;
 		}
 
-		spacecoLog.info('Fuel purchased', { playerId, amount, fuelToPurchase, cost, currentFuel: player.fuel, maxFuel: player.maxFuel });
+		spacecoLog.info('Fuel purchased', {
+			playerId,
+			amount,
+			fuelToPurchase,
+			cost,
+			currentFuel: player.fuel,
+			maxFuel: player.maxFuel,
+		});
 
 		const updates = {
 			fuel: Math.min(player.maxFuel, player.fuel + fuelToPurchase), // Ensure we don't exceed max
@@ -843,7 +875,10 @@ export default class Game extends BaseGame {
 
 			if (player.credits < cost) {
 				spacecoLog.debug('Cannot afford player repair');
-				return { success: false, error: `Insufficient credits. Player repair costs ${Math.floor(cost)}, you have ${player.credits}` };
+				return {
+					success: false,
+					error: `Insufficient credits. Player repair costs ${Math.floor(cost)}, you have ${player.credits}`,
+				};
 			}
 
 			const updates = {
@@ -858,14 +893,18 @@ export default class Game extends BaseGame {
 			++this.world.spaceco.stats.repairsSold;
 			this.world.spaceco.xp += getSpacecoXp(cost, 'service_sale');
 
-			this.broadcastWithSpacecoState('spacecoRepair', {
-				playerId,
-				updates,
-				purchasedRepairs,
-				cost,
-				type,
-			}, ['shop']);
-			
+			this.broadcastWithSpacecoState(
+				'spacecoRepair',
+				{
+					playerId,
+					updates,
+					purchasedRepairs,
+					cost,
+					type,
+				},
+				['shop'],
+			);
+
 			return { success: true };
 		} else if (type === 'outpost') {
 			// Check if outpost needs repair
@@ -881,7 +920,10 @@ export default class Game extends BaseGame {
 
 			if (player.credits < cost) {
 				spacecoLog.debug('Cannot afford outpost repair');
-				return { success: false, error: `Insufficient credits. Outpost repair costs ${Math.floor(cost)}, you have ${player.credits}` };
+				return {
+					success: false,
+					error: `Insufficient credits. Outpost repair costs ${Math.floor(cost)}, you have ${player.credits}`,
+				};
 			}
 
 			this.world.spaceco.health = 9;
@@ -897,14 +939,18 @@ export default class Game extends BaseGame {
 			++this.world.spaceco.stats.repairsSold;
 			this.world.spaceco.xp += getSpacecoXp(cost, 'service_sale');
 
-			this.broadcastWithSpacecoState('spacecoRepair', {
-				playerId,
-				updates,
-				purchasedRepairs,
-				cost,
-				type,
-			}, ['health']);
-			
+			this.broadcastWithSpacecoState(
+				'spacecoRepair',
+				{
+					playerId,
+					updates,
+					purchasedRepairs,
+					cost,
+					type,
+				},
+				['health'],
+			);
+
 			return { success: true };
 		}
 	}
@@ -995,24 +1041,28 @@ export default class Game extends BaseGame {
 			playerCreditsAfter: updates.credits,
 			playerCreditsSpentTotal: updates.stats.creditsSpent,
 			spacecoStock: this.world.spaceco.shop[item],
-			transactionType: 'item_purchase'
+			transactionType: 'item_purchase',
 		});
 
-		this.broadcastWithSpacecoState('spacecoBuyItem', {
-			playerId,
-			updates,
-			item,
-			count,
-			cost,
-			unitCost: validation.unitCost,
-			currentSlots: validation.currentSlots + count,
-			maxSlots: validation.maxSlots,
-			spacecoUpdates: {
-				shop: this.world.spaceco.shop,
-				stats: this.world.spaceco.stats,
-				xp: this.world.spaceco.xp,
+		this.broadcastWithSpacecoState(
+			'spacecoBuyItem',
+			{
+				playerId,
+				updates,
+				item,
+				count,
+				cost,
+				unitCost: validation.unitCost,
+				currentSlots: validation.currentSlots + count,
+				maxSlots: validation.maxSlots,
+				spacecoUpdates: {
+					shop: this.world.spaceco.shop,
+					stats: this.world.spaceco.stats,
+					xp: this.world.spaceco.xp,
+				},
 			},
-		}, ['shop']);
+			['shop'],
+		);
 
 		return { success: true };
 	}
@@ -1048,7 +1098,6 @@ export default class Game extends BaseGame {
 			restockingFeePercent: 30,
 		};
 	}
-
 
 	spacecoBuyUpgrade(playerId, upgrade, type) {
 		const player = this.players.get(playerId);
@@ -1110,32 +1159,34 @@ export default class Game extends BaseGame {
 		// Check requirements (especially torque for drills)
 		if (upgradeConfig.requirements) {
 			const unmetRequirements = [];
-			
+
 			upgradeConfig.requirements.forEach(([requirementType, amount]) => {
 				let currentValue = 0;
-				
+
 				if (requirementType === 'torque') {
 					currentValue = player.torque || 0;
 				}
 				// Add other requirement types here if needed in the future
-				
+
 				if (currentValue < amount) {
 					unmetRequirements.push({ type: requirementType, required: amount, current: currentValue });
 				}
 			});
-			
+
 			if (unmetRequirements.length > 0) {
 				// Return error with detailed requirement information
-				const requirementText = unmetRequirements.map(req => {
-					if (req.type === 'torque') {
-						return `${req.required} Nm torque (current: ${req.current} Nm)`;
-					}
-					return `${req.required} ${req.type} (current: ${req.current})`;
-				}).join(', ');
-				
-				return { 
-					success: false, 
-					error: `Insufficient engine power. This ${type.slice(0, -1)} requires ${requirementText}.` 
+				const requirementText = unmetRequirements
+					.map(req => {
+						if (req.type === 'torque') {
+							return `${req.required} Nm torque (current: ${req.current} Nm)`;
+						}
+						return `${req.required} ${req.type} (current: ${req.current})`;
+					})
+					.join(', ');
+
+				return {
+					success: false,
+					error: `Insufficient engine power. This ${type.slice(0, -1)} requires ${requirementText}.`,
 				};
 			}
 		}
@@ -1164,7 +1215,7 @@ export default class Game extends BaseGame {
 		// Handle health restoration/capping based on upgrade type
 		const updatedPlayer = this.players.get(playerId);
 		const newMaxHealth = updatedPlayer.maxHealth;
-		
+
 		if (type === 'vehicles') {
 			// New vehicle: restore to full health
 			this.players.update(playerId, _ => ({ ..._, health: newMaxHealth }));
@@ -1197,7 +1248,7 @@ export default class Game extends BaseGame {
 			playerXpAfter: updates.xp,
 			playerCreditsSpentTotal: updates.stats.creditsSpent,
 			transactionType: 'upgrade_purchase',
-			previousUpgrade: player.configuration[configKey]
+			previousUpgrade: player.configuration[configKey],
 		});
 		const upgradeTypeKey = `${configKey}_${upgrade}`;
 		this.world.spaceco.stats.upgradesSoldByType[upgradeTypeKey] =
@@ -1205,39 +1256,43 @@ export default class Game extends BaseGame {
 
 		this.world.spaceco.xp += getSpacecoXp(finalCost, 'upgrade_sale');
 
-		this.broadcastWithSpacecoState('spacecoBuyUpgrade', {
-			playerId,
-			updates: (({
-				configuration,
-				credits,
-				xp,
-				health,
-				maxHealth,
-				maxFuel,
-				maxCargo,
-				fuelEfficiency,
-				torque,
-				maxItemSlots,
-			}) => ({
-				configuration,
-				credits,
-				xp,
-				health,
-				maxHealth,
-				maxFuel,
-				maxCargo,
-				fuelEfficiency,
-				torque,
-				maxItemSlots,
-			}))(this.players.get(playerId)),
-			upgrade,
-			type,
-			configKey,
-			cost: finalCost,
-			originalCost: basePrice,
-			tradeInDiscount, // Include in response for client feedback
-			spacecoUpdates: { [type]: this.world.spaceco[type] },
-		}, [type]);
+		this.broadcastWithSpacecoState(
+			'spacecoBuyUpgrade',
+			{
+				playerId,
+				updates: (({
+					configuration,
+					credits,
+					xp,
+					health,
+					maxHealth,
+					maxFuel,
+					maxCargo,
+					fuelEfficiency,
+					torque,
+					maxItemSlots,
+				}) => ({
+					configuration,
+					credits,
+					xp,
+					health,
+					maxHealth,
+					maxFuel,
+					maxCargo,
+					fuelEfficiency,
+					torque,
+					maxItemSlots,
+				}))(this.players.get(playerId)),
+				upgrade,
+				type,
+				configKey,
+				cost: finalCost,
+				originalCost: basePrice,
+				tradeInDiscount, // Include in response for client feedback
+				spacecoUpdates: { [type]: this.world.spaceco[type] },
+			},
+			[type],
+		);
 	}
 
 	spacecoBuyTransport(playerId, world = randFromArray(Object.keys(WORLDS))) {
@@ -1245,20 +1300,32 @@ export default class Game extends BaseGame {
 		const newWorld = WORLDS[world];
 
 		if (!newWorld) {
-			spacecoLog.error(`Invalid world requested for transport`, { playerId, world, availableWorlds: Object.keys(WORLDS) });
+			spacecoLog.error(`Invalid world requested for transport`, {
+				playerId,
+				world,
+				availableWorlds: Object.keys(WORLDS),
+			});
 			return;
 		}
 
 		const transportCost = getScaledTransportCost(newWorld.transportPrice, this.world.spaceco.xp);
 
 		if (player.credits < transportCost) {
-			spacecoLog.warn(`Transport denied - insufficient credits`, { playerId, playerCredits: player.credits, transportCost, world });
+			spacecoLog.warn(`Transport denied - insufficient credits`, {
+				playerId,
+				playerCredits: player.credits,
+				transportCost,
+				world,
+			});
 			return;
 		}
 
 		const transportConfig = this.world.transports[world];
 		if (!transportConfig) {
-			spacecoLog.error(`No transport configuration found`, { world, availableTransports: Object.keys(this.world.transports) });
+			spacecoLog.error(`No transport configuration found`, {
+				world,
+				availableTransports: Object.keys(this.world.transports),
+			});
 			return;
 		}
 
@@ -1271,11 +1338,11 @@ export default class Game extends BaseGame {
 		});
 
 		if (!requirementsMet) {
-			spacecoLog.warn(`Transport requirements not met`, { 
-				world, 
-				requirements: transportConfig.requirements, 
+			spacecoLog.warn(`Transport requirements not met`, {
+				world,
+				requirements: transportConfig.requirements,
 				currentXp: this.world.spaceco.xp,
-				currentHull: this.world.spaceco.hull 
+				currentHull: this.world.spaceco.hull,
 			});
 			return;
 		}
@@ -1296,7 +1363,7 @@ export default class Game extends BaseGame {
 			world,
 			cost: transportCost,
 			playerCreditsAfter: player.credits - transportCost,
-			playerXpGained: newWorld.transportPrice
+			playerXpGained: newWorld.transportPrice,
 		});
 
 		this.world.spaceco.stats.creditsEarned += transportCost;
@@ -1349,12 +1416,16 @@ export default class Game extends BaseGame {
 			this.players.set(currentPlayerId, updatedPlayer);
 		});
 
-		this.broadcastWithSpacecoState('spacecoBuyTransport', {
-			playerId,
-			updates,
-			cost: transportCost,
-			world: newWorld.name,
-		}, ['hull']);
+		this.broadcastWithSpacecoState(
+			'spacecoBuyTransport',
+			{
+				playerId,
+				updates,
+				cost: transportCost,
+				world: newWorld.name,
+			},
+			['hull'],
+		);
 	}
 
 	validateItemUsage(playerId, item) {
@@ -1417,23 +1488,29 @@ export default class Game extends BaseGame {
 		} else if (item === 'oil' || item === 'battery' || item === 'super_oxygen_liquid_nitrogen') {
 			if (engines[player.configuration.engine].fuelType !== item) return;
 
-			gameLog.info(`Player ${playerId} using fuel item ${item} - current fuel: ${player.fuel}, moving: ${player.moving}`);
-			
+			gameLog.info(
+				`Player ${playerId} using fuel item ${item} - current fuel: ${player.fuel}, moving: ${player.moving}`,
+			);
+
 			updates.fuel = player.maxFuel;
-			
+
 			// If player was stopped due to fuel (detected by checking if they have insufficient fuel for basic movement), clear their movement state
 			const basicFuelConsumption = 0.3 / player.fuelEfficiency;
 			const wasOutOfFuel = basicFuelConsumption > player.fuel && player.moving === false;
-			
+
 			if (wasOutOfFuel) {
-				gameLog.info(`Clearing movement state after refuel for player ${playerId} - was out of fuel (${player.fuel}, needed: ${basicFuelConsumption})`);
+				gameLog.info(
+					`Clearing movement state after refuel for player ${playerId} - was out of fuel (${player.fuel}, needed: ${basicFuelConsumption})`,
+				);
 				updates.moving = false;
 				updates._movementTimeout = null;
 				updates._movementSessionId = null;
 			} else {
-				gameLog.info(`Not clearing movement state for player ${playerId} - fuel: ${player.fuel}, basic consumption: ${basicFuelConsumption}, moving: ${player.moving}`);
+				gameLog.info(
+					`Not clearing movement state for player ${playerId} - fuel: ${player.fuel}, basic consumption: ${basicFuelConsumption}, moving: ${player.moving}`,
+				);
 			}
-			
+
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
 		} else if (item === 'timed_charge') {
@@ -1524,7 +1601,9 @@ export default class Game extends BaseGame {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 
 			// Clean up the teleport station from the world grid (use parsed integers, not string indices)
-			this.world.grid[stationX][stationY].items = this.world.grid[stationX][stationY].items.filter(item => item.name !== 'teleport_station');
+			this.world.grid[stationX][stationY].items = this.world.grid[stationX][stationY].items.filter(
+				item => item.name !== 'teleport_station',
+			);
 
 			this.broadcast('useItem', { playerId, updates, item });
 		} else {
@@ -1641,10 +1720,7 @@ export default class Game extends BaseGame {
 			// Update cargo weight
 			this.updatePlayerCargo(playerId);
 
-			gameLog.info('Implosion collection for player', { playerId, 
-				minerals: collectedMinerals,
-				items: collectedItems,
-			});
+			gameLog.info('Implosion collection for player', { playerId, minerals: collectedMinerals, items: collectedItems });
 		}
 
 		// Broadcast the implosion event
@@ -1661,7 +1737,7 @@ export default class Game extends BaseGame {
 		// Handle falling objects
 		this.spacecoFall();
 		playersToFall.forEach(playerId => this.playerFall(playerId));
-		
+
 		// Check for extra players who lost wheel support due to ground destruction
 		this.checkForPlayerFalls();
 
@@ -1694,7 +1770,7 @@ export default class Game extends BaseGame {
 
 	removePlayer(id) {
 		const player = this.players.get(id);
-		
+
 		if (player) {
 			playerLog.info('Player session ended', {
 				playerId: id,
@@ -1703,7 +1779,7 @@ export default class Game extends BaseGame {
 				sessionDuration: player.joinTime ? `${((Date.now() - player.joinTime) / 1000).toFixed(1)}s` : 'unknown',
 				credits: player.credits,
 				level: player.level,
-				gamePlayerCount: this.players.size - 1
+				gamePlayerCount: this.players.size - 1,
 			});
 		}
 
@@ -2059,7 +2135,7 @@ export default class Game extends BaseGame {
 
 	generateWorld(options) {
 		const startTime = performance.now();
-		
+
 		if (!options) {
 			throw new Error('World definition is required');
 		}
@@ -2678,7 +2754,7 @@ export default class Game extends BaseGame {
 				worldName: world.name,
 				error: error.message,
 				stack: error.stack,
-				options: { id: options.id, layers: options.layers?.length }
+				options: { id: options.id, layers: options.layers?.length },
 			});
 			throw new Error(`Failed to generate world "${world.name}": ${error.message}`);
 		}
@@ -2692,7 +2768,7 @@ export default class Game extends BaseGame {
 			generationTimeMs: Math.round(generationTime),
 			gridSize: `${world.grid.length}x${world.grid[0].length}`,
 			alienCount: world.aliens ? Object.keys(world.aliens).length : 0,
-			spacecoPosition: world.spaceco?.position
+			spacecoPosition: world.spaceco?.position,
 		});
 
 		return world;
@@ -2737,7 +2813,7 @@ export default class Game extends BaseGame {
 					// 30% chance to spread to adjacent empty cells
 
 					adjacentCell.hazards.push({ type: spreadingHazard.type });
-					
+
 					// Check if SpaceCo is at this position and take hazard damage
 					if (world?.spaceco?.position && world.spaceco.position.x === pos.x && world.spaceco.position.y === pos.y) {
 						this.checkSpacecoHazardDamage();
@@ -2778,7 +2854,7 @@ export default class Game extends BaseGame {
 		worldLog.info('World generation completed', {
 			worldName: world.name,
 			totalMinerals,
-			mineralDistribution: mineralCounts
+			mineralDistribution: mineralCounts,
 		});
 
 		// Check for reasonable mineral distribution
@@ -2876,9 +2952,13 @@ export default class Game extends BaseGame {
 				this.world.grid[x][y].hazards.push({ type: 'gas' });
 
 				addedGas.push({ x, y, type: 'gas' });
-				
+
 				// Check if SpaceCo is at this position and take hazard damage
-				if (world?.spaceco?.position && world.spaceco.position.x === x && world.spaceco.position.y === y) {
+				if (
+					this.world?.spaceco?.position &&
+					this.world.spaceco.position.x === x &&
+					this.world.spaceco.position.y === y
+				) {
 					this.checkSpacecoHazardDamage();
 				}
 
@@ -2944,9 +3024,13 @@ export default class Game extends BaseGame {
 				this.world.grid[x][y].hazards.push({ type: 'lava' });
 
 				addedLava.push({ x, y });
-				
+
 				// Check if SpaceCo is at this position and take hazard damage
-				if (world?.spaceco?.position && world.spaceco.position.x === x && world.spaceco.position.y === y) {
+				if (
+					this.world?.spaceco?.position &&
+					this.world.spaceco.position.x === x &&
+					this.world.spaceco.position.y === y
+				) {
 					this.checkSpacecoHazardDamage();
 				}
 
@@ -3000,11 +3084,11 @@ export default class Game extends BaseGame {
 		const triggeringPlayer = this.findNearestPlayer(position);
 		if (!triggeringPlayer) return;
 
-		gameLog(2)(`Alien awakened`, { 
-			alienName: name, 
-			position, 
+		gameLog(2)(`Alien awakened`, {
+			alienName: name,
+			position,
 			triggeringPlayer: triggeringPlayer.name,
-			alienType: alienConfig.type 
+			alienType: alienConfig.type,
 		});
 
 		const distanceToPlayer =
@@ -3575,7 +3659,11 @@ export default class Game extends BaseGame {
 				if (spawnTarget === 'lava') {
 					cell.hazards.push({ type: 'lava' });
 					// Check if SpaceCo is at this position and take hazard damage
-					if (world?.spaceco?.position && world.spaceco.position.x === spawnPosition.x && world.spaceco.position.y === spawnPosition.y) {
+					if (
+						this.world?.spaceco?.position &&
+						this.world.spaceco.position.x === spawnPosition.x &&
+						this.world.spaceco.position.y === spawnPosition.y
+					) {
 						this.checkSpacecoHazardDamage();
 					}
 					// Trigger lava spreading
@@ -3583,7 +3671,11 @@ export default class Game extends BaseGame {
 				} else if (spawnTarget === 'gas') {
 					cell.hazards.push({ type: 'gas' });
 					// Check if SpaceCo is at this position and take hazard damage
-					if (world?.spaceco?.position && world.spaceco.position.x === spawnPosition.x && world.spaceco.position.y === spawnPosition.y) {
+					if (
+						this.world?.spaceco?.position &&
+						this.world.spaceco.position.x === spawnPosition.x &&
+						this.world.spaceco.position.y === spawnPosition.y
+					) {
 						this.checkSpacecoHazardDamage();
 					}
 					// Trigger gas spreading
@@ -3622,13 +3714,13 @@ export default class Game extends BaseGame {
 
 			if (playersAtLocation.length > 0) {
 				let damage;
-			if (spawnTarget === 'lava') {
-				damage = 5;
-			} else if (spawnTarget === 'gas') {
-				damage = 3;
-			} else {
-				damage = 2;
-			}
+				if (spawnTarget === 'lava') {
+					damage = 5;
+				} else if (spawnTarget === 'gas') {
+					damage = 3;
+				} else {
+					damage = 2;
+				}
 				this.hurtPlayers({
 					players: playersAtLocation.map(p => p.id),
 					damage,
@@ -4446,11 +4538,15 @@ export default class Game extends BaseGame {
 		} else if (falling) {
 			// Check for hazard damage when SpaceCo lands
 			this.checkSpacecoHazardDamage();
-			
-			this.broadcastWithSpacecoState('spacecoFall', { 
-				position: this.world.spaceco.position, 
-				health: this.world.spaceco.health 
-			}, ['health']);
+
+			this.broadcastWithSpacecoState(
+				'spacecoFall',
+				{
+					position: this.world.spaceco.position,
+					health: this.world.spaceco.health,
+				},
+				['health'],
+			);
 		}
 	}
 
@@ -4471,16 +4567,24 @@ export default class Game extends BaseGame {
 		if (totalDamage > 0) {
 			const oldHealth = this.world.spaceco.health;
 			this.world.spaceco.health = Math.max(0, this.world.spaceco.health - totalDamage);
-			
-			spacecoLog.info('SpaceCo outpost took hazard damage', { totalDamage, oldHealth, newHealth: this.world.spaceco.health });
-			
+
+			spacecoLog.info('SpaceCo outpost took hazard damage', {
+				totalDamage,
+				oldHealth,
+				newHealth: this.world.spaceco.health,
+			});
+
 			// Broadcast hazard damage event
-			this.broadcastWithSpacecoState('spacecoHazardDamage', {
-				position: this.world.spaceco.position,
-				damage: totalDamage,
-				health: this.world.spaceco.health,
-				hazards: spacecoCell.hazards.map(h => h.type)
-			}, ['health']);
+			this.broadcastWithSpacecoState(
+				'spacecoHazardDamage',
+				{
+					position: this.world.spaceco.position,
+					damage: totalDamage,
+					health: this.world.spaceco.health,
+					hazards: spacecoCell.hazards.map(h => h.type),
+				},
+				['health'],
+			);
 		}
 	}
 
@@ -4492,23 +4596,27 @@ export default class Game extends BaseGame {
 			// 20% chance of releasing gas when mined
 			if (chance(20)) {
 				const cell = this.world.grid[position.x][position.y];
-				
+
 				// Add gas hazard at this position
 				cell.hazards.push({ type: 'gas' });
-				
+
 				// Check if SpaceCo or players are at this position for immediate damage
-				if (world?.spaceco?.position && world.spaceco.position.x === position.x && world.spaceco.position.y === position.y) {
+				if (
+					this.world?.spaceco?.position &&
+					this.world.spaceco.position.x === position.x &&
+					this.world.spaceco.position.y === position.y
+				) {
 					this.checkSpacecoHazardDamage();
 				}
-				
+
 				// Check for player damage
 				const playersAtPosition = [...this.players.values()].filter(
-					player => player.position.x === position.x && player.position.y === position.y
+					player => player.position.x === position.x && player.position.y === position.y,
 				);
 				if (playersAtPosition.length > 0) {
-					this.hurtPlayers({ 
-						players: playersAtPosition.map(p => p.id), 
-						damage: 3 // Gas damage
+					this.hurtPlayers({
+						players: playersAtPosition.map(p => p.id),
+						damage: 3, // Gas damage
 					});
 				}
 
@@ -4517,7 +4625,7 @@ export default class Game extends BaseGame {
 					type: 'gasRelease',
 					position,
 					groundType,
-					playerId
+					playerId,
 				});
 
 				// Trigger gas spreading after a short delay
@@ -4534,20 +4642,20 @@ export default class Game extends BaseGame {
 					type: 'explosionWarning',
 					position,
 					groundType,
-					playerId
+					playerId,
 				});
 
 				// Explosion after a brief delay
 				setTimeout(() => {
 					// Create small explosion (radius 1)
 					const explosionRadius = 1;
-					
+
 					this.broadcast('groundEffect', {
 						type: 'explosion',
 						position,
 						radius: explosionRadius,
 						groundType,
-						playerId
+						playerId,
 					});
 
 					// Use existing explosion effect system
@@ -4562,7 +4670,7 @@ export default class Game extends BaseGame {
 		this.players.forEach((player, playerId) => {
 			// Skip players who are already moving or dead
 			if (player.moving || player.health <= 0) return;
-			
+
 			const hasSupport = hasWheelSupport(player.position, this.world.grid);
 			if (!hasSupport.hasSupport) {
 				playerLog.info('Player lost wheel support, triggering fall', { playerId });
@@ -4574,11 +4682,11 @@ export default class Game extends BaseGame {
 	findNearestWheelSupport(position) {
 		// Search downward from the player's position to find the nearest position with wheel support
 		const startY = position.y + 1; // Start searching one position below the player
-		
+
 		// First try directly below the player
 		for (let y = startY; y < this.world.depth - 1; y++) {
 			const testPos = { x: position.x, y };
-			
+
 			// Check if position is clear and has wheel support
 			const cell = this.world.grid[testPos.x][testPos.y];
 			if (!cell.ground?.type && !(cell.hazards && cell.hazards.length > 0)) {
@@ -4588,16 +4696,16 @@ export default class Game extends BaseGame {
 				}
 			}
 		}
-		
+
 		// If no direct path down, search in expanding radius
 		for (let searchRadius = 1; searchRadius <= 5; searchRadius++) {
 			for (let y = startY; y < this.world.depth - 1; y++) {
 				for (let dx = -searchRadius; dx <= searchRadius; dx++) {
 					const testPos = { x: position.x + dx, y };
-					
+
 					// Check bounds
 					if (testPos.x < 1 || testPos.x >= this.world.width - 1) continue;
-					
+
 					// Check if position is clear and has wheel support
 					const cell = this.world.grid[testPos.x][testPos.y];
 					if (!cell.ground?.type && !(cell.hazards && cell.hazards.length > 0)) {
@@ -4609,15 +4717,15 @@ export default class Game extends BaseGame {
 				}
 			}
 		}
-		
+
 		// Emergency fallback - find any position with solid ground nearby
 		for (let y = startY; y < this.world.depth - 1; y++) {
 			for (let dx = -3; dx <= 3; dx++) {
 				const testPos = { x: position.x + dx, y };
-				
+
 				// Check bounds
 				if (testPos.x < 1 || testPos.x >= this.world.width - 1) continue;
-				
+
 				// Check if position is clear
 				const cell = this.world.grid[testPos.x][testPos.y];
 				if (!cell.ground?.type && !(cell.hazards && cell.hazards.length > 0)) {
@@ -4633,16 +4741,16 @@ export default class Game extends BaseGame {
 				}
 			}
 		}
-		
+
 		// Final fallback - bottom of the world with created platform
 		const emergencyPos = { x: position.x, y: this.world.depth - 2 };
-		
+
 		// Ensure there's ground at the bottom
 		if (!this.world.grid[emergencyPos.x][this.world.depth - 1].ground?.type) {
 			this.world.grid[emergencyPos.x][this.world.depth - 1].ground = { type: 'white' };
 			gameLog.info('Created emergency platform for falling player');
 		}
-		
+
 		return emergencyPos;
 	}
 
@@ -4656,9 +4764,15 @@ export default class Game extends BaseGame {
 			const landingPosition = this.findNearestWheelSupport(player.position);
 			const fallDistance = landingPosition.y - player.position.y;
 			const fallDamage = Math.max(0, (fallDistance - 1) * 2); // 2 damage per block fallen (after first block)
-			
-			playerLog.info('Player falling', { playerId, fromPosition: player.position, toPosition: landingPosition, fallDistance, fallDamage });
-			
+
+			playerLog.info('Player falling', {
+				playerId,
+				fromPosition: player.position,
+				toPosition: landingPosition,
+				fallDistance,
+				fallDamage,
+			});
+
 			const updates = {
 				position: landingPosition,
 				health: Math.max(0, player.health - fallDamage),
@@ -4684,7 +4798,7 @@ export default class Game extends BaseGame {
 						moving: false,
 						_movementTimeout: null,
 						_lastMoveTime: null,
-						_movementSessionId: null,  // Clear session
+						_movementSessionId: null, // Clear session
 					}));
 				}
 			}
@@ -4816,7 +4930,7 @@ export default class Game extends BaseGame {
 		let damage = 0;
 		if (this.world.grid[position.x][position.y]) {
 			const cell = this.world.grid[position.x][position.y];
-			
+
 			// Apply mineral-specific effects before clearing ground
 			if (cell.ground?.type) {
 				this.applyGroundMiningEffects(position, cell.ground.type, playerId);
@@ -4872,13 +4986,13 @@ export default class Game extends BaseGame {
 		// Store movement start time for performance tracking
 		this.players.update(playerId, current => ({
 			...current,
-			_moveStartTime: moveStartTime
+			_moveStartTime: moveStartTime,
 		}));
 
-		gameLog.debug('Player movement started', { 
-			playerId, 
+		gameLog.debug('Player movement started', {
+			playerId,
 			pathLength: path.length,
-			startPosition: player.position 
+			startPosition: player.position,
 		});
 
 		// Note: movement state check is handled by HTTP route before calling this function
@@ -4893,7 +5007,7 @@ export default class Game extends BaseGame {
 			maxCargo: player.maxCargo,
 			cargo: player.cargo,
 			pathLength: path.length,
-			firstStep: path[0]
+			firstStep: path[0],
 		});
 
 		const validation = validateMovementPath({
@@ -4910,7 +5024,7 @@ export default class Game extends BaseGame {
 				playerPosition: player.position,
 				playerOrientation: player.orientation,
 				attemptedPath: path,
-				debugInfo: validation.debug
+				debugInfo: validation.debug,
 			});
 
 			this.players.update(playerId, _ => ({ ..._, moving: false }));
@@ -4925,11 +5039,11 @@ export default class Game extends BaseGame {
 
 		// Set moving state at the start with unique movement session ID
 		const movementSessionId = Date.now() + Math.random();
-		this.players.update(playerId, _ => ({ 
-			..._, 
-			moving: true, 
+		this.players.update(playerId, _ => ({
+			..._,
+			moving: true,
 			_lastMoveTime: Date.now(),
-			_movementSessionId: movementSessionId
+			_movementSessionId: movementSessionId,
 		}));
 
 		// Use the validated path and process steps with error handling
@@ -4937,7 +5051,12 @@ export default class Game extends BaseGame {
 	}
 
 	processMovementStep(playerId, path, stepIndex, movementSessionId) {
-		gameLog.debug('Processing movement step', { playerId, stepIndex, pathLength: path.length, sessionId: movementSessionId });
+		gameLog.debug('Processing movement step', {
+			playerId,
+			stepIndex,
+			pathLength: path.length,
+			sessionId: movementSessionId,
+		});
 		const player = this.players.get(playerId);
 
 		// Validate movement session - prevent stale timeouts from resuming movement
@@ -4946,7 +5065,7 @@ export default class Game extends BaseGame {
 				playerId,
 				stepIndex,
 				expectedSessionId: movementSessionId,
-				currentSessionId: player._movementSessionId
+				currentSessionId: player._movementSessionId,
 			});
 			return;
 		}
@@ -4956,7 +5075,7 @@ export default class Game extends BaseGame {
 			gameLog.warn(`processMovementStep called without session ID - possible legacy call`, {
 				playerId,
 				stepIndex,
-				playerSessionId: player._movementSessionId
+				playerSessionId: player._movementSessionId,
 			});
 		}
 
@@ -4968,29 +5087,29 @@ export default class Game extends BaseGame {
 
 		if (stepIndex >= path.length) {
 			const moveDuration = player._moveStartTime ? performance.now() - player._moveStartTime : null;
-			gameLog.info('Movement complete', { 
-				playerId, 
-				stepIndex, 
+			gameLog.info('Movement complete', {
+				playerId,
+				stepIndex,
 				pathLength: path.length,
 				duration: moveDuration ? `${moveDuration.toFixed(2)}ms` : 'unknown',
-				finalPosition: player.position
+				finalPosition: player.position,
 			});
 			// Clear any existing timeout
 			const currentPlayer = this.players.get(playerId);
 			if (currentPlayer?._movementTimeout) {
 				clearTimeout(currentPlayer._movementTimeout);
 			}
-			
-			this.players.update(playerId, _ => ({ 
-				..._, 
-				moving: false, 
+
+			this.players.update(playerId, _ => ({
+				..._,
+				moving: false,
 				_movementTimeout: null,
 				_lastMoveTime: null,
-				_movementSessionId: null,  // Clear session on completion
-				_moveStartTime: null  // Clear movement timing
+				_movementSessionId: null, // Clear session on completion
+				_moveStartTime: null, // Clear movement timing
 			}));
 			gameLog.debug('Set player moving state to false', { playerId });
-			
+
 			// Verify the update took effect
 			const updatedPlayer = this.players.get(playerId);
 			gameLog.debug('Verified player moving state', { playerId, movingState: updatedPlayer?.moving });
@@ -5007,16 +5126,20 @@ export default class Game extends BaseGame {
 
 		// Calculate fuel consumption for next step to check if player can continue
 		let nextStepFuelConsumption = 0.3 / player.fuelEfficiency;
-		
+
 		if (stepIndex < path.length) {
 			const nextPosition = path[stepIndex];
-			if (nextPosition && this.world.grid[nextPosition.x] && this.world.grid[nextPosition.x][nextPosition.y]?.ground?.type) {
+			if (
+				nextPosition &&
+				this.world.grid[nextPosition.x] &&
+				this.world.grid[nextPosition.x][nextPosition.y]?.ground?.type
+			) {
 				const { type } = this.world.grid[nextPosition.x][nextPosition.y].ground;
 				const miningPenalty = 0.9 + minerals[type].density * 1.2;
 				nextStepFuelConsumption = Math.max(nextStepFuelConsumption, miningPenalty / player.fuelEfficiency);
 			}
 		}
-		
+
 		const cargoWeightRatio = player.cargo / player.maxCargo;
 		const cargoFuelMultiplier = 1.0 + cargoWeightRatio * 0.2;
 		nextStepFuelConsumption *= cargoFuelMultiplier;
@@ -5030,11 +5153,11 @@ export default class Game extends BaseGame {
 			}
 
 			// Clear movement state and invalidate session to prevent stale timeouts
-			this.players.update(playerId, _ => ({ 
-				..._, 
-				moving: false, 
+			this.players.update(playerId, _ => ({
+				..._,
+				moving: false,
 				_movementTimeout: null,
-				_movementSessionId: null  // Invalidate session
+				_movementSessionId: null, // Invalidate session
 			}));
 
 			this.broadcast('playerMovementInterrupted', {
@@ -5061,19 +5184,28 @@ export default class Game extends BaseGame {
 
 			const timeoutId = setTimeout(() => {
 				const currentPlayer = this.players.get(playerId);
-				
-				gameLog.info(`setTimeout callback executing for player ${playerId}: moving=${currentPlayer?.moving}, fuel=${currentPlayer?.fuel}, sessionId=${currentPlayer?._movementSessionId}`);
-				
+
+				gameLog.info(
+					`setTimeout callback executing for player ${playerId}: moving=${currentPlayer?.moving}, fuel=${currentPlayer?.fuel}, sessionId=${currentPlayer?._movementSessionId}`,
+				);
+
 				// Validate movement session to prevent stale timeouts
 				if (movementSessionId && currentPlayer._movementSessionId !== movementSessionId) {
-					gameLog.warn(`Movement session invalid in setTimeout - ignoring stale timeout for player ${playerId}, expected: ${movementSessionId}, actual: ${currentPlayer._movementSessionId}`);
+					gameLog.warn(
+						`Movement session invalid in setTimeout - ignoring stale timeout for player ${playerId}, expected: ${movementSessionId}, actual: ${currentPlayer._movementSessionId}`,
+					);
 					return;
 				}
-				
+
 				if (currentPlayer && currentPlayer.moving) {
 					this.processMovementStep(playerId, path, stepIndex + 1, movementSessionId);
 				} else {
-					gameLog.warning('Player movement interrupted', { playerId, step: stepIndex + 1, moving: currentPlayer?.moving, fuel: currentPlayer?.fuel });
+					gameLog.warning('Player movement interrupted', {
+						playerId,
+						step: stepIndex + 1,
+						moving: currentPlayer?.moving,
+						fuel: currentPlayer?.fuel,
+					});
 
 					this.broadcast('playerMovementInterrupted', {
 						playerId,
@@ -5091,14 +5223,14 @@ export default class Game extends BaseGame {
 				stepIndex,
 				error: error.message,
 				stack: error.stack,
-				playerPosition: this.players.get(playerId)?.position
+				playerPosition: this.players.get(playerId)?.position,
 			});
 
 			this.players.update(playerId, _ => ({
 				..._,
 				moving: false,
 				_movementTimeout: null,
-				_movementSessionId: null,  // Clear session on error
+				_movementSessionId: null, // Clear session on error
 			}));
 
 			this.broadcast('playerMovementError', {

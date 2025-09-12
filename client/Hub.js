@@ -11,10 +11,11 @@ export default configured(Hub, {
 	},
 	buttons: {
 		linkText: 'Link',
-		infoText: 'Intel', 
+		infoText: 'Intel',
 		joinText: 'Deploy',
 	},
 	containerComponent: ConsoleContainer,
-	noGamesText: '> [SYSTEM] Scanning for active drilling contracts...\n> Found 0\n> SpaceCo recommends starting one before shareholders start asking questions.',
-	gamesFoundTextFn: (count) => `> [SYSTEM] Scanning for active drilling contracts...\n> Found ${count}`,
+	noGamesText:
+		'> [SYSTEM] Scanning for active drilling contracts...\n> Found 0\n> SpaceCo recommends starting one before shareholders start asking questions.',
+	gamesFoundTextFn: count => `> [SYSTEM] Scanning for active drilling contracts...\n> Found ${count}`,
 });

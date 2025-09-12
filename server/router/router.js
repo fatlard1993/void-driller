@@ -11,67 +11,65 @@ const requestCounts = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 300; // 300 requests per minute per IP (increased for asset-heavy game loads)
 
-const checkRateLimit = (ip) => {
+const checkRateLimit = ip => {
 	const now = Date.now();
 	const clientKey = ip || 'unknown';
-	
+
 	if (!requestCounts.has(clientKey)) {
 		requestCounts.set(clientKey, []);
 	}
-	
+
 	const requests = requestCounts.get(clientKey);
-	
+
 	// Remove old requests outside the time window
 	const validRequests = requests.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
 	requestCounts.set(clientKey, validRequests);
-	
+
 	// Add current request
 	validRequests.push(now);
-	
+
 	if (validRequests.length > RATE_LIMIT_MAX_REQUESTS) {
 		serverLog.warning('Rate limit exceeded', {
 			ip: clientKey,
 			requestCount: validRequests.length,
 			timeWindow: RATE_LIMIT_WINDOW,
-			maxRequests: RATE_LIMIT_MAX_REQUESTS
+			maxRequests: RATE_LIMIT_MAX_REQUESTS,
 		});
 		return false;
 	}
-	
+
 	// Log request counts to understand load patterns
 	if (validRequests.length % 10 === 0 || validRequests.length > 50) {
 		serverLog.info('Request count tracking', {
 			ip: clientKey,
 			requestCount: validRequests.length,
 			timeWindow: RATE_LIMIT_WINDOW,
-			maxRequests: RATE_LIMIT_MAX_REQUESTS
+			maxRequests: RATE_LIMIT_MAX_REQUESTS,
 		});
 	}
-	
+
 	// Log suspicious activity (more than 80% of limit)
 	if (validRequests.length > RATE_LIMIT_MAX_REQUESTS * 0.8) {
 		serverLog.info('High request rate detected', {
 			ip: clientKey,
 			requestCount: validRequests.length,
 			timeWindow: RATE_LIMIT_WINDOW,
-			maxRequests: RATE_LIMIT_MAX_REQUESTS
+			maxRequests: RATE_LIMIT_MAX_REQUESTS,
 		});
 	}
-	
+
 	return true;
 };
 
 const router = server => async request => {
 	try {
 		// Rate limiting check
-		const clientIp = request.headers.get('X-Forwarded-For') || 
-						 request.headers.get('X-Real-IP') || 
-						 'unknown';
-		
+		const clientIp = request.headers.get('X-Forwarded-For') || request.headers.get('X-Real-IP') || 'unknown';
+
 		if (!checkRateLimit(clientIp)) {
-			return new Response('Rate limit exceeded. Please slow down your requests.', { 
+			return new Response('Rate limit exceeded. Please slow down your requests.', {
 				status: 429,
-				headers: { 'Retry-After': '60' }
+				headers: { 'Retry-After': '60' },
 			});
 		}
 		let match;
@@ -84,8 +82,8 @@ const router = server => async request => {
 			return new Response(content, {
 				headers: {
 					'Content-Type': 'text/html',
-					'Access-Control-Allow-Origin': '*'
-				}
+					'Access-Control-Allow-Origin': '*',
+				},
 			});
 		}
 

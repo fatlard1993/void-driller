@@ -29,7 +29,7 @@ export class DepthGuardian extends Alien {
 		this.anims.create({
 			key: 'guard',
 			frames: this.anims.generateFrameNumbers('aliens', {
-				frames: [spriteIndex, spriteIndex + 1, spriteIndex, spriteIndex + 2]
+				frames: [spriteIndex, spriteIndex + 1, spriteIndex, spriteIndex + 2],
 			}),
 			duration: 1500,
 			frameRate: 2,

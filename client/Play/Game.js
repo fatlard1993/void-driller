@@ -11,7 +11,7 @@ import socketRouter from './socketRouter';
 export default class Game extends (styled.Component`
 	height: 100%;
 	width: 100%;
-	
+
 	/* Ensure proper mobile display */
 	canvas {
 		display: block !important;
@@ -29,7 +29,7 @@ export default class Game extends (styled.Component`
 `) {
 	constructor(options = {}) {
 		super({ ...options, autoRender: false });
-		
+
 		// Initialize debug log component
 		this.debugLog = new DebugLog();
 
@@ -43,16 +43,16 @@ export default class Game extends (styled.Component`
 				transparent: true, // Transparent to show page background (stars)
 				backgroundColor: 'rgba(0,0,0,0)', // Transparent background
 			});
-			
+
 			setTimeout(() => {
 				if (window.debugLog) window.debugLog('Phaser.Game created');
 			}, 200);
-			
+
 			gameContext.game.events.once('ready', () => {
 				if (window.debugLog) {
 					window.debugLog('Phaser ready event fired');
 					window.debugLog(`Canvas element: ${!!gameContext.game.canvas}`);
-					
+
 					if (gameContext.game.canvas) {
 						const canvas = gameContext.game.canvas;
 						window.debugLog(`Canvas dimensions: ${canvas.width}x${canvas.height}`);
@@ -61,7 +61,7 @@ export default class Game extends (styled.Component`
 					}
 				}
 				gameContext.scene = gameContext.game.scene.scenes[0];
-				
+
 				setTimeout(() => {
 					this.render();
 					if (window.debugLog) {
@@ -69,7 +69,6 @@ export default class Game extends (styled.Component`
 					}
 				}, 300);
 			});
-			
 		} catch (error) {
 			setTimeout(() => {
 				if (window.debugLog) window.debugLog('Phaser creation failed: ' + error.message);
@@ -79,7 +78,7 @@ export default class Game extends (styled.Component`
 
 	render() {
 		super.render();
-		
+
 		// Debug log initial system state
 		if (window.debugLog) {
 			window.debugLog('Game render() called');

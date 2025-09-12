@@ -26,6 +26,7 @@ import gameContext from '../shared/gameContext';
 import { drills, engines, items, minerals, parts, playerAchievements, vehicles } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
 import { DescriptionText } from '../shared/DescriptionText';
+import { InfoButton } from '../shared/InfoButton';
 import Notify from '../shared/Notify';
 import { formatPlayerAchievementRewards } from '../../utils';
 import {
@@ -37,7 +38,6 @@ import {
 } from './inputs/pointer';
 
 const CollapsibleLabel = configured(Label, { variant: 'collapsible' });
-
 
 class AlertControl extends Component {
 	render() {
@@ -267,7 +267,7 @@ class AutoPathControl extends Component {
 					gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 150px))',
 					justifyContent: 'center',
 					gap: '6px',
-					marginBottom: '6px'
+					marginBottom: '6px',
 				},
 			});
 
@@ -416,6 +416,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					new Button({
 						content: view,
 						onPointerPress: () => {
+							InfoButton.closeAllPopovers();
 							this.options.view = view;
 						},
 						disabled: this.options.view.toLowerCase().startsWith(view.toLowerCase()),
@@ -477,7 +478,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						}),
 					}),
 				];
-			})
+			}),
 		});
 
 		total.content(`Total: $${credits.toFixed(2)}`);
@@ -568,146 +569,146 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				'Configuration',
 				new CardGrid({
 					content: [
-					new Card({
-						header: `Vehicle: ${vehicleConfig.name}`,
-						body: new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								gap: '4px'
-							},
-							append: [
-								new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
-								new DescriptionText({
-									summary: vehicleConfig.summary || '',
-									description: vehicleConfig.description || '',
-									title: vehicleConfig.name,
-								}),
-								new Elem({
-									style: {
-										display: 'flex',
-										flexDirection: 'column',
-										gap: '8px',
-										width: '100%'
-									},
-									append: [
-										new ConfigStat({ label: 'Max Health', value: vehicleConfig.maxHealth }),
-										new ConfigStat({ label: 'Max Fuel', value: vehicleConfig.maxFuel }),
-										new ConfigStat({ label: 'Max Cargo', value: vehicleConfig.maxCargo }),
-										new ConfigStat({ label: 'Fuel Efficiency', value: vehicleConfig.fuelEfficiency }),
-									]
-								}),
-							]
-						}),
-					}),
-					new Card({
-						header: `Drill: ${drillConfig.name}`,
-						body: new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								gap: '4px'
-							},
-							append: [
-								new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
-								new DescriptionText({
-									summary: drillConfig.summary || '',
-									description: drillConfig.description || '',
-									title: drillConfig.name,
-								}),
-								new Elem({
-									style: {
-										display: 'flex',
-										flexDirection: 'column',
-										gap: '8px',
-										width: '100%'
-									},
-									append: [
-										new ConfigStat({ label: 'Max Health', value: drillConfig.maxHealth }),
-										new ConfigStat({ label: 'Fuel Efficiency', value: drillConfig.fuelEfficiency }),
-										new ConfigStat({ label: 'Strength', value: drillConfig.strength }),
-									]
-								}),
-							]
-						}),
-					}),
-					new Card({
-						header: `Engine: ${engineConfig.name}`,
-						body: new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								gap: '4px'
-							},
-							append: [
-								new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
-								new DescriptionText({
-									summary: engineConfig.summary || '',
-									description: engineConfig.description || '',
-									title: engineConfig.name,
-								}),
-								new Elem({
-									style: {
-										display: 'flex',
-										flexDirection: 'column',
-										gap: '8px',
-										width: '100%'
-									},
-									append: [
-										new ConfigStat({ label: 'Max Health', value: engineConfig.maxHealth }),
-										new ConfigStat({ label: 'Max Fuel', value: engineConfig.maxFuel }),
-										new ConfigStat({ label: 'Max Cargo', value: engineConfig.maxCargo }),
-										new ConfigStat({ label: 'Torque', value: engineConfig.torque }),
-										new ConfigStat({ label: 'Max Item Slots', value: engineConfig.maxItemSlots }),
-										new ConfigStat({ label: 'Fuel Efficiency', value: engineConfig.fuelEfficiency }),
-										new ConfigStat({
-											label: 'Fuel Type',
-											value: capitalize(engineConfig.fuelType.replace('super_oxygen_liquid_nitrogen', 'SOLN')),
-										}),
-									]
-								}),
-							]
-						}),
-					}),
-					partConfig &&
 						new Card({
-							header: `Part: ${player.configuration.part}`,
+							header: `Vehicle: ${vehicleConfig.name}`,
 							body: new Elem({
 								style: {
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px'
+									gap: '4px',
 								},
 								append: [
-									new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
+									new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
 									new DescriptionText({
-										summary: partConfig.summary || '',
-										description: partConfig.description || '',
-										title: partConfig.name,
+										summary: vehicleConfig.summary || '',
+										description: vehicleConfig.description || '',
+										title: vehicleConfig.name,
 									}),
 									new Elem({
 										style: {
 											display: 'flex',
 											flexDirection: 'column',
-											gap: '4px'
+											gap: '8px',
+											width: '100%',
 										},
 										append: [
-											new ConfigStat({ label: 'Max Health', value: partConfig.maxHealth }),
-											new ConfigStat({ label: 'Max Fuel', value: partConfig.maxFuel }),
-											new ConfigStat({ label: 'Max Cargo', value: partConfig.maxCargo }),
-											new ConfigStat({ label: 'Torque', value: partConfig.torque }),
-											new ConfigStat({ label: 'Max Item Slots', value: partConfig.maxItemSlots }),
-											new ConfigStat({ label: 'Fuel Efficiency', value: partConfig.fuelEfficiency }),
-										]
+											new ConfigStat({ label: 'Max Health', value: vehicleConfig.maxHealth }),
+											new ConfigStat({ label: 'Max Fuel', value: vehicleConfig.maxFuel }),
+											new ConfigStat({ label: 'Max Cargo', value: vehicleConfig.maxCargo }),
+											new ConfigStat({ label: 'Fuel Efficiency', value: vehicleConfig.fuelEfficiency }),
+										],
 									}),
-								]
+								],
 							}),
 						}),
-					]
+						new Card({
+							header: `Drill: ${drillConfig.name}`,
+							body: new Elem({
+								style: {
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									gap: '4px',
+								},
+								append: [
+									new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
+									new DescriptionText({
+										summary: drillConfig.summary || '',
+										description: drillConfig.description || '',
+										title: drillConfig.name,
+									}),
+									new Elem({
+										style: {
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '8px',
+											width: '100%',
+										},
+										append: [
+											new ConfigStat({ label: 'Max Health', value: drillConfig.maxHealth }),
+											new ConfigStat({ label: 'Fuel Efficiency', value: drillConfig.fuelEfficiency }),
+											new ConfigStat({ label: 'Strength', value: drillConfig.strength }),
+										],
+									}),
+								],
+							}),
+						}),
+						new Card({
+							header: `Engine: ${engineConfig.name}`,
+							body: new Elem({
+								style: {
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									gap: '4px',
+								},
+								append: [
+									new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
+									new DescriptionText({
+										summary: engineConfig.summary || '',
+										description: engineConfig.description || '',
+										title: engineConfig.name,
+									}),
+									new Elem({
+										style: {
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '8px',
+											width: '100%',
+										},
+										append: [
+											new ConfigStat({ label: 'Max Health', value: engineConfig.maxHealth }),
+											new ConfigStat({ label: 'Max Fuel', value: engineConfig.maxFuel }),
+											new ConfigStat({ label: 'Max Cargo', value: engineConfig.maxCargo }),
+											new ConfigStat({ label: 'Torque', value: engineConfig.torque }),
+											new ConfigStat({ label: 'Max Item Slots', value: engineConfig.maxItemSlots }),
+											new ConfigStat({ label: 'Fuel Efficiency', value: engineConfig.fuelEfficiency }),
+											new ConfigStat({
+												label: 'Fuel Type',
+												value: capitalize(engineConfig.fuelType.replace('super_oxygen_liquid_nitrogen', 'SOLN')),
+											}),
+										],
+									}),
+								],
+							}),
+						}),
+						partConfig &&
+							new Card({
+								header: `Part: ${player.configuration.part}`,
+								body: new Elem({
+									style: {
+										display: 'flex',
+										flexDirection: 'column',
+										alignItems: 'center',
+										gap: '4px',
+									},
+									append: [
+										new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
+										new DescriptionText({
+											summary: partConfig.summary || '',
+											description: partConfig.description || '',
+											title: partConfig.name,
+										}),
+										new Elem({
+											style: {
+												display: 'flex',
+												flexDirection: 'column',
+												gap: '4px',
+											},
+											append: [
+												new ConfigStat({ label: 'Max Health', value: partConfig.maxHealth }),
+												new ConfigStat({ label: 'Max Fuel', value: partConfig.maxFuel }),
+												new ConfigStat({ label: 'Max Cargo', value: partConfig.maxCargo }),
+												new ConfigStat({ label: 'Torque', value: partConfig.torque }),
+												new ConfigStat({ label: 'Max Item Slots', value: partConfig.maxItemSlots }),
+												new ConfigStat({ label: 'Fuel Efficiency', value: partConfig.fuelEfficiency }),
+											],
+										}),
+									],
+								}),
+							}),
+					],
 				}),
 			),
 		);
@@ -754,7 +755,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px'
+									gap: '4px',
 								},
 								append: [
 									new Elem({
@@ -777,8 +778,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 												marginTop: '4px',
 											},
 										}),
-								]
-							})
+								],
+							}),
 						});
 					}
 
@@ -793,7 +794,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px'
+								gap: '4px',
 							},
 							append: [
 								new Elem({
@@ -821,10 +822,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 											marginTop: '4px',
 										},
 									}),
-							]
-						})
+							],
+						}),
 					});
-				})
+				}),
 		});
 	}
 
@@ -849,7 +850,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px'
+							gap: '4px',
 						},
 						append: [
 							new MineralImage(color, { displaySize: 96 }),
@@ -858,10 +859,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								description: mineral.description,
 								title: mineral.name,
 							}),
-						]
+						],
 					}),
 				});
-			})
+			}),
 		});
 	}
 
@@ -886,7 +887,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px'
+							gap: '4px',
 						},
 						append: [
 							new ItemImage(name, { displaySize: 96 }),
@@ -900,10 +901,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								description: item.description,
 								title: item.name || capitalize(name.replaceAll('_', ' '), true),
 							}),
-						]
+						],
 					}),
 				});
-			})
+			}),
 		});
 	}
 
@@ -955,7 +956,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						header: `${capitalize(key.replaceAll('_', ' '), true)} (x${count})`,
+						header: `${capitalize(key.replaceAll('_', ' '), true)}`,
 						style: {
 							opacity: canUse ? 1 : 0.6,
 						},
@@ -964,10 +965,15 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px'
+								gap: '4px',
 							},
 							append: [
 								new ItemImage(imageName, { displaySize: 96 }),
+								new Elem({
+									tag: 'p',
+									content: `Quantity: ${count}`,
+									style: { margin: '4px 0', fontSize: '14px' },
+								}),
 								new DescriptionText({
 									summary: items[key]?.summary || '',
 									description: items[key]?.description || 'No description available.',
@@ -982,10 +988,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										style: {
 											color: theme.colors.red,
 											fontSize: '13px',
-											marginTop: '4px'
+											marginTop: '4px',
 										},
 									}),
-							]
+							],
 						}),
 						footerButtons: true,
 						footer: [
@@ -999,10 +1005,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								},
 								disabled: !canUse,
 							}),
-						]
+						],
 					}),
 				];
-			})
+			}),
 		});
 	}
 
@@ -1052,8 +1058,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 	render_settings() {
 		// Detect if device uses touch input without precise pointer support
-		const isTouchOnlyDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
-		                          !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+		const isTouchOnlyDevice =
+			('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
+			!window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 		const settingsControls = [
 			new CollapsibleLabel(
@@ -1079,7 +1086,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			settingsControls.splice(2, 0, new CollapsibleLabel({ label: 'Auto-Path Settings' }, new AutoPathControl()));
 		}
 
-		this._menuBody.append(...settingsControls,
+		this._menuBody.append(
+			...settingsControls,
 
 			new Label(
 				'Default Console Menu',

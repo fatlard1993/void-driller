@@ -187,7 +187,7 @@ export class Achievement extends styled.Popover(
 				clearTimeout(this.autoDismissTimer);
 				this.autoDismissTimer = null;
 			}
-			
+
 			gameContext.sounds.achievement_close.play({ volume: gameContext.volume.alerts });
 
 			this.hide();
@@ -204,7 +204,7 @@ export class Achievement extends styled.Popover(
 		};
 
 		// Manual dismiss on click - prevent event from bubbling to game canvas
-		this.onPointerPress((event) => {
+		this.onPointerPress(event => {
 			// Stop the click event from propagating to the game canvas
 			if (event) {
 				event.stopPropagation();

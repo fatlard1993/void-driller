@@ -15,7 +15,7 @@ export const explode = ({ game, position, radius, playerId = null }) => {
 				const isFuel = ['oil', 'battery', 'super_oxygen_liquid_nitrogen'].includes(item.name);
 				const isExplosive = ['timed_charge', 'remote_charge'].includes(item.name);
 				const isImplosive = ['gravity_charge', 'void_implosion'].includes(item.name);
-				
+
 				if ((isFuel || isExplosive || isImplosive) && !(x === position.x && y === position.y)) {
 					chainReactions.push({ x, y, item: item.name });
 				}
@@ -43,7 +43,7 @@ export const explode = ({ game, position, radius, playerId = null }) => {
 	game.spacecoFall();
 
 	playersToFall.forEach(playerId => game.playerFall(playerId));
-	
+
 	// Check for additional players who lost wheel support due to explosion
 	game.checkForPlayerFalls();
 
@@ -106,15 +106,12 @@ export const implode = ({ game, position, radius, playerId, implosionType = 'gra
 
 			// Handle chain reactions
 			cell.items.forEach(item => {
-				// Fuel items and explosive items that chain react  
+				// Fuel items and explosive items that chain react
 				const isFuel = ['oil', 'battery', 'super_oxygen_liquid_nitrogen'].includes(item.name);
 				const isExplosive = ['timed_charge', 'remote_charge'].includes(item.name);
 				const isImplosive = ['gravity_charge', 'void_implosion'].includes(item.name);
-				
-				if (
-					(isFuel || isExplosive || isImplosive) &&
-					!(x === position.x && y === position.y)
-				) {
+
+				if ((isFuel || isExplosive || isImplosive) && !(x === position.x && y === position.y)) {
 					setTimeout(() => {
 						if (item.name === 'gravity_charge') {
 							implode({ game, position: { x, y }, radius: 4, playerId, implosionType: 'gravity' });
@@ -174,7 +171,7 @@ export const implode = ({ game, position, radius, playerId, implosionType = 'gra
 
 	game.spacecoFall();
 	playersToFall.forEach(playerId => game.playerFall(playerId));
-	
+
 	// Check for additional players who lost wheel support due to implosion
 	game.checkForPlayerFalls();
 };
