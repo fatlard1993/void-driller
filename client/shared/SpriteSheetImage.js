@@ -12,7 +12,7 @@ export default class SpriteSheetImage extends Elem {
 		displaySize,
 		displayWidth,
 		displayHeight,
-		style = {}
+		style = {},
 	}) {
 		if (displaySize) {
 			// Scale proportionally to fit within displaySize
@@ -30,19 +30,21 @@ export default class SpriteSheetImage extends Elem {
 				},
 			});
 
-			this.append([new Elem({
-				style: {
-					backgroundImage: `url(${url})`,
-					backgroundPosition: `-${x * width}px -${y * height}px`,
-					backgroundSize: 'auto',
-					width: `${width}px`,
-					height: `${height}px`,
-					transform: `scale(${scale})`,
-					transformOrigin: 'top left',
-					imageRendering: 'pixelated',
-					margin: 0,
-				},
-			})]);
+			this.append([
+				new Elem({
+					style: {
+						backgroundImage: `url(${url})`,
+						backgroundPosition: `-${x * width}px -${y * height}px`,
+						backgroundSize: 'auto',
+						width: `${width}px`,
+						height: `${height}px`,
+						transform: `scale(${scale})`,
+						transformOrigin: 'top left',
+						imageRendering: 'pixelated',
+						margin: 0,
+					},
+				}),
+			]);
 		} else if (displayWidth || displayHeight) {
 			// Custom dimensions
 			const finalWidth = displayWidth || width;
@@ -90,7 +92,7 @@ export class MineralImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
-			style
+			style,
 		});
 	}
 }
@@ -105,7 +107,7 @@ export class ItemImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
-			style
+			style,
 		});
 	}
 }
@@ -127,7 +129,7 @@ export class IconImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
-			style
+			style,
 		});
 	}
 }
@@ -142,7 +144,7 @@ export class VehicleImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
-			style
+			style,
 		});
 	}
 }
@@ -158,7 +160,7 @@ export class DrillImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
-			style
+			style,
 		});
 	}
 }
@@ -177,7 +179,7 @@ export class EngineImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
-			style
+			style,
 		});
 	}
 }
@@ -196,7 +198,7 @@ export class PartImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
-			style
+			style,
 		});
 	}
 }

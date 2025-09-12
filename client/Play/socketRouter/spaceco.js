@@ -49,7 +49,6 @@ export default data => {
 
 		gameContext.spaceco.fall(data.position);
 	} else if (data.update === 'spacecoHazardDamage') {
-		
 		// Update SpaceCo position and health
 		gameContext.serverState.world.spaceco.position = data.position;
 		gameContext.serverState.world.spaceco.health = data.health;
@@ -246,7 +245,7 @@ export default data => {
 			if (!gameContext.serverState.world.spaceco.eggHunt) {
 				gameContext.serverState.world.spaceco.eggHunt = {
 					totalEggsSubmitted: 0,
-					playerSubmissions: new Map()
+					playerSubmissions: new Map(),
 				};
 			}
 			gameContext.serverState.world.spaceco.eggHunt.totalEggsSubmitted = data.totalEggsSubmitted;
@@ -255,10 +254,10 @@ export default data => {
 			// Special sound for egg submission - mysterious resonant tone
 			gameContext.sounds.psykick_attack.play({ volume: gameContext.volume.effects * 0.7 });
 
-			new Notify({ 
-				type: 'success', 
-				content: `Submitted ${data.count} psykick egg${data.count > 1 ? 's' : ''} to the endgame hunt!`, 
-				timeout: 2000 
+			new Notify({
+				type: 'success',
+				content: `Submitted ${data.count} psykick egg${data.count > 1 ? 's' : ''} to the endgame hunt!`,
+				timeout: 2000,
 			});
 
 			// Stay on the player inventory view

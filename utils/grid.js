@@ -162,7 +162,7 @@ export const hasWheelSupport = (position, grid, excludePositions = [], orientati
 				return ['left', 'bottomLeft', 'bottom'];
 			case 'up_right':
 			case 'down_right':
-				// For vertical movement, only require support from accessible positions  
+				// For vertical movement, only require support from accessible positions
 				return ['right', 'bottomRight', 'bottom'];
 			case 'up_left_angle':
 			case 'down_left_angle':
@@ -253,27 +253,52 @@ export const hasWheelSupport = (position, grid, excludePositions = [], orientati
 	// For mining scenarios, be more lenient - allow movement if there's ANY solid ground nearby
 	// or if we're in a reasonable movement scenario
 	let hasSupport = supportedWheelPositions.length >= 1;
-	
+
 	// If no direct support, check for any solid ground in immediate vicinity
 	if (!hasSupport && totalSolidGround === 0) {
 		// Check all 8 surrounding positions for any solid ground
 		const surroundingPositions = ['left', 'right', 'top', 'bottom', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
 		let nearbySupport = false;
-		
+
 		for (const direction of surroundingPositions) {
 			let checkX, checkY;
 			switch (direction) {
-				case 'left': checkX = baseX - 1; checkY = baseY; break;
-				case 'right': checkX = baseX + 1; checkY = baseY; break;
-				case 'top': checkX = baseX; checkY = baseY - 1; break;
-				case 'bottom': checkX = baseX; checkY = baseY + 1; break;
-				case 'topLeft': checkX = baseX - 1; checkY = baseY - 1; break;
-				case 'topRight': checkX = baseX + 1; checkY = baseY - 1; break;
-				case 'bottomLeft': checkX = baseX - 1; checkY = baseY + 1; break;
-				case 'bottomRight': checkX = baseX + 1; checkY = baseY + 1; break;
-				default: continue;
+				case 'left':
+					checkX = baseX - 1;
+					checkY = baseY;
+					break;
+				case 'right':
+					checkX = baseX + 1;
+					checkY = baseY;
+					break;
+				case 'top':
+					checkX = baseX;
+					checkY = baseY - 1;
+					break;
+				case 'bottom':
+					checkX = baseX;
+					checkY = baseY + 1;
+					break;
+				case 'topLeft':
+					checkX = baseX - 1;
+					checkY = baseY - 1;
+					break;
+				case 'topRight':
+					checkX = baseX + 1;
+					checkY = baseY - 1;
+					break;
+				case 'bottomLeft':
+					checkX = baseX - 1;
+					checkY = baseY + 1;
+					break;
+				case 'bottomRight':
+					checkX = baseX + 1;
+					checkY = baseY + 1;
+					break;
+				default:
+					continue;
 			}
-			
+
 			const checkCell = getGridCell(grid, checkX, checkY);
 			if (checkCell && checkCell.ground?.type) {
 				// Check if this position is excluded
@@ -283,13 +308,12 @@ export const hasWheelSupport = (position, grid, excludePositions = [], orientati
 				}
 			}
 		}
-		
+
 		// Allow movement if there's any solid ground nearby (fallback support)
 		if (nearbySupport) {
 			hasSupport = true;
 		}
 	}
-
 
 	return {
 		hasSupport,

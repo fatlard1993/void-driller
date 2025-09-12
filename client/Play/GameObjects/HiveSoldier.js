@@ -26,7 +26,7 @@ export class HiveSoldier extends Alien {
 		this.anims.create({
 			key: 'defend',
 			frames: this.anims.generateFrameNumbers('aliens', {
-				frames: [spriteIndex + 2, spriteIndex + 1, spriteIndex + 2, spriteIndex]
+				frames: [spriteIndex + 2, spriteIndex + 1, spriteIndex + 2, spriteIndex],
 			}),
 			duration: 800,
 			frameRate: 5,

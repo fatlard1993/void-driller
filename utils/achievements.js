@@ -12,12 +12,9 @@
  */
 export function formatAchievementRewards(awards, options = {}) {
 	if (!awards || awards.length === 0) return '';
-	
-	const { 
-		xpLabel = 'GMS', 
-		includePrefix = false 
-	} = options;
-	
+
+	const { xpLabel = 'GMS', includePrefix = false } = options;
+
 	const rewardStrings = awards
 		.filter(award => Array.isArray(award)) // Only process array awards, skip functions
 		.map(([type, amount]) => {
@@ -32,15 +29,15 @@ export function formatAchievementRewards(awards, options = {}) {
 					return `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`;
 			}
 		});
-	
+
 	// Check if there are any function-based rewards (dynamic rewards)
 	const hasDynamicRewards = awards.some(award => typeof award === 'function');
 	if (hasDynamicRewards) {
 		rewardStrings.push('+ Dynamic Items');
 	}
-	
+
 	if (rewardStrings.length === 0) return '';
-	
+
 	const rewardsText = rewardStrings.join(', ');
 	return includePrefix ? `Rewards: ${rewardsText}` : rewardsText;
 }
@@ -51,9 +48,9 @@ export function formatAchievementRewards(awards, options = {}) {
  * @returns {string} Formatted rewards string
  */
 export function formatPlayerAchievementRewards(awards) {
-	return formatAchievementRewards(awards, { 
+	return formatAchievementRewards(awards, {
 		xpLabel: 'XP (Pension Credits)',
-		includePrefix: true 
+		includePrefix: true,
 	});
 }
 
@@ -63,8 +60,8 @@ export function formatPlayerAchievementRewards(awards) {
  * @returns {string} Formatted rewards string
  */
 export function formatSpacecoAchievementRewards(awards) {
-	return formatAchievementRewards(awards, { 
-		xpLabel: 'GMS (Galactic Market Share)' 
+	return formatAchievementRewards(awards, {
+		xpLabel: 'GMS (Galactic Market Share)',
 	});
 }
 
@@ -74,7 +71,7 @@ export function formatSpacecoAchievementRewards(awards) {
  * @returns {string} Formatted rewards string
  */
 export function formatNotificationAchievementRewards(awards) {
-	return formatAchievementRewards(awards, { 
-		xpLabel: 'GMS' 
+	return formatAchievementRewards(awards, {
+		xpLabel: 'GMS',
 	});
 }

@@ -4,17 +4,19 @@ import GameSaveDatabase, { games } from './GameSaveDatabase';
 export default class Server {
 	constructor({ port, databasePath, verbosity, Game, router, logger }) {
 		this.clients = {};
-		
+
 		// Create default logger if none provided
-		this.logger = logger || new Log({ 
-			tag: 'byod-server',
-			defaults: {
-				verbosity: verbosity ?? (process.env.NODE_ENV === 'production' ? 1 : 3),
-				color: true,
-				silentTag: false,
-				methodTag: true
-			}
-		});
+		this.logger =
+			logger ||
+			new Log({
+				tag: 'byod-server',
+				defaults: {
+					verbosity: verbosity ?? (process.env.NODE_ENV === 'production' ? 1 : 3),
+					color: true,
+					silentTag: false,
+					methodTag: true,
+				},
+			});
 
 		if (verbosity !== undefined && this.logger.options) {
 			this.logger.options.verbosity = verbosity;
@@ -32,36 +34,36 @@ export default class Server {
 				open(socket) {
 					const clientId = socket.data.clientId;
 					server.clients[clientId] = socket;
-					server.logger.info('WebSocket connection opened', { 
-						clientId, 
+					server.logger.info('WebSocket connection opened', {
+						clientId,
 						remoteAddress: socket.remoteAddress,
-						totalConnections: Object.keys(server.clients).length
+						totalConnections: Object.keys(server.clients).length,
 					});
 				},
 				close(socket, code, reason) {
 					const clientId = socket.data.clientId;
 					delete server.clients[clientId];
-					server.logger.info('WebSocket connection closed', { 
-						clientId, 
-						code, 
+					server.logger.info('WebSocket connection closed', {
+						clientId,
+						code,
 						reason: reason?.toString(),
-						totalConnections: Object.keys(server.clients).length
+						totalConnections: Object.keys(server.clients).length,
 					});
 				},
 				message(socket, message) {
 					const clientId = socket.data.clientId;
 					try {
 						const parsed = typeof message === 'string' ? JSON.parse(message) : message;
-						server.logger.debug('WebSocket message received', { 
-							clientId, 
+						server.logger.debug('WebSocket message received', {
+							clientId,
 							type: parsed.type || 'unknown',
-							size: message.length || 0
+							size: message.length || 0,
 						});
 					} catch (parseError) {
-						server.logger.warning('Invalid WebSocket message format', { 
-							clientId, 
+						server.logger.warning('Invalid WebSocket message format', {
+							clientId,
 							error: parseError.message,
-							messageSize: message.length || 0
+							messageSize: message.length || 0,
 						});
 					}
 				},
@@ -84,7 +86,7 @@ export default class Server {
 		});
 
 		this.logger.info(`Listening on ${this.httpServer.hostname}:${this.httpServer.port}`);
-		
+
 		// Start periodic health monitoring
 		this.startHealthMonitoring();
 	}
@@ -92,29 +94,29 @@ export default class Server {
 	startHealthMonitoring() {
 		// Log system health every 5 minutes
 		const HEALTH_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
-		
+
 		const logSystemHealth = () => {
 			const memUsage = process.memoryUsage();
 			const uptime = process.uptime();
-			
+
 			this.logger.info('System health check', {
 				uptime: `${Math.floor(uptime / 60)}m ${Math.floor(uptime % 60)}s`,
 				memory: {
 					rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
 					heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
-					heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`
+					heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
 				},
 				connections: {
 					websockets: Object.keys(this.clients).length,
-					games: Object.keys(this.games).length
+					games: Object.keys(this.games).length,
 				},
-				players: Object.values(this.games).reduce((total, game) => total + game.players.size, 0)
+				players: Object.values(this.games).reduce((total, game) => total + game.players.size, 0),
 			});
 		};
-		
+
 		// Initial health log
 		logSystemHealth();
-		
+
 		// Set up periodic health logging
 		setInterval(logSystemHealth, HEALTH_CHECK_INTERVAL);
 	}
@@ -133,7 +135,7 @@ export default class Server {
 				throw error;
 			}
 		}
-		
+
 		Object.values(this.clients).forEach(socket => {
 			socket.send(serializedData);
 		});

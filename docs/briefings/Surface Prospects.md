@@ -45,6 +45,7 @@ The R&D team has been developing improved drilling technology for our contractor
 Last Tuesday's monthly taco celebration was a rousing success! Chef Rodriguez outdid himself with authentic carne asada, fresh guacamole, and those little lime wedges that make everything better.
 
 _"Best tacos I've had since leaving Earth! Rodriguez really knows his way around a spice rack."_
+
 - Miguel from Transport Division
 
 **Next Taco Tuesday:** March 31st - Chef promises "something special" for the end-of-quarter celebration!

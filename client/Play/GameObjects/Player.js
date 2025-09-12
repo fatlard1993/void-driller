@@ -307,7 +307,7 @@ export class Player extends Drill {
 
 		// Check for nearby placed items (bombs, teleport stations)
 		const nearbyPositions = getSurroundingRadius(player.position, 1);
-		
+
 		for (const position of nearbyPositions) {
 			const cell = gameContext.serverState.world.grid[position.x]?.[position.y];
 			if (!cell || !cell.items) continue;
@@ -325,15 +325,15 @@ export class Player extends Drill {
 	showBombPrompt(position) {
 		const player = gameContext.players.currentPlayer;
 		const detonatorKey = `detonator_${position.x}_${position.y}`;
-		
+
 		// Only show prompt if player has the detonator and we don't already have a button
 		if (player.items[detonatorKey] > 0 && !this.bombButton) {
 			const pixelPos = gridToPxPosition(position);
-			
+
 			this.bombButton = this.scene.add.text(pixelPos.x - 33, pixelPos.y - 80, '[detonate]');
 			this.bombButton.preFX.addShadow(0, 0, 0.06, 0.75, 0xff4444, 4, 0.8);
 			this.bombButton.setInteractive({ cursor: 'pointer' });
-			
+
 			this.bombButton.on('pointerover', () => {
 				gameContext.cursor.visible = false;
 				this.bombButton.setTint(0xff4444);
@@ -353,15 +353,15 @@ export class Player extends Drill {
 	showTeleportPrompt(position) {
 		const player = gameContext.players.currentPlayer;
 		const teleporterKey = `activated_teleporter_${position.x}_${position.y}`;
-		
+
 		// Only show prompt if player has the teleporter remote and we don't already have a button
 		if (player.items[teleporterKey] > 0 && !this.teleportButton) {
 			const pixelPos = gridToPxPosition(position);
-			
+
 			this.teleportButton = this.scene.add.text(pixelPos.x - 33, pixelPos.y - 80, '[teleport]');
 			this.teleportButton.preFX.addShadow(0, 0, 0.06, 0.75, 0x44ff44, 4, 0.8);
 			this.teleportButton.setInteractive({ cursor: 'pointer' });
-			
+
 			this.teleportButton.on('pointerover', () => {
 				gameContext.cursor.visible = false;
 				this.teleportButton.setTint(0x44ff44);

@@ -57,10 +57,17 @@ export class InfoButton extends (styled.Component`
 	}
 
 	showPopover() {
-		// Don't create multiple popovers
-		if (this._popover) {
+		// Close any existing popover first
+		if (this._popover && this._popover.isOpen) {
+			this._popover.hide();
+			this._popover = null;
+			InfoButton.activePopovers.delete(this);
+			this._infoButton.options.content = this.options.buttonText || 'more';
 			return;
 		}
+
+		// Close any other open popovers
+		InfoButton.closeAllPopovers();
 
 		// Build popover content
 		const contentElements = [];
@@ -71,7 +78,7 @@ export class InfoButton extends (styled.Component`
 				new Elem({
 					className: 'popover-title',
 					content: this.options.title,
-				})
+				}),
 			);
 		}
 
@@ -81,7 +88,7 @@ export class InfoButton extends (styled.Component`
 				new Elem({
 					className: 'popover-description',
 					content: this.options.description,
-				})
+				}),
 			);
 		} else {
 			contentElements.push(
@@ -89,7 +96,7 @@ export class InfoButton extends (styled.Component`
 					className: 'popover-description',
 					content: 'No additional information available.',
 					style: { fontStyle: 'italic' },
-				})
+				}),
 			);
 		}
 
@@ -101,26 +108,44 @@ export class InfoButton extends (styled.Component`
 
 		// Get button position for popover positioning
 		const buttonRect = this._infoButton.elem.getBoundingClientRect();
-		
+
 		// Create popover with explicit positioning
 		this._popover = new Popover({
-			trigger: this._infoButton.elem,
 			content: popoverContainer,
-			position: 'top',
 			x: buttonRect.left + buttonRect.width / 2,
 			y: buttonRect.top,
-			onClose: () => {
-				this._popover = null;
-			},
 		});
+
+		// Change button text to "close" when popover is open
+		this._infoButton.options.content = 'close';
+
+		// Track active popover
+		InfoButton.activePopovers.add(this);
 	}
 
 	// Handle cleanup when component is destroyed
 	destroy() {
 		if (this._popover) {
-			this._popover.close();
+			this._popover.hide();
 			this._popover = null;
+			this._infoButton.options.content = this.options.buttonText || 'more';
 		}
+		InfoButton.activePopovers.delete(this);
 		super.destroy?.();
 	}
+
+	// Static method to close all open popovers
+	static closeAllPopovers() {
+		InfoButton.activePopovers.forEach(infoButton => {
+			if (infoButton._popover && infoButton._popover.isOpen) {
+				infoButton._popover.hide();
+				infoButton._popover = null;
+				infoButton._infoButton.options.content = infoButton.options.buttonText || 'more';
+			}
+		});
+		InfoButton.activePopovers.clear();
+	}
 }
+
+// Static set to track active popovers
+InfoButton.activePopovers = new Set();

@@ -1,5 +1,6 @@
 import { Dialog } from 'vanilla-bean-components';
 import gameContext from './gameContext';
+import { InfoButton } from './InfoButton';
 
 // (styled.Dialog`
 // 	@media (max-width: 768px) {
@@ -54,6 +55,9 @@ export default class BaseDialog extends Dialog {
 	 * Handle dialog close action - override in subclasses for custom behavior
 	 */
 	handleClose() {
+		// Close any open popovers when dialog closes
+		InfoButton.closeAllPopovers();
+
 		// Default close behavior - subclasses can override
 		const player = gameContext.players.currentPlayer;
 		if (player?.sprite) {

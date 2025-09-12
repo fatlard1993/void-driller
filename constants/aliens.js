@@ -282,7 +282,7 @@ export const aliens = {
 			messageFrequency: 70,
 		},
 		messages: [
-			'*offers gifts with gentle chittering* The generous miner receives the Belt\'s abundance',
+			"*offers gifts with gentle chittering* The generous miner receives the Belt's abundance",
 			'*drops precious items with ceremonial care* What flows freely returns as blessing',
 			'*bestows tools upon the patient digger* Wisdom recognizes wisdom in all forms',
 			'*presents fuel to the struggling rig* The Belt provides for those who serve',
@@ -540,7 +540,7 @@ export const aliens = {
 			'*ancient ceremonial humming accompanies each gift* The deep-digger has earned what the Belt offers',
 			'*bestows treasures with elder wisdom* Your patience in the tunnels teaches the cosmic law',
 			'*presents offerings with the weight of millennia* What you give to your digging, returns transformed',
-			'*drops gifts that carry approval of the watching stars* True miners receive the Belt\'s deepest blessing',
+			"*drops gifts that carry approval of the watching stars* True miners receive the Belt's deepest blessing",
 			'*offers equipment with reverent clicking* The spiral-law provides for those who serve the pattern',
 			'*makes gift-giving sounds that echo through dimensions* Generous miners open doors to abundance',
 			'*bestows rare supplies with cosmic ceremony* The Belt remembers every act of mining-devotion',

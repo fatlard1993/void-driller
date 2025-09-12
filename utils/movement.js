@@ -119,7 +119,7 @@ export const validateMovement = ({ player, targetPosition, currentPath = [], gri
 
 	// Check cargo capacity and fuel consumption for mining operations - account for cumulative values
 	const targetCell = grid[x][y];
-	
+
 	// Calculate cumulative cargo from current path ONLY
 	let cumulativeCargo = player.cargo;
 	for (const pathStep of currentPath) {
@@ -129,7 +129,7 @@ export const validateMovement = ({ player, targetPosition, currentPath = [], gri
 			cumulativeCargo += mineralConfig.weight || 0.1;
 		}
 	}
-	
+
 	// Calculate fuel cost for this new step (not the entire path)
 	let baseFuelConsumption = 0.1 / player.fuelEfficiency;
 	if (targetCell?.ground?.type) {
@@ -137,17 +137,17 @@ export const validateMovement = ({ player, targetPosition, currentPath = [], gri
 		const miningPenalty = 0.3 + mineralConfig.density * 0.5;
 		baseFuelConsumption = Math.max(baseFuelConsumption, miningPenalty / player.fuelEfficiency);
 	}
-	
+
 	const cargoWeightRatio = cumulativeCargo / player.maxCargo;
 	const cargoFuelMultiplier = 1.0 + cargoWeightRatio * 0.2;
 	const stepFuelCost = baseFuelConsumption * cargoFuelMultiplier;
-	
+
 	// Calculate cumulative fuel from current path ONLY
 	let cumulativeFuel = 0;
 	let tempCargo = player.cargo;
 	for (const pathStep of currentPath) {
 		const stepCell = grid[pathStep.x]?.[pathStep.y];
-		
+
 		// Calculate fuel cost for this previous step
 		let stepBaseFuel = 0.1 / player.fuelEfficiency;
 		if (stepCell?.ground?.type) {
@@ -155,23 +155,23 @@ export const validateMovement = ({ player, targetPosition, currentPath = [], gri
 			const miningPenalty = 0.3 + mineralConfig.density * 0.5;
 			stepBaseFuel = Math.max(stepBaseFuel, miningPenalty / player.fuelEfficiency);
 		}
-		
+
 		const stepCargoRatio = tempCargo / player.maxCargo;
 		const stepCargoMultiplier = 1.0 + stepCargoRatio * 0.2;
 		cumulativeFuel += stepBaseFuel * stepCargoMultiplier;
-		
+
 		// Update temp cargo for next calculation
 		if (stepCell?.ground?.type) {
 			const mineralConfig = minerals[stepCell.ground.type];
 			tempCargo += mineralConfig.weight || 0.1;
 		}
 	}
-	
+
 	// Check if adding this step would exceed fuel
 	if (cumulativeFuel + stepFuelCost > player.fuel) {
 		return { valid: false, reason: 'insufficient_fuel' };
 	}
-	
+
 	// Check cargo capacity specifically for this mining operation
 	if (targetCell.ground?.type) {
 		// Check if cargo is already at capacity BEFORE trying to add mineral

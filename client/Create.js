@@ -26,5 +26,6 @@ export default configured(Create, {
 		createText: 'Authorize Contract',
 	},
 	containerComponent: ConsoleContainer,
-	containerText: '> [SYSTEM] Initiating contract.\n> Fill out required fields used by Mission Control to track your drilling op.',
+	containerText:
+		'> [SYSTEM] Initiating contract.\n> Fill out required fields used by Mission Control to track your drilling op.',
 });

@@ -36,18 +36,18 @@ const { options } = new Argi({
 // Set logger verbosity based on options
 setVerbosity(options.verbosity);
 
-serverLog.info('Server starting', { 
-	port: options.port, 
-	database: options.database, 
+serverLog.info('Server starting', {
+	port: options.port,
+	database: options.database,
 	verbosity: options.verbosity,
-	nodeEnv: process.env.NODE_ENV 
+	nodeEnv: process.env.NODE_ENV,
 });
 
-export default new Server({ 
-	port: options.port, 
-	databasePath: options.database, 
-	verbosity: options.verbosity, 
-	Game, 
+export default new Server({
+	port: options.port,
+	databasePath: options.database,
+	verbosity: options.verbosity,
+	Game,
 	router,
-	logger: serverLog 
+	logger: serverLog,
 });

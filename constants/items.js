@@ -53,7 +53,8 @@ export const items = {
 		spriteIndex: 5,
 		price: 85,
 		summary: 'Place and return to a beacon.',
-		description: 'Precision teleportation system. Enhanced targeting protocols reduce potentially unexpected destinations.',
+		description:
+			'Precision teleportation system. Enhanced targeting protocols reduce potentially unexpected destinations.',
 	},
 
 	remote_charge: {
@@ -75,8 +76,7 @@ export const items = {
 		spriteIndex: 5,
 		price: 0, // Not directly sellable
 		summary: 'Deployed teleportation station.',
-		description:
-			'Deployed teleportation beacon. Provides instantaneous transport when activated remotely.',
+		description: 'Deployed teleportation beacon. Provides instantaneous transport when activated remotely.',
 	},
 
 	// LATE GAME ITEMS (Levels 9+) - Alien influence showing through

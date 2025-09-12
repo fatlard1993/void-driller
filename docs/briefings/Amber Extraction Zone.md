@@ -59,10 +59,12 @@ This month's Quad Chocolate Cake celebration has been postponed again due to a "
 ### 👥 Personnel Updates
 
 **New Specialists:**
-- Dr. James Hartley - Geological Survey Team  
+
+- Dr. James Hartley - Geological Survey Team
 - Materials Analysis Group (expanded research capacity)
 
 **Recognition:**
+
 - Maintenance Supervisor Larz received his 10-year service pin and a firm handshake from management!
 - Communications Specialist Morris transferred to deep field research
 

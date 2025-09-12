@@ -4,7 +4,7 @@ import { explode, implode } from '../effects';
 import { Gas, Lava } from '../GameObjects';
 import { createAlien } from '../GameObjects/aliens';
 
-// Note: This file has extensive direct grid manipulations that need 
+// Note: This file has extensive direct grid manipulations that need
 // refactored to use safe update patterns, but due to their complexity,
 // we rely on server-side validation to prevent corruption instead.
 
@@ -169,10 +169,8 @@ export default data => {
 			}
 		}
 	} else if (data.update === 'explodeBomb') {
-
 		explode({ position: data.position, radius: data.radius });
 	} else if (data.update === 'explodeImplosion') {
-
 		implode({
 			position: data.position,
 			radius: data.radius,
@@ -198,9 +196,9 @@ export default data => {
 		// Handle mineral-specific ground effects
 		if (data.type === 'gasRelease') {
 			// Play hissing sound for gas release
-			gameContext.scene.sound.play('psykick_attack', { 
+			gameContext.scene.sound.play('psykick_attack', {
 				volume: gameContext.volume.effects * 0.6,
-				rate: 1.5 
+				rate: 1.5,
 			});
 
 			// Create gas hazard sprite at position (already handled server-side, but add visual feedback)
@@ -211,9 +209,9 @@ export default data => {
 			if (!gameContext.serverState.world.grid[data.position.x][data.position.y].hazards) {
 				gameContext.serverState.world.grid[data.position.x][data.position.y].hazards = [];
 			}
-			gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.push({ 
-				type: 'gas', 
-				sprite: gasSprite 
+			gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.push({
+				type: 'gas',
+				sprite: gasSprite,
 			});
 
 			// Show notification if current player triggered it
@@ -227,7 +225,7 @@ export default data => {
 		} else if (data.type === 'explosionWarning') {
 			// Play warning sound for impending adamantite explosion
 			gameContext.scene.sound.play('comm_err', { volume: gameContext.volume.effects * 0.7 });
-			
+
 			// Show warning notification if current player triggered it
 			if (data.playerId === gameContext.playerId) {
 				new Notify({
@@ -239,7 +237,7 @@ export default data => {
 		} else if (data.type === 'explosion') {
 			// Use existing explosion effect
 			explode({ position: data.position, radius: data.radius });
-			
+
 			// Show explosion notification if current player triggered it
 			if (data.playerId === gameContext.playerId) {
 				new Notify({

@@ -1,4 +1,4 @@
-import { Elem, styled } from 'vanilla-bean-components';
+import { styled } from 'vanilla-bean-components';
 
 /**
  * Standardized grid layout component for displaying cards with consistent max-width constraints.

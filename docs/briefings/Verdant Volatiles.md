@@ -68,7 +68,7 @@ Unfortunately, this month's Quad Chocolate Cake celebration has been cancelled d
 
 **Recognition:**
 
-- Larz from Maintenance successfully fixed the coffee machine again! 
+- Larz from Maintenance successfully fixed the coffee machine again!
 
 **Transfers:**
 
@@ -78,7 +78,7 @@ Unfortunately, this month's Quad Chocolate Cake celebration has been cancelled d
 
 Production efficiency continues climbing across all active mining zones:
 
-- 5.2 million tons of processed minerals  
+- 5.2 million tons of processed minerals
 - 31% increase in anomalous sample recovery
 - 94% contractor operational status
 

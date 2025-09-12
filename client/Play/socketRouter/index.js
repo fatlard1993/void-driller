@@ -6,7 +6,7 @@ import spaceco from './spaceco';
 import world from './world';
 
 // Validation helper functions
-const validateMessage = (data) => {
+const validateMessage = data => {
 	// Basic structure validation
 	if (!data || typeof data !== 'object') {
 		socketLog(1)('Invalid socket message: not an object', { data });
@@ -27,7 +27,7 @@ const validateMessage = (data) => {
 	return true;
 };
 
-const validatePlayerMessage = (data) => {
+const validatePlayerMessage = data => {
 	// Player-specific message validation
 	if (data.playerId && typeof data.playerId !== 'string') {
 		socketLog(1)('Invalid player message: playerId must be string', { data, playerId: data.playerId });
@@ -37,8 +37,7 @@ const validatePlayerMessage = (data) => {
 	// Validate position updates
 	if (data.player?.position) {
 		const pos = data.player.position;
-		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
-			!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
+		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
 			socketLog(1)('Invalid player message: invalid position data', { data, position: data.player?.position });
 			return false;
 		}
@@ -50,7 +49,11 @@ const validatePlayerMessage = (data) => {
 		for (const field of numericFields) {
 			if (data.player[field] !== undefined) {
 				if (typeof data.player[field] !== 'number' || !Number.isFinite(data.player[field])) {
-					socketLog(1)(`Invalid player message: ${field} must be finite number`, { data, field, value: data.player[field] });
+					socketLog(1)(`Invalid player message: ${field} must be finite number`, {
+						data,
+						field,
+						value: data.player[field],
+					});
 					return false;
 				}
 			}
@@ -60,12 +63,11 @@ const validatePlayerMessage = (data) => {
 	return true;
 };
 
-const validateWorldMessage = (data) => {
+const validateWorldMessage = data => {
 	// World-specific message validation
 	if (data.position) {
 		const pos = data.position;
-		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || 
-			!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
+		if (typeof pos.x !== 'number' || typeof pos.y !== 'number' || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) {
 			socketLog(1)('Invalid world message: invalid position data', { data, position: data.position });
 			return false;
 		}
@@ -78,8 +80,33 @@ export default data => {
 	if (!validateMessage(data)) return;
 
 	// Apply specific validation based on message type
-	const playerUpdates = ['playerMove', 'addPlayer', 'removePlayer', 'hurtPlayers', 'useItem', 'playerFall', 'updatePlayer', 'achievement', 'playerCantMove', 'playerMovementComplete', 'playerMovementInterrupted', 'playerMovementError'];
-	const worldUpdates = ['dissipateGas', 'spillLava', 'alien_wake', 'alien_sleep', 'alien_attack', 'alien_message', 'alien_move', 'alien_spawn', 'explodeBomb', 'explodeImplosion', 'groundEffect'];
+	const playerUpdates = [
+		'playerMove',
+		'addPlayer',
+		'removePlayer',
+		'hurtPlayers',
+		'useItem',
+		'playerFall',
+		'updatePlayer',
+		'achievement',
+		'playerCantMove',
+		'playerMovementComplete',
+		'playerMovementInterrupted',
+		'playerMovementError',
+	];
+	const worldUpdates = [
+		'dissipateGas',
+		'spillLava',
+		'alien_wake',
+		'alien_sleep',
+		'alien_attack',
+		'alien_message',
+		'alien_move',
+		'alien_spawn',
+		'explodeBomb',
+		'explodeImplosion',
+		'groundEffect',
+	];
 
 	if (playerUpdates.includes(data.update) && !validatePlayerMessage(data)) return;
 	if (worldUpdates.includes(data.update) && !validateWorldMessage(data)) return;
