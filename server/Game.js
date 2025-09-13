@@ -2585,7 +2585,9 @@ export default class Game extends BaseGame {
 					const holeChance = layer.holeChance ?? Math.min(world.holeChance * depthScaling, 90);
 					const mineralChance = layer.mineralChance ?? Math.min(world.mineralChance * depthScaling, 90);
 					const itemChance = layer.itemChance ?? Math.min(world.itemChance * depthScaling, 50);
-					const hazardChance = layer.hazardChance ?? Math.min(world.hazardChance * depthScaling, 80);
+					// Apply scaling to hazardChance to reduce excessive alien spawning while preserving definition range
+					const rawHazardChance = layer.hazardChance ?? Math.min(world.hazardChance * depthScaling, 80);
+					const hazardChance = rawHazardChance * 0.6; // Scale down by 40% to reduce alien density
 					const hazardDef = layer.hazards ?? world.hazards;
 					const itemDef = layer.items ?? world.items;
 					const mineralsDef = layer.minerals ?? world.minerals;
@@ -4659,7 +4661,7 @@ export default class Game extends BaseGame {
 					});
 
 					// Use existing explosion effect system
-					this.explode({ position, radius: explosionRadius, playerId });
+					explode({ game: this, position, radius: explosionRadius, playerId });
 				}, 600); // Delay for tension buildup
 			}
 		}
@@ -5274,5 +5276,113 @@ export default class Game extends BaseGame {
 	 */
 	broadcastWithSpacecoState(event, data, spacecoFields = []) {
 		this.broadcastWithGameState(event, data, spacecoFields, 'spaceco');
+	}
+
+	disarmBomb(playerId, position) {
+		const player = this.players.get(playerId);
+		if (!player) {
+			playerLog.warning('Player not found for bomb disarm', { playerId });
+			return;
+		}
+
+		const { x, y } = position;
+		const cell = this.world.grid[x]?.[y];
+		if (!cell) {
+			playerLog.warning('Invalid position for bomb disarm', { playerId, position });
+			return;
+		}
+
+		// Find and remove remote charge from cell
+		const bombIndex = cell.items.findIndex(item => item.name === 'remote_charge');
+		if (bombIndex === -1) {
+			playerLog.warning('No remote charge found at position', { playerId, position });
+			return;
+		}
+
+		// Remove the bomb from the cell
+		cell.items.splice(bombIndex, 1);
+
+		// Remove detonator from ALL players who have it
+		const detonatorKey = `detonator_${x}_${y}`;
+		this.players.forEach((playerData, playerIdIter) => {
+			if (playerData.items[detonatorKey]) {
+				const updates = { items: { ...playerData.items, [detonatorKey]: playerData.items[detonatorKey] - 1 } };
+				if (updates.items[detonatorKey] <= 0) {
+					delete updates.items[detonatorKey];
+				}
+				this.players.update(playerIdIter, _ => ({ ..._, ...updates }));
+				
+				// Broadcast the inventory update to the affected player
+				this.broadcast('useItem', { 
+					playerId: playerIdIter, 
+					updates: updates, 
+					item: 'remove_detonator'
+				});
+			}
+		});
+
+		playerLog.info('Bomb disarmed successfully', { playerId, position });
+
+		// Broadcast the bomb removal
+		this.broadcast('useItem', { 
+			playerId, 
+			updates: { items: player.items }, 
+			item: 'disarm_bomb',
+			bombPosition: position 
+		});
+	}
+
+	deactivateTeleporter(playerId, position) {
+		const player = this.players.get(playerId);
+		if (!player) {
+			playerLog.warning('Player not found for teleporter deactivate', { playerId });
+			return;
+		}
+
+		const { x, y } = position;
+		const cell = this.world.grid[x]?.[y];
+		if (!cell) {
+			playerLog.warning('Invalid position for teleporter deactivate', { playerId, position });
+			return;
+		}
+
+		// Find and remove teleport station from cell
+		const teleporterIndex = cell.items.findIndex(item => item.name === 'teleport_station');
+		if (teleporterIndex === -1) {
+			playerLog.warning('No teleport station found at position', { playerId, position });
+			return;
+		}
+
+		// Remove the teleporter from the cell
+		cell.items.splice(teleporterIndex, 1);
+
+		// Remove activated teleporter from ALL players who have it
+		const teleporterKey = `activated_teleporter_${x}_${y}`;
+		this.players.forEach((playerData, playerIdIter) => {
+			if (playerData.items[teleporterKey]) {
+				const updates = { items: { ...playerData.items, [teleporterKey]: playerData.items[teleporterKey] - 1 } };
+				if (updates.items[teleporterKey] <= 0) {
+					delete updates.items[teleporterKey];
+				}
+				this.players.update(playerIdIter, _ => ({ ..._, ...updates }));
+				
+				// Broadcast the inventory update to the affected player
+				this.broadcast('useItem', { 
+					playerId: playerIdIter, 
+					updates: updates, 
+					item: 'remove_teleporter'
+				});
+			}
+		});
+
+		playerLog.info('Teleporter deactivated successfully', { playerId, position });
+
+		// Broadcast the teleporter removal
+		this.broadcast('useItem', { 
+			playerId, 
+			updates: { items: player.items }, 
+			item: 'deactivate_teleporter',
+			stationPosition: position 
+		});
 	}
 }

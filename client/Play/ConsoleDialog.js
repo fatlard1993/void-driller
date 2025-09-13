@@ -403,7 +403,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	constructor(options = {}) {
 		super({
 			header: 'Console',
-			view: localStorage.getItem('console_defaultMenu') || 'help_Briefing',
+			view: localStorage.getItem('console_defaultMenu') || 'help_Docs',
 			...options,
 		});
 	}
@@ -855,8 +855,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						append: [
 							new MineralImage(color, { displaySize: 96 }),
 							new DescriptionText({
-								summary: mineral.flavor || '',
-								description: mineral.description,
+								summary: mineral.description || '',
+								description: mineral.flavor,
 								title: mineral.name,
 							}),
 						],

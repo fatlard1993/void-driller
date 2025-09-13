@@ -4,10 +4,17 @@ import gameContext from '../../shared/gameContext';
 import Notify from '../../shared/Notify';
 import { Achievement } from '../../shared/Achievement';
 import { gridToPxPosition } from '../../../utils';
+import { checkResourceAlerts } from './player';
 
 export default data => {
 	if (data.update === 'spacecoBuyTransport') {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		
+		// Check for resource alerts after transport purchase
+		if (data.playerId === gameContext.playerId) {
+			const updatedPlayer = gameContext.players.get(data.playerId);
+			checkResourceAlerts(updatedPlayer);
+		}
 
 		// Update SpaceCo state if provided
 		if (data.spaceco) {
@@ -69,6 +76,10 @@ export default data => {
 	} else if (data.playerId === gameContext.playerId) {
 		if (data.update === 'spacecoSell') {
 			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+			
+			// Check for resource alerts after selling (cargo reduced)
+			const updatedPlayer = gameContext.players.get(data.playerId);
+			checkResourceAlerts(updatedPlayer);
 
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.gain / 10))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
@@ -94,6 +105,10 @@ export default data => {
 			if (data.playerId === gameContext.playerId) {
 				const { sprite } = gameContext.players.get(data.playerId);
 				sprite.updateStatusBars();
+				
+				// Check for resource alerts after refuel
+				const updatedPlayer = gameContext.players.get(data.playerId);
+				checkResourceAlerts(updatedPlayer);
 			}
 
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
@@ -118,6 +133,10 @@ export default data => {
 			if (data.playerId === gameContext.playerId && data.type === 'player') {
 				const { sprite } = gameContext.players.get(data.playerId);
 				sprite.updateStatusBars();
+				
+				// Check for resource alerts after repair
+				const updatedPlayer = gameContext.players.get(data.playerId);
+				checkResourceAlerts(updatedPlayer);
 			}
 
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
@@ -194,6 +213,10 @@ export default data => {
 			});
 		} else if (data.update === 'spacecoBuyItem') {
 			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+			
+			// Check for resource alerts after buying item
+			const updatedPlayer = gameContext.players.get(data.playerId);
+			checkResourceAlerts(updatedPlayer);
 
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
@@ -216,6 +239,10 @@ export default data => {
 			gameContext.spaceco.dialog.options.view = 'shop';
 		} else if (data.update === 'spacecoSellItem') {
 			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+			
+			// Check for resource alerts after selling item
+			const updatedPlayer = gameContext.players.get(data.playerId);
+			checkResourceAlerts(updatedPlayer);
 
 			// Play coin sound effects for selling (fewer sounds than buying)
 			[...Array(randInt(1, Math.min(50, Math.max(2, data.sellValue))))].forEach((_, index) =>
@@ -260,8 +287,13 @@ export default data => {
 				timeout: 2000,
 			});
 
-			// Stay on the player inventory view
+			// Stay on the player inventory view and refresh dialog to show updated counts
 			gameContext.spaceco.dialog.options.view = 'shop_Player';
+			
+			// Force dialog refresh to show updated egg submission counts
+			if (gameContext.spaceco.dialog && gameContext.spaceco.dialog.render) {
+				gameContext.spaceco.dialog.render();
+			}
 		} else if (data.update === 'spacecoBuyUpgrade') {
 			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
@@ -269,6 +301,10 @@ export default data => {
 			if (data.playerId === gameContext.playerId) {
 				const { sprite } = gameContext.players.get(data.playerId);
 				sprite.updateStatusBars();
+				
+				// Check for resource alerts after upgrade
+				const updatedPlayer = gameContext.players.get(data.playerId);
+				checkResourceAlerts(updatedPlayer);
 			}
 
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
