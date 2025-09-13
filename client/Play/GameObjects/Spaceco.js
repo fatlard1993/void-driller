@@ -18,7 +18,7 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 
 		this.setOrigin(0.5, 0.82);
 
-		this.tradeButton = scene.add.text(0, 0, 'trade', {
+		this.tradeButton = scene.add.text(0, 0, 'Trade', {
 			fontSize: '12px',
 			fontFamily: 'monospace',
 			fill: '#ffffff',

@@ -35,39 +35,39 @@ export class Achievement extends styled.Popover(
 			right: 10px;
 			max-width: calc(100vw - 20px);
 			width: auto;
-			
+
 			.heading {
 				margin: -6px 6px 6px -3px;
 			}
-			
+
 			.badge {
 				width: 48px;
 				height: 48px;
 				margin-bottom: -12px;
 			}
-			
+
 			.title {
 				font-size: 16px;
 				margin-left: 8px;
 				margin-top: 6px;
 			}
-			
+
 			.summary {
 				margin: 6px 0;
 				font-size: 0.85em;
 				padding-left: 4px;
 			}
-			
+
 			.flavor {
 				font-size: 0.85em;
 			}
-			
+
 			.rewards {
 				padding: 4px 6px;
 				margin: 6px 0 4px 0;
 				font-size: 0.85em;
 			}
-			
+
 			.signature {
 				margin-top: 4px;
 				font-size: 9px;
@@ -79,6 +79,28 @@ export class Achievement extends styled.Popover(
 
 		* {
 			pointer-events: none;
+		}
+
+		&.bounce {
+			animation: achievementBounce 0.4s ease-out;
+		}
+
+		@keyframes achievementBounce {
+			0% {
+				transform: scaleY(1) scale(1);
+			}
+			25% {
+				transform: scaleY(1) scale(1.1);
+			}
+			50% {
+				transform: scaleY(1) scale(0.95);
+			}
+			75% {
+				transform: scaleY(1) scale(1.05);
+			}
+			100% {
+				transform: scaleY(1) scale(1);
+			}
 		}
 
 		.count {
@@ -160,6 +182,12 @@ export class Achievement extends styled.Popover(
 				? `+${gameContext.achievementQueue.length}`
 				: undefined;
 
+			// Trigger bounce animation on the visible achievement
+			gameContext.visibleAchievement.elem.classList.add('bounce');
+			setTimeout(() => {
+				gameContext.visibleAchievement.elem.classList.remove('bounce');
+			}, 400);
+
 			return;
 		}
 
@@ -213,10 +241,9 @@ export class Achievement extends styled.Popover(
 			dismissAchievement();
 		});
 
-		// Auto-dismiss after 4 seconds
 		this.autoDismissTimer = setTimeout(() => {
 			dismissAchievement();
-		}, 4000);
+		}, 30*1000);
 
 		this.count = new Elem({
 			appendTo: this,

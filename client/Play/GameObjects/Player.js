@@ -2,32 +2,16 @@
 import { convertRange, theme } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
-import { engines } from '../../../constants';
 import { gridToPxPosition, getSurroundingRadius } from '../../../utils';
 import gameContext from '../../shared/gameContext';
 import TradeDialog from '../TradeDialog';
-import { useItem } from '../../api';
+import { disarmBomb, deactivateTeleporter } from '../../api';
 import { Drill } from './Drill';
-
-const iconIndex = {
-	oil: 0,
-	health: 1,
-	cargo: 2,
-	super_oxygen_liquid_nitrogen: 3,
-	battery: 4,
-};
-
-const fuelColors = {
-	oil: Phaser.Display.Color.ValueToColor(theme.colors.yellow.toRgbString()).color,
-	battery: Phaser.Display.Color.ValueToColor(theme.colors.blue.toRgbString()).color,
-	super_oxygen_liquid_nitrogen: Phaser.Display.Color.ValueToColor(theme.colors.teal.toRgbString()).color,
-};
 
 export class Player extends Drill {
 	constructor(scene, x, y, orientation, vehicle, drill, name) {
 		super(scene, x, y, orientation, vehicle, drill, name);
 
-		this.healthBarIcon = scene.add.image(0, 0, 'icons', 1);
 		this.healthBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
 		this.healthBar = scene.add.rectangle(
 			0,
@@ -37,37 +21,15 @@ export class Player extends Drill {
 			Phaser.Display.Color.ValueToColor(theme.colors.red.toRgbString()).color,
 		);
 
-		this.fuelBarIcon = scene.add.image(0, 0, 'icons', 0);
-		this.fuelBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
-		this.fuelBar = scene.add.rectangle(0, 0, 100, 3, fuelColors.oil);
-
-		this.cargoBarIcon = scene.add.image(0, 0, 'icons', 2);
-		this.cargoBarFrame = scene.add.rectangle(0, 0, 104, 7, 0x000000);
-		this.cargoBar = scene.add.rectangle(
-			0,
-			0,
-			100,
-			3,
-			Phaser.Display.Color.ValueToColor(theme.colors.dark(theme.colors.green).toRgbString()).color,
-		);
-
 		this.showStatusBars(false);
 		this.updateStatusBars({ position: { x, y } });
 
-		// Trade-related properties
 		this.tradePromptVisible = false;
 		this.tradeButton = null;
 		this.nearbyPlayersLastCheck = [];
 
-		gameContext.sceneLayers.interfaces.add(this.healthBarIcon);
 		gameContext.sceneLayers.interfaces.add(this.healthBarFrame);
 		gameContext.sceneLayers.interfaces.add(this.healthBar);
-		gameContext.sceneLayers.interfaces.add(this.fuelBarIcon);
-		gameContext.sceneLayers.interfaces.add(this.fuelBarFrame);
-		gameContext.sceneLayers.interfaces.add(this.fuelBar);
-		gameContext.sceneLayers.interfaces.add(this.cargoBarIcon);
-		gameContext.sceneLayers.interfaces.add(this.cargoBarFrame);
-		gameContext.sceneLayers.interfaces.add(this.cargoBar);
 
 		this.move({ x, y }, 0, orientation);
 
@@ -77,15 +39,8 @@ export class Player extends Drill {
 	showStatusBars(show = true) {
 		this.nameTag.visible = false;
 
-		this.healthBarIcon.visible = show;
 		this.healthBarFrame.visible = show;
 		this.healthBar.visible = show;
-		this.fuelBarIcon.visible = show;
-		this.fuelBarFrame.visible = show;
-		this.fuelBar.visible = show;
-		this.cargoBarIcon.visible = show;
-		this.cargoBarFrame.visible = show;
-		this.cargoBar.visible = show;
 	}
 
 	updateStatusBars({ position, speed = 0 } = {}) {
@@ -93,14 +48,6 @@ export class Player extends Drill {
 
 		if (player) {
 			this.healthBar.width = convertRange(player.health, [0, player.maxHealth], [1, 100]);
-			this.fuelBar.width = convertRange(player.fuel, [0, player.maxFuel], [1, 100]);
-			this.cargoBar.width = convertRange(player.cargo, [0, player.maxCargo], [1, 100]);
-
-			const engineConfig = engines[player.configuration.engine];
-
-			this.fuelBarIcon.setTexture('icons', iconIndex[engineConfig.fuelType]);
-			this.fuelBarIcon.setScale(engineConfig.fuelType === 'oil' ? 0.8 : 1);
-			this.fuelBar.fillColor = fuelColors[engineConfig.fuelType];
 		}
 
 		this.showStatusBars(!!player);
@@ -113,46 +60,12 @@ export class Player extends Drill {
 			if (this.healthBar.visible) {
 				this.scene.tweens.add({ targets: this.healthBar, duration: speed, x: x, y: y - 40 });
 				this.scene.tweens.add({ targets: this.healthBarFrame, duration: speed, x: x, y: y - 40 });
-				this.scene.tweens.add({ targets: this.healthBarIcon, duration: speed, x: x - 70, y: y - 40 });
 			} else {
-				this.healthBarIcon.x = x - 70;
-				this.healthBarIcon.y = y - 40;
-
 				this.healthBar.x = x;
 				this.healthBar.y = y - 40;
 
 				this.healthBarFrame.x = x;
 				this.healthBarFrame.y = y - 40;
-			}
-
-			if (this.fuelBar.visible) {
-				this.scene.tweens.add({ targets: this.fuelBar, duration: speed, x, y: y - 50 });
-				this.scene.tweens.add({ targets: this.fuelBarFrame, duration: speed, x, y: y - 50 });
-				this.scene.tweens.add({ targets: this.fuelBarIcon, duration: speed, x: x + 60, y: y - 50 });
-			} else {
-				this.fuelBarIcon.x = x + 60;
-				this.fuelBarIcon.y = y - 50;
-
-				this.fuelBar.x = x;
-				this.fuelBar.y = y - 50;
-
-				this.fuelBarFrame.x = x;
-				this.fuelBarFrame.y = y - 50;
-			}
-
-			if (this.cargoBar.visible) {
-				this.scene.tweens.add({ targets: this.cargoBar, duration: speed, x, y: y - 60 });
-				this.scene.tweens.add({ targets: this.cargoBarFrame, duration: speed, x, y: y - 60 });
-				this.scene.tweens.add({ targets: this.cargoBarIcon, duration: speed, x: x - 70, y: y - 60 });
-			} else {
-				this.cargoBarIcon.x = x - 70;
-				this.cargoBarIcon.y = y - 60;
-
-				this.cargoBar.x = x;
-				this.cargoBar.y = y - 60;
-
-				this.cargoBarFrame.x = x;
-				this.cargoBarFrame.y = y - 60;
 			}
 		}
 	}
@@ -204,23 +117,25 @@ export class Player extends Drill {
 		// Clean up any existing trade button
 		this.hideTradePrompt();
 
-		this.tradeButton = this.scene.add.text(0, 0, '[trade]', {
-			fontSize: '14px',
+		this.tradeButton = this.scene.add.text(0, 0, 'Trade', {
+			fontSize: '12px',
+			fontFamily: 'monospace',
 			fill: '#ffffff',
-			backgroundColor: 'rgba(0, 0, 0, 0.7)',
-			padding: { x: 6, y: 3 },
+			backgroundColor: 'hsl(209, 55%, 45%)',
+			padding: { x: 8, y: 4 },
 		});
 
-		this.tradeButton.preFX.addShadow(0, 0, 0.06, 0.75, 0x00aaff, 4, 0.8);
 		this.tradeButton.setInteractive({ cursor: 'pointer' });
 
 		this.tradeButton.on('pointerover', () => {
 			if (gameContext.cursor) gameContext.cursor.visible = false;
-			this.tradeButton.setTint(0x00aaff);
+			// Simulate button hover effect with slight position shift
+			this.tradeButton.y = this.tradeButton.y - 1;
 		});
 
 		this.tradeButton.on('pointerout', () => {
-			this.tradeButton.setTint(0xffffff);
+			// Reset button position
+			this.tradeButton.y = this.tradeButton.y + 1;
 		});
 
 		this.tradeButton.on('pointerdown', () => {
@@ -234,6 +149,12 @@ export class Player extends Drill {
 		this.updateTradePromptPosition();
 		this.tradePromptVisible = true;
 		gameContext.sceneLayers.interfaces.add(this.tradeButton);
+
+		// Apply standard button shadow effects after adding to scene
+		this.tradeButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.tradeButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.tradeButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.tradeButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
 
 		// Play notification sound
 		gameContext.sounds.blip?.play({ volume: gameContext.volume.interfaces });
@@ -323,59 +244,71 @@ export class Player extends Drill {
 	}
 
 	showBombPrompt(position) {
-		const player = gameContext.players.currentPlayer;
-		const detonatorKey = `detonator_${position.x}_${position.y}`;
+		if (this.bombButton) return;
 
-		// Only show prompt if player has the detonator and we don't already have a button
-		if (player.items[detonatorKey] > 0 && !this.bombButton) {
-			const pixelPos = gridToPxPosition(position);
+		const pixelPos = gridToPxPosition(position);
 
-			this.bombButton = this.scene.add.text(pixelPos.x - 33, pixelPos.y - 80, '[detonate]');
-			this.bombButton.preFX.addShadow(0, 0, 0.06, 0.75, 0xff4444, 4, 0.8);
-			this.bombButton.setInteractive({ cursor: 'pointer' });
+		this.bombButton = this.scene.add.text(pixelPos.x - 33, pixelPos.y - 80, 'Disarm', {
+			fontSize: '12px',
+			fontFamily: 'monospace',
+			fill: '#ffffff',
+			backgroundColor: 'hsl(209, 55%, 45%)',
+			padding: { x: 8, y: 4 },
+		});
 
-			this.bombButton.on('pointerover', () => {
-				gameContext.cursor.visible = false;
-				this.bombButton.setTint(0xff4444);
-			});
-			this.bombButton.on('pointerout', () => {
-				this.bombButton.setTint(0xffffff);
-			});
-			this.bombButton.on('pointerdown', () => {
-				useItem({ item: detonatorKey });
-				this.hideItemPrompts();
-			});
+		this.bombButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.bombButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.bombButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.bombButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
+		this.bombButton.setInteractive({ cursor: 'pointer' });
 
-			gameContext.sounds.alert.play({ volume: gameContext.volume.alerts });
-		}
+		this.bombButton.on('pointerover', () => {
+			gameContext.cursor.visible = false;
+			this.bombButton.y = this.bombButton.y - 1;
+		});
+		this.bombButton.on('pointerout', () => {
+			this.bombButton.y = this.bombButton.y + 1;
+		});
+		this.bombButton.on('pointerdown', () => {
+			disarmBomb({ x: position.x, y: position.y });
+			this.hideItemPrompts();
+		});
+
+		gameContext.sounds.alert.play({ volume: gameContext.volume.alerts });
 	}
 
 	showTeleportPrompt(position) {
-		const player = gameContext.players.currentPlayer;
-		const teleporterKey = `activated_teleporter_${position.x}_${position.y}`;
+		if (this.teleportButton) return;
 
-		// Only show prompt if player has the teleporter remote and we don't already have a button
-		if (player.items[teleporterKey] > 0 && !this.teleportButton) {
-			const pixelPos = gridToPxPosition(position);
+		const pixelPos = gridToPxPosition(position);
 
-			this.teleportButton = this.scene.add.text(pixelPos.x - 33, pixelPos.y - 80, '[teleport]');
-			this.teleportButton.preFX.addShadow(0, 0, 0.06, 0.75, 0x44ff44, 4, 0.8);
-			this.teleportButton.setInteractive({ cursor: 'pointer' });
+		this.teleportButton = this.scene.add.text(pixelPos.x - 33, pixelPos.y - 80, 'Deactivate', {
+			fontSize: '12px',
+			fontFamily: 'monospace',
+			fill: '#ffffff',
+			backgroundColor: 'hsl(209, 55%, 45%)',
+			padding: { x: 8, y: 4 },
+		});
 
-			this.teleportButton.on('pointerover', () => {
-				gameContext.cursor.visible = false;
-				this.teleportButton.setTint(0x44ff44);
-			});
-			this.teleportButton.on('pointerout', () => {
-				this.teleportButton.setTint(0xffffff);
-			});
-			this.teleportButton.on('pointerdown', () => {
-				useItem({ item: teleporterKey });
-				this.hideItemPrompts();
-			});
+		this.teleportButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.teleportButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.teleportButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.teleportButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
+		this.teleportButton.setInteractive({ cursor: 'pointer' });
 
-			gameContext.sounds.alert.play({ volume: gameContext.volume.alerts });
-		}
+		this.teleportButton.on('pointerover', () => {
+			gameContext.cursor.visible = false;
+			this.teleportButton.y = this.teleportButton.y - 1;
+		});
+		this.teleportButton.on('pointerout', () => {
+			this.teleportButton.y = this.teleportButton.y + 1;
+		});
+		this.teleportButton.on('pointerdown', () => {
+			deactivateTeleporter({ x: position.x, y: position.y });
+			this.hideItemPrompts();
+		});
+
+		gameContext.sounds.alert.play({ volume: gameContext.volume.alerts });
 	}
 
 	hideItemPrompts() {

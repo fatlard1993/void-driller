@@ -625,6 +625,50 @@ const _game = async (request, server) => {
 			);
 		}
 	}
+
+	match = requestMatch('POST', '/games/:gameId/:playerId/disarm-bomb', request);
+	if (match) {
+		const { gameId, playerId, error } = validateGameMatch(match, server, request);
+		if (error) return error;
+
+		const { body, error: parseError } = await parseRequestBody(request);
+		if (parseError) return parseError;
+
+		const { x, y } = body;
+		if (x === undefined || y === undefined) {
+			return Response.json({ message: 'Position coordinates (x, y) are required' }, { status: 400 });
+		}
+
+		try {
+			server.games[gameId].disarmBomb(playerId, { x, y });
+			return Response.json({}, { status: 200 });
+		} catch (disarmError) {
+			gameLog.error('Bomb disarm error', { playerId, gameId, position: { x, y }, error: disarmError.message });
+			return Response.json({ message: 'Bomb disarm system error. Please try again.' }, { status: 500 });
+		}
+	}
+
+	match = requestMatch('POST', '/games/:gameId/:playerId/deactivate-teleporter', request);
+	if (match) {
+		const { gameId, playerId, error } = validateGameMatch(match, server, request);
+		if (error) return error;
+
+		const { body, error: parseError } = await parseRequestBody(request);
+		if (parseError) return parseError;
+
+		const { x, y } = body;
+		if (x === undefined || y === undefined) {
+			return Response.json({ message: 'Position coordinates (x, y) are required' }, { status: 400 });
+		}
+
+		try {
+			server.games[gameId].deactivateTeleporter(playerId, { x, y });
+			return Response.json({}, { status: 200 });
+		} catch (deactivateError) {
+			gameLog.error('Teleporter deactivate error', { playerId, gameId, position: { x, y }, error: deactivateError.message });
+			return Response.json({ message: 'Teleporter deactivate system error. Please try again.' }, { status: 500 });
+		}
+	}
 };
 
 export default _game;

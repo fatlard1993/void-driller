@@ -4,6 +4,9 @@ import { explode, implode } from '../effects';
 import { Gas, Lava } from '../GameObjects';
 import { createAlien } from '../GameObjects/aliens';
 
+// Import the alert checking function from player.js
+import { checkResourceAlerts } from './player';
+
 // Note: This file has extensive direct grid manipulations that need
 // refactored to use safe update patterns, but due to their complexity,
 // we rely on server-side validation to prevent corruption instead.
@@ -112,6 +115,10 @@ export default data => {
 				...data.playerUpdates,
 				hull: { ..._.hull, ...(data.playerUpdates?.hull || {}) },
 			}));
+			
+			// Check for resource alerts after alien attack damage
+			const updatedPlayer = gameContext.players.get(data.playerId);
+			checkResourceAlerts(updatedPlayer);
 		}
 	} else if (data.update === 'alien_message') {
 		if (data.targetPlayerId === gameContext.playerId) {

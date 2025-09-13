@@ -26,6 +26,11 @@ export const checkForNearbyPlayerTrade = () => {
 		// Show trade UI for the closest player
 		const targetPlayer = nearbyPlayers[0]; // Take first nearby player
 
+		// Additional safety check to prevent self-trade
+		if (targetPlayer.id === currentPlayer.id) {
+			return;
+		}
+
 		if (gameContext.openDialog?.elem?.open) {
 			gameContext.openDialog.close();
 		}
@@ -39,6 +44,11 @@ export const checkForNearbyPlayerTrade = () => {
 // Add this function to handle trade interactions
 export const handleTradeInteraction = targetPlayer => {
 	const currentPlayer = gameContext.players.currentPlayer;
+
+	// Prevent trading with yourself
+	if (!targetPlayer || targetPlayer.id === currentPlayer.id) {
+		return;
+	}
 
 	// Check if players are adjacent
 	const distance =

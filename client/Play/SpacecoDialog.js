@@ -166,6 +166,7 @@ class UpgradeStat extends (styled.Component`
 	justify-content: space-between;
 	align-items: center;
 	width: 100%;
+	margin: 2px 0;
 `) {
 	render() {
 		super.render();
@@ -176,7 +177,7 @@ class UpgradeStat extends (styled.Component`
 		// Skip rendering if value is 0/undefined and there's no meaningful change
 		if (isNumber ? this.options.value === 0 && !diff : this.options.value === undefined) return;
 
-		new Elem({ appendTo: this, content: this.options.label, style: { flex: 1 } });
+		new Elem({ appendTo: this, content: this.options.label, style: { flex: 1, textAlign: 'left' } });
 
 		// Handle negative values (stat removal) differently
 		if (this.options.value < 0) {
@@ -188,16 +189,19 @@ class UpgradeStat extends (styled.Component`
 		} else {
 			new Elem({
 				appendTo: this,
-				content: `${isNumber && this.options.value > 0 ? '+' : ''}${this.options.value}`,
+				content: `${isNumber && this.options.value > 0 && diff !== 0 ? '+' : ''}${this.options.value}`,
 			});
 		}
 
 		// Show the net change if there's a current value to compare against
-		if (isNumber && diff !== 0 && this.options.current !== 0) {
+		if (isNumber && this.options.current !== 0) {
 			new Component({
 				appendTo: this,
-				content: diff === 0 ? '==' : `${diff > 0 ? '+' : ''}${diff}`,
-				styles: ({ colors }) => ({ color: colors[diff >= 0 ? 'green' : 'red'], marginLeft: '6px' }),
+				content: diff === 0 ? '+0' : `${diff > 0 ? '+' : ''}${diff}`,
+				styles: ({ colors }) => ({
+					color: diff === 0 ? colors.yellow : colors[diff >= 0 ? 'green' : 'red'],
+					marginLeft: '6px'
+				}),
 			});
 		}
 	}
@@ -532,7 +536,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					},
 					append: [
 						new Elem({
-							content: '🥚 Endgame Hunt Progress',
+							content: 'Progress',
 							style: {
 								color: theme.colors.purple,
 								fontWeight: 'bold',
@@ -568,7 +572,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		new Button({
 			content: `Full Repair ($${spacecoRepairCost})`,
 			appendTo: this._body,
-			onPointerPress: () => spacecoRepair({ type: 'outpost' }),
+			onPointerPress: () => spacecoRepair({ amount: 9 - gameContext.serverState.world.spaceco.health, type: 'outpost' }),
 			disabled: spacecoRepairCost > player.credits,
 		});
 	}
@@ -1060,6 +1064,15 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										fontSize: '13px',
 									},
 								}),
+							missingRequirements &&
+								new Icon({
+									icon: 'triangle-exclamation',
+									textContent: '-Insufficient torque-',
+									style: {
+										color: theme.colors.red,
+										fontSize: '13px',
+									},
+								}),
 						],
 					}),
 					footerButtons: true,
@@ -1269,7 +1282,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				textContent: `Full Repair ($${cost.toFixed(2)})`,
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: playerRepairs,
-				onPointerPress: () => spacecoRepair({ type: 'player' }),
+				onPointerPress: () => spacecoRepair({ amount: neededHealth, type: 'player' }),
 				disabled: cost > player.credits,
 				style: {
 					backgroundColor: cost <= player.credits ? '' : theme.colors.darkest(theme.colors.red),
@@ -1282,11 +1295,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		} else {
 			const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
 
+			const neededSpacecoHealth = 9 - gameContext.serverState.world.spaceco.health;
 			new Button({
 				textContent: `Full Repair ($${spacecoRepairCost})`,
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: spacecoRepairs,
-				onPointerPress: () => spacecoRepair({ type: 'outpost' }),
+				onPointerPress: () => spacecoRepair({ amount: neededSpacecoHealth, type: 'outpost' }),
 				disabled: spacecoRepairCost > player.credits,
 			});
 		}
@@ -1412,7 +1426,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								style: {
 									backgroundColor: canPurchase ? '' : theme.colors.darkest(theme.colors.red),
 								},
-								onPointerPress: () => spacecoBuyItem({ item: key }),
+								onPointerPress: () => spacecoBuyItem({ item: key, count: 1 }),
 								disabled: !canPurchase,
 							}),
 						],
@@ -1511,7 +1525,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										textAlign: 'center',
 										fontStyle: 'italic',
 									},
-									content: 'Endgame Hunt Progress',
+									content: 'Progress',
 								}),
 								new Elem({
 									style: {

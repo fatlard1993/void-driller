@@ -56,6 +56,7 @@ export class Card extends Component {
 					style: {
 						flex: '1',
 						textAlign: 'center',
+						width: '100%',
 					},
 				}),
 			);

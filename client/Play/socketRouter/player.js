@@ -3,6 +3,75 @@ import gameContext from '../../shared/gameContext';
 import { destroyGround } from '../effects';
 import { Drill, Item } from '../GameObjects';
 import { Achievement } from '../../shared/Achievement';
+import Notify from '../../shared/Notify';
+
+// Check player resource levels against alert thresholds
+export function checkResourceAlerts(player) {
+	if (!player || player.id !== gameContext.playerId) return;
+
+	const alerts = gameContext.alert;
+	const dismissed = gameContext.dismissedAlerts;
+
+	// Check fuel level
+	if (player.fuel && player.maxFuel) {
+		const fuelRatio = player.fuel / player.maxFuel;
+		if (fuelRatio <= alerts.fuel && !dismissed.fuel) {
+			gameContext.sounds.alert?.play({ volume: gameContext.volume.alerts });
+			gameContext.dismissedAlerts.fuel = true;
+
+			// Show visual alert positioned near center, avoiding player UI
+			new Notify({
+				type: 'error',
+				content: `FUEL LOW: ${(fuelRatio * 100).toFixed(1)}%`,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2 - 140,
+				timeout: 30 * 1000,
+			});
+		} else if (fuelRatio > alerts.fuel) {
+			gameContext.dismissedAlerts.fuel = false;
+		}
+	}
+
+	// Check health level
+	if (player.health && player.maxHealth) {
+		const healthRatio = player.health / player.maxHealth;
+		if (healthRatio <= alerts.health && !dismissed.health) {
+			gameContext.sounds.alert?.play({ volume: gameContext.volume.alerts });
+			gameContext.dismissedAlerts.health = true;
+
+			// Show visual alert positioned near center, stacked above fuel alerts
+			new Notify({
+				type: 'error',
+				content: `HEALTH CRITICAL: ${(healthRatio * 100).toFixed(1)}%`,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2 - 180,
+				timeout: 30 * 1000,
+			});
+		} else if (healthRatio > alerts.health) {
+			gameContext.dismissedAlerts.health = false;
+		}
+	}
+
+	// Check cargo level
+	if (player.cargo && player.maxCargo) {
+		const cargoRatio = player.cargo / player.maxCargo;
+		if (cargoRatio >= 1 - alerts.cargo && !dismissed.cargo) {
+			gameContext.sounds.alert?.play({ volume: gameContext.volume.alerts });
+			gameContext.dismissedAlerts.cargo = true;
+
+			// Show visual alert positioned near center, stacked below fuel alerts
+			new Notify({
+				type: 'error',
+				content: `CARGO: ${(cargoRatio * 100).toFixed(1)}%`,
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2 - 80,
+				timeout: 30 * 1000,
+			});
+		} else if (cargoRatio < alerts.cargo) {
+			gameContext.dismissedAlerts.cargo = false;
+		}
+	}
+}
 
 export default data => {
 	if (data.update === 'playerMove') {
@@ -36,6 +105,9 @@ export default data => {
 
 		player.sprite.move(player.position, 500, player.orientation);
 
+		// Check for resource alerts after player movement
+		checkResourceAlerts(player);
+
 		gameContext.serverState.world.grid[player.position.x][player.position.y].ground = {};
 		gameContext.serverState.world.grid[player.position.x][player.position.y].items = [];
 	} else if (data.update === 'addPlayer') {
@@ -65,6 +137,10 @@ export default data => {
 
 				sprite.updateStatusBars();
 
+				// Check for health alerts after taking damage
+				const updatedPlayer = gameContext.players.get(player.id);
+				checkResourceAlerts(updatedPlayer);
+
 				gameContext.scene.sound.play('hurt', {
 					volume: convertRange(data.damage, [0, 3], [0, gameContext.volume.effects]),
 				});
@@ -73,6 +149,10 @@ export default data => {
 	} else if (data.update === 'useItem') {
 		console.log('useItem', data);
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		// Check for resource alerts after using items (fuel, health items, etc.)
+		const updatedPlayer = gameContext.players.get(data.playerId);
+		checkResourceAlerts(updatedPlayer);
 
 		if (data.item === 'spaceco_teleporter' || data.item.startsWith('activated_teleporter')) {
 			gameContext.players.get(data.playerId).sprite.teleport(data.updates.position, 1000);
@@ -117,6 +197,10 @@ export default data => {
 	} else if (data.update === 'updatePlayer') {
 		console.log('sync player', data);
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		// Check for resource alerts after player update
+		const updatedPlayer = gameContext.players.get(data.playerId);
+		checkResourceAlerts(updatedPlayer);
 	} else if (data.update === 'playerMovementComplete') {
 		console.log('playerMovementComplete', data);
 		gameContext.players.update(data.playerId, _ => ({
@@ -125,6 +209,10 @@ export default data => {
 			_movingStartTime: null,
 			_stuckClickCount: 0,
 		}));
+
+		// Check for resource alerts after movement completion (fuel consumption)
+		const player = gameContext.players.get(data.playerId);
+		checkResourceAlerts(player);
 	} else if (data.update === 'playerCantMove') {
 		console.log('playerCantMove', data);
 		gameContext.players.update(data.playerId, _ => ({
