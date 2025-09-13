@@ -572,7 +572,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		new Button({
 			content: `Full Repair ($${spacecoRepairCost})`,
 			appendTo: this._body,
-			onPointerPress: () => spacecoRepair({ amount: 9 - gameContext.serverState.world.spaceco.health, type: 'outpost' }),
+			onPointerPress: () => spacecoRepair({ type: 'outpost' }),
 			disabled: spacecoRepairCost > player.credits,
 		});
 	}
@@ -1282,7 +1282,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				textContent: `Full Repair ($${cost.toFixed(2)})`,
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: playerRepairs,
-				onPointerPress: () => spacecoRepair({ amount: neededHealth, type: 'player' }),
+				onPointerPress: () => spacecoRepair({ type: 'player' }),
 				disabled: cost > player.credits,
 				style: {
 					backgroundColor: cost <= player.credits ? '' : theme.colors.darkest(theme.colors.red),
@@ -1295,12 +1295,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		} else {
 			const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
 
-			const neededSpacecoHealth = 9 - gameContext.serverState.world.spaceco.health;
 			new Button({
 				textContent: `Full Repair ($${spacecoRepairCost})`,
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: spacecoRepairs,
-				onPointerPress: () => spacecoRepair({ amount: neededSpacecoHealth, type: 'outpost' }),
+				onPointerPress: () => spacecoRepair({ type: 'outpost' }),
 				disabled: spacecoRepairCost > player.credits,
 			});
 		}
