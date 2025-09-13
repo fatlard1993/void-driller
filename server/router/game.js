@@ -187,7 +187,7 @@ const _game = async (request, server) => {
 		if (parseError) return parseError;
 
 		const { amount, type } = body;
-		if (typeof amount !== 'number' || amount <= 0) {
+		if (amount !== undefined && (typeof amount !== 'number' || amount <= 0)) {
 			return Response.json({ message: 'Invalid repair amount specified' }, { status: 400 });
 		}
 		if (!type || (type !== 'player' && type !== 'outpost')) {
