@@ -18,19 +18,31 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 
 		this.setOrigin(0.5, 0.82);
 
-		this.tradeButton = scene.add.text(0, 0, '[trade]');
+		this.tradeButton = scene.add.text(0, 0, 'trade', {
+			fontSize: '12px',
+			fontFamily: 'monospace',
+			fill: '#ffffff',
+			backgroundColor: 'hsl(209, 55%, 45%)',
+			padding: { x: 8, y: 4 }
+		});
 
-		this.tradeButton.preFX.addShadow(0, 0, 0.06, 0.75, 0x00ff00, 4, 0.8);
+		// Apply standard button shadow effects to match vanilla-bean-components
+		this.tradeButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.tradeButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.tradeButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
+		this.tradeButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
 		this.tradeButton.visible = false;
 
 		this.tradeButton.setInteractive({ draggable: false, cursor: 'pointer' });
 
 		this.tradeButton.on('pointerover', () => {
 			gameContext.cursor.visible = false;
-			this.tradeButton.setTint(0x00ff00);
+			// Simulate button hover effect with slight position shift
+			this.tradeButton.y = this.tradeButton.y - 1;
 		});
 		this.tradeButton.on('pointerout', () => {
-			this.tradeButton.setTint(0xffffff);
+			// Reset button position
+			this.tradeButton.y = this.tradeButton.y + 1;
 		});
 		this.tradeButton.on('pointerdown', () => {
 			if (!gameContext.openDialog?.elem?.open && !gameContext.openDialog?.elem?.getAnimations?.()?.length) {
@@ -190,8 +202,10 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 	showPrompt() {
 		if (this.tradeButton.visible) return;
 
-		this.tradeButton.x = this.x - 33;
+		// Center the corporate trade button above the SpaceCo outpost
+		this.tradeButton.x = this.x;
 		this.tradeButton.y = this.y - 160;
+		this.tradeButton.setOrigin(0.5, 0.5); // Center the text
 
 		this.tradeButton.visible = true;
 
