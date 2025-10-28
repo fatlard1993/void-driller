@@ -42,6 +42,10 @@ export default class Game extends (styled.Component`
 				scene: GameScene,
 				transparent: true, // Transparent to show page background (stars)
 				backgroundColor: 'rgba(0,0,0,0)', // Transparent background
+				audio: {
+					disableWebAudio: false,
+					noAudio: false,
+				},
 			});
 
 			setTimeout(() => {
@@ -61,6 +65,16 @@ export default class Game extends (styled.Component`
 					}
 				}
 				gameContext.scene = gameContext.game.scene.scenes[0];
+
+				const resumeAudio = () => {
+					if (gameContext.scene?.sound?.context) {
+						gameContext.scene.sound.context.resume();
+					}
+					document.removeEventListener('pointerdown', resumeAudio);
+					document.removeEventListener('keydown', resumeAudio);
+				};
+				document.addEventListener('pointerdown', resumeAudio);
+				document.addEventListener('keydown', resumeAudio);
 
 				setTimeout(() => {
 					this.render();

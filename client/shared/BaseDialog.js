@@ -17,8 +17,8 @@ export default class BaseDialog extends Dialog {
 		// Default configuration for all game dialogs
 		const defaultConfig = {
 			style: {
-				width: 'clamp(420px, 80vw, 1700px)',
-				height: 'clamp(420px, 60vh, 1200px)',
+				width: 'clamp(420px, 90vw, 1700px)',
+				height: 'clamp(420px, 72vh, 1200px)',
 			},
 			buttons: ['Close'],
 			onButtonPress: () => {

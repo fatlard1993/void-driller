@@ -1,13 +1,22 @@
-import { configured } from 'vanilla-bean-components';
+import { configured, Link } from 'vanilla-bean-components';
 
 import { Hub } from '../byod-web-game/client/GameRoom';
 import { ConsoleContainer } from './shared/ConsoleContainer';
+
+const devButton = window.DEV_MODE
+	? new Link({
+			textContent: '> Dev Console',
+			href: '#/dev',
+			variant: 'button',
+		})
+	: null;
 
 export default configured(Hub, {
 	toolbar: {
 		heading: 'SpaceCo // Mission Control',
 		createText: 'New Contract',
 		createHref: '#/create',
+		...(devButton && { left: [devButton] }),
 	},
 	buttons: {
 		linkText: 'Link',

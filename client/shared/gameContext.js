@@ -11,7 +11,7 @@ gameContext.volume = {
 	effects: 0.2,
 	...JSON.parse(localStorage.getItem('volume')),
 };
-gameContext.alert = { fuel: 0.2, health: 0.2, cargo: 0.2, ...JSON.parse(localStorage.getItem('alert')) };
+gameContext.alert = { fuel: 0.33, health: 0.33, cargo: 0.33, ...JSON.parse(localStorage.getItem('alert')) };
 gameContext.briefings = { ...JSON.parse(localStorage.getItem('briefings')) };
 gameContext.dismissedAlerts = {};
 gameContext.scale = JSON.parse(localStorage.getItem('scale')) || 1.0;

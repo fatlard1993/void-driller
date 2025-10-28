@@ -1,4 +1,4 @@
-# THERMAL BREACH B
+# THERMAL BREACH
 
 **Alternate Site Assessment: L9B | Secondary Extraction Zone #0445-TBB**
 

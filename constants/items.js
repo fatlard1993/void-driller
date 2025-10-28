@@ -64,6 +64,20 @@ export const items = {
 		description: 'Remote detonation system. Enhanced signal clarity following recent communication upgrades.',
 	},
 
+	detonator: {
+		spriteIndex: 2,
+		price: 0,
+		summary: 'Remote explosive detonator.',
+		description: 'Remote control device for triggering placed explosive charges. Use to detonate.',
+	},
+
+	void_detonator: {
+		spriteIndex: 2,
+		price: 0,
+		summary: 'Void implosion detonator.',
+		description: 'Advanced detonation device for void implosion charges. Triggers dimensional compression on use.',
+	},
+
 	spaceco_teleport_station: {
 		spriteIndex: 4,
 		price: 180,
@@ -74,7 +88,7 @@ export const items = {
 
 	teleport_station: {
 		spriteIndex: 5,
-		price: 0, // Not directly sellable
+		price: 0,
 		summary: 'Deployed teleportation station.',
 		description: 'Deployed teleportation beacon. Provides instantaneous transport when activated remotely.',
 	},

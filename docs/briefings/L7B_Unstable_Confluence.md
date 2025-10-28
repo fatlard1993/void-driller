@@ -1,4 +1,4 @@
-# UNSTABLE CONFLUENCE B
+# UNSTABLE CONFLUENCE
 
 **Alternate Site Assessment: L7B | Secondary Extraction Zone #0267-UCB**
 

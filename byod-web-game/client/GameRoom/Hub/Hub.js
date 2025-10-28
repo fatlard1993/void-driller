@@ -18,6 +18,7 @@ export default class Hub extends View {
 				...options,
 				toolbar: {
 					heading: options.toolbar?.heading || 'Game Hub',
+					left: options.toolbar?.left || [],
 					right: [
 						new Link({
 							textContent: options.toolbar?.createText || 'New Game',

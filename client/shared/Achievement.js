@@ -116,8 +116,30 @@ export class Achievement extends styled.Popover(
 			}
 		}
 
+		.rewards-section {
+			position: absolute;
+			top: 12px;
+			right: 30px;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			align-items: flex-end;
+		}
+
+		.reward-item {
+			background: ${colors.green};
+			color: ${colors.white};
+			padding: 4px 10px;
+			border-radius: 4px;
+			font-size: 13px;
+			font-weight: bold;
+			white-space: nowrap;
+		}
+
 		.heading {
 			margin: -12px 9px 9px -6px;
+			display: flex;
+			align-items: flex-start;
 		}
 
 		.badge {
@@ -126,6 +148,7 @@ export class Achievement extends styled.Popover(
 			width: 64px;
 			height: 64px;
 			margin-bottom: -18px;
+			flex-shrink: 0;
 		}
 
 		.title {
@@ -134,11 +157,13 @@ export class Achievement extends styled.Popover(
 			font-size: 18px;
 			margin-left: 12px;
 			margin-top: 9px;
+			padding-right: 120px;
+			flex: 1;
 		}
 
 		.summary {
-			color: ${colors.lighter(colors.gray)};
-			border-left: 3px solid;
+			color: ${colors.lighter(colors.green)};
+			border-left: 3px solid ${colors.green};
 			padding-left: 6px;
 			margin: 9px 0;
 			word-wrap: break-word;
@@ -153,17 +178,6 @@ export class Achievement extends styled.Popover(
 			&:after {
 				content: '"';
 			}
-		}
-
-		.rewards {
-			background: ${colors.darker(colors.green).setAlpha(0.2)};
-			border: 1px solid ${colors.green.setAlpha(0.4)};
-			border-radius: 3px;
-			padding: 6px 9px;
-			margin: 9px 0 6px 0;
-			color: ${colors.lighter(colors.green)};
-			font-weight: bold;
-			font-size: 0.9em;
 		}
 
 		.signature {
@@ -257,13 +271,36 @@ export class Achievement extends styled.Popover(
 
 		this.heading = new Elem({ appendTo: this, className: 'heading' }, this.badge, this.title);
 
-		this.summary = new Elem({ appendTo: this, className: 'summary', textContent: this.options.achievement.summary });
+		// Create rewards section in top-right corner
+		const awards = this.options.achievement.awards;
+		if (awards && awards.length > 0) {
+			const rewardItems = awards
+				.filter(award => Array.isArray(award))
+				.map(([type, amount]) => {
+					let text;
+					switch (type) {
+						case 'xp':
+							text = `+${amount} GMS`;
+							break;
+						case 'credits':
+							text = `+$${amount}`;
+							break;
+						default:
+							text = `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`;
+					}
+					return new Elem({ className: 'reward-item', textContent: text });
+				});
 
-		// Add rewards display if achievement has awards
-		const rewardsText = formatNotificationAchievementRewards(this.options.achievement.awards);
-		if (rewardsText) {
-			this.rewards = new Elem({ appendTo: this, className: 'rewards', textContent: rewardsText });
+			if (rewardItems.length > 0) {
+				this.rewardsSection = new Elem({
+					appendTo: this,
+					className: 'rewards-section',
+					append: rewardItems,
+				});
+			}
 		}
+
+		this.summary = new Elem({ appendTo: this, className: 'summary', textContent: this.options.achievement.summary });
 
 		this.flavor = new Elem({ appendTo: this, className: 'flavor', textContent: this.options.achievement.flavor });
 

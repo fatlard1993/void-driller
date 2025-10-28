@@ -229,6 +229,13 @@ export default data => {
 			_movingStartTime: null,
 			_stuckClickCount: 0,
 		}));
+
+		// Show rescue dialog if stranded due to no fuel
+		if (data.reason === 'no_fuel' && data.playerId === gameContext.playerId) {
+			import('../RescueDialog.js').then(module => {
+				gameContext.openDialog = new module.default();
+			});
+		}
 	} else if (data.update === 'playerMovementError') {
 		console.log('playerMovementError', data);
 		gameContext.players.update(data.playerId, _ => ({

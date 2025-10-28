@@ -4,6 +4,7 @@ import requestMatch from '../../byod-web-game/server/requestMatch';
 import byodWebGameRoutes from '../../byod-web-game/server/router';
 import { serverLog } from '../../utils/logger.js';
 
+import devToolsRoutes from './devTools';
 import gameRoutes from './game';
 import staticRoutes from './static';
 
@@ -78,7 +79,12 @@ const router = server => async request => {
 		match = requestMatch('GET', '/', request);
 		if (match) {
 			const file = Bun.file('client/build/index.html');
-			const content = await file.text();
+			let content = await file.text();
+
+			// Inject DEV_MODE flag in development
+			const devModeScript = `<script>window.DEV_MODE = ${process.env.NODE_ENV === 'development'};</script>`;
+			content = content.replace('</head>', `${devModeScript}</head>`);
+
 			return new Response(content, {
 				headers: {
 					'Content-Type': 'text/html',
@@ -100,6 +106,9 @@ const router = server => async request => {
 		}
 
 		response = await byodWebGameRoutes(request, server);
+		if (response) return response;
+
+		response = await devToolsRoutes(request, server);
 		if (response) return response;
 
 		response = await gameRoutes(request, server);

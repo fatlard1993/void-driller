@@ -2,23 +2,19 @@
 
 **Enhanced Operations Directive: L6 | Geological Anomaly Protocol #0267-AA**
 
-Your operational performance in Ethereal Depths has been reviewed by our expanded oversight committee, contractor.
+Your operational performance in Ethereal Depths has been reviewed by our expanded oversight committee.
 
 Multiple departmental assessments and enhanced psychological evaluations have been forwarded to appropriate specialist divisions. Your adaptation to complex operational parameters demonstrates the contractor resilience our enhanced protocols require.
 
-Azure Anomalies represents your first encounter with what our geological survey teams classify as "Category 6 Environmental Complexity." This mithril-bearing formation exhibits characteristics that necessitate enhanced safety protocols and specialist consultation.
-
-> [!WARNING] Azure Anomalies features unpredictable sensor interference and heightened environmental responsiveness. Enhanced emergency systems and specialist-approved equipment strongly recommended.
-
-The mithril concentrations here exceed standard geological models by margins that have required our research division to implement "enhanced analytical frameworks." Deep excavation reveals octanium signatures and crystalline formations that our materials science specialists describe as "architecturally unprecedented."
+Azure Anomalies represents your first encounter with what our geological survey teams classify as "Category 6 Environmental Complexity." This mithril-bearing formation exhibits characteristics that necessitate enhanced safety protocols.
 
 > [!IMPORTANT] Remote detonation systems provide enhanced operational flexibility when navigating anomalous terrain formations. Maintain enhanced safety protocols when operating near irregular crystalline structures.
 
-Equipment specifications now mandate advanced battery systems and specialist-approved drilling platforms. The electromagnetic interference patterns require enhanced navigation systems, and our technical specialists recommend upgraded environmental protection protocols.
+Equipment specifications now mandate advanced battery systems and specialist-approved drilling platforms. Our technical specialists recommend upgraded environmental protection protocols.
 
-Your Pension Credit calculations have been restructured through our "enhanced hazard assessment frameworks." Current projections include eligibility for "premium atmospheric processing" and "enhanced reality stability insurance" upon service completion.
+Your Pension Credit calculations have been restructured through our "enhanced hazard assessment frameworks". Current projections include eligibility for "premium atmospheric processing" and "enhanced reality stability insurance" upon service completion.
 
-Environmental complexity parameters continue expansion, contractor. Enhanced compliance ensures optimal outcomes.
+Continue extraction. Continue service. Continue.
 
 ---
 
