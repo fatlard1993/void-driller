@@ -2,21 +2,13 @@
 
 **Sector Dispatch: L7 | Advanced Protocol Assignment #0331-PC**
 
-Your operational performance in Azure Anomalies has been thoroughly reviewed by multiple departmental committees, contractor.
-
 The post-mission debriefings and psychological evaluations have been forwarded to appropriate oversight divisions. Your adaptation to enhanced operational parameters demonstrates the resilience SpaceCo values in our contractor workforce.
-
-Prismatic Confluence marks your entry into what our geological survey teams classify as "Category 7 Operational Complexity." This octanium-rich formation exhibits environmental characteristics that require specialized training protocols and enhanced safety documentation.
-
-> [!WARNING] Prismatic Confluence features aggressive mimetic geological phenomena and heightened environmental responsiveness. Maintain constant vigilance during excavation operations and report all anomalous observations immediately.
 
 The octanium deposits here display crystalline arrangements that our materials science division describes as "geometrically innovative" and "technologically suggestive." Deep excavation has revealed saronite concentrations and acoustic properties that have necessitated updates to our standard operational guidelines.
 
-> [!IMPORTANT] Mobile outpost relocation systems are now available for tactical facility repositioning. Environmental responsiveness in this zone may require dynamic operational adjustments during extended missions.
+> [!IMPORTANT] Mobile outpost relocation systems are now available for tactical facility repositioning.
 
 Equipment protocols mandate advanced drilling systems and reinforced operational platforms. The enhanced mineral density requires specialized extraction technology, and the electromagnetic interference necessitates upgraded navigation and communication systems.
-
-Your Pension Credit calculations have been restructured under our new "enhanced hazard compensation framework." Current projections include eligibility for "autonomous habitat systems" and "reality stability insurance" upon service completion.
 
 The Belt grows more complex with each assignment, contractor. Adapt, overcome, excel.
 

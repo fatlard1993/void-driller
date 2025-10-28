@@ -1,8 +1,7 @@
-import { Elem, styled } from 'vanilla-bean-components';
-import { InfoButton } from './InfoButton';
+import { Elem, Button, styled } from 'vanilla-bean-components';
 
 /**
- * Component that displays summary text with an optional "more" info button below.
+ * Component that displays summary text with an optional "more/less" button to toggle full description.
  * Used consistently across cards that show asset information.
  */
 export class DescriptionText extends (styled.Component`
@@ -20,9 +19,18 @@ export class DescriptionText extends (styled.Component`
 		word-wrap: break-word;
 	}
 
-	.more-button-container {
-		display: flex;
-		justify-content: center;
+	.description-text {
+		font-size: 12px;
+		line-height: 1.3;
+		max-width: 100%;
+		word-wrap: break-word;
+		font-style: italic;
+	}
+
+	.toggle-button {
+		font-size: 10px;
+		padding: 2px 8px;
+		margin-top: 2px;
 	}
 `) {
 	constructor(options = {}) {
@@ -30,6 +38,7 @@ export class DescriptionText extends (styled.Component`
 			summary: '',
 			description: '',
 			title: '',
+			expanded: false,
 			...options,
 		});
 	}
@@ -37,24 +46,32 @@ export class DescriptionText extends (styled.Component`
 	render() {
 		super.render();
 
-		// Always show summary text
-		if (this.options.summary) {
-			new Elem({
-				className: 'summary-text',
-				content: this.options.summary,
-				appendTo: this,
-			});
-		}
+		this.renderContent();
+	}
 
-		// Show "more" button if we have a description
-		if (this.options.description) {
-			new Elem(
-				{ className: 'more-button-container', appendTo: this },
-				new InfoButton({
-					title: this.options.title || 'More Information',
-					description: this.options.description,
-				}),
-			);
+	renderContent() {
+		// Clear and re-render content
+		this.empty();
+
+		// Show either summary or description based on expanded state
+		new Elem({
+			className: this.options.expanded ? 'description-text' : 'summary-text',
+			content: this.options.expanded ? this.options.description : this.options.summary,
+			appendTo: this,
+		});
+
+		// Show toggle button if we have both summary and description
+		if (this.options.summary && this.options.description) {
+			new Button({
+				className: 'toggle-button',
+				content: this.options.expanded ? 'Less' : 'More',
+				variant: 'secondary',
+				appendTo: this,
+				onPointerPress: () => {
+					this.options.expanded = !this.options.expanded;
+					this.renderContent();
+				},
+			});
 		}
 	}
 }

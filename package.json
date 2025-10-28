@@ -37,10 +37,11 @@
 	},
 	"homepage": "https://github.com/fatlard1993/void-driller#readme",
 	"dependencies": {
-		"argi": "github:fatlard1993/argi#fcac703",
+		"argi": "github:fatlard1993/argi#785979e",
 		"emoji-js": "^3.8.1",
-		"log": "github:fatlard1993/log#2c586fb",
+		"log": "github:fatlard1993/log#e0d55f6",
 		"lowdb": "^7.0.1",
+		"marked": "^16.3.0",
 		"nanoid": "^5.1.5",
 		"phaser": "^3.90.0",
 		"vanilla-bean-components": "github:fatlard1993/vanilla-bean-components#fd7c5fa"

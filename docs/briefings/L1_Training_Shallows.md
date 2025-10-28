@@ -14,11 +14,11 @@ Your first assignment drops you into the Training Shallows, a carefully selected
 
 Your rig comes standard with a basic combustion engine, entry-level bore bit, and minimal cargo space. It'll get you started, but don't expect miracles. Upgrades are available at the surface outpost once you've proven you can turn rock into revenue.
 
-The shallows contain abundant tritanium deposits - the bread and butter of asteroid mining. Easy to extract, light to haul, and always in demand. You'll also find scattered duranium veins as you go deeper, along with the occasional pure mineral formation that'll make your quarterly earnings report look respectable.
+The shallows contain abundant tritanium deposits - the bread and butter of asteroid mining. Easy to extract, light to haul, and always in demand.
 
 > [!TIP] Move close to the SpaceCo outpost to access **Trade** options. Sell your haul, refuel, repair, and upgrade your equipment.
 
-Your **Pension Credits** accumulate with every transaction, every mile drilled, every day survived. Stack enough and you might afford that retirement colony with actual atmosphere and synthetic gravity. The company handbook suggests 25,000 credits for "basic comfort" - but between you and us, aim higher.
+Your **Pension Credits** accumulate with every transaction, every mile drilled, every day survived. Stack enough and you might afford that retirement colony with actual atmosphere and synthetic gravity. The company handbook suggests 25,000 credits for "basic comfort".
 
 > [!WARNING] Running out of fuel or taking critical damage will immobilize your rig. SpaceCo offers emergency teleport services, but the rates reflect our monopoly on caring whether you live or die.
 

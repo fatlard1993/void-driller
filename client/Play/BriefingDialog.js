@@ -3,6 +3,7 @@ import { Elem, GET } from 'vanilla-bean-components';
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
 import Notify from '../shared/Notify';
+import audioPlayer from '../shared/AudioPlayer';
 
 export default class BriefingDialog extends BaseDialog {
 	constructor(options = {}) {
@@ -20,7 +21,7 @@ export default class BriefingDialog extends BaseDialog {
 	async render() {
 		super.render();
 
-		const helpFile = await GET(`docs/briefings/${gameContext.serverState.world.name}.md`);
+		const helpFile = await GET(`docs/briefings/${encodeURIComponent(gameContext.serverState.world.name.replace(/:\s+/g, '_').replace(/\s+/g, '_'))}.md`);
 
 		if (!helpFile.response.ok) {
 			new Notify({
@@ -33,5 +34,8 @@ export default class BriefingDialog extends BaseDialog {
 		}
 
 		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile.body, appendTo: this._body });
+
+		// Auto-play briefing audio when dialog opens, queue bulletin after
+		audioPlayer.play(gameContext.serverState.world.name, 'briefing', { autoQueue: true });
 	}
 }

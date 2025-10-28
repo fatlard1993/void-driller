@@ -4,10 +4,11 @@
     "": {
       "name": "void-driller",
       "dependencies": {
-        "argi": "github:fatlard1993/argi#fcac703",
+        "argi": "github:fatlard1993/argi#785979e",
         "emoji-js": "^3.8.1",
-        "log": "github:fatlard1993/log#2c586fb",
+        "log": "github:fatlard1993/log#e0d55f6",
         "lowdb": "^7.0.1",
+        "marked": "^16.3.0",
         "nanoid": "^5.1.5",
         "phaser": "^3.90.0",
         "vanilla-bean-components": "github:fatlard1993/vanilla-bean-components#fd7c5fa",
@@ -131,7 +132,7 @@
 
     "are-docs-informative": ["are-docs-informative@0.0.2", "https://registry.aws.itential.com/repository/itential/are-docs-informative/-/are-docs-informative-0.0.2.tgz", {}, "sha512-ixiS0nLNNG5jNQzgZJNoUpBKdo9yTYZMGJ+QgT2jmjR7G7+QHRCc4v6LQ3NgE7EBJq+o0ams3waJwkrlBom8Ig=="],
 
-    "argi": ["argi@github:fatlard1993/argi#fcac703", { "dependencies": { "find-root": "^1.1.0" } }, "fatlard1993-argi-fcac703"],
+    "argi": ["argi@github:fatlard1993/argi#785979e", {}, "fatlard1993-argi-785979e"],
 
     "argparse": ["argparse@2.0.1", "https://registry.aws.itential.com/repository/itential/argparse/-/argparse-2.0.1.tgz", {}, "sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q=="],
 
@@ -307,8 +308,6 @@
 
     "fill-range": ["fill-range@7.1.1", "https://registry.aws.itential.com/repository/itential/fill-range/-/fill-range-7.1.1.tgz", { "dependencies": { "to-regex-range": "^5.0.1" } }, "sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg=="],
 
-    "find-root": ["find-root@1.1.0", "https://registry.aws.itential.com/repository/itential/find-root/-/find-root-1.1.0.tgz", {}, "sha512-NKfW6bec6GfKc0SGx1e07QZY9PE99u0Bft/0rzSD5k3sO/vwkVUpDUKVm5Gpp5Ue3YfShPFTX2070tDs5kB9Ng=="],
-
     "find-up": ["find-up@5.0.0", "https://registry.aws.itential.com/repository/itential/find-up/-/find-up-5.0.0.tgz", { "dependencies": { "locate-path": "^6.0.0", "path-exists": "^4.0.0" } }, "sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng=="],
 
     "find-up-simple": ["find-up-simple@1.0.1", "https://registry.aws.itential.com/repository/itential/find-up-simple/-/find-up-simple-1.0.1.tgz", {}, "sha512-afd4O7zpqHeRyg4PfDQsXmlDe2PfdHtJt6Akt8jOWaApLOZk5JXs6VMR29lz03pRe9mpykrRCYIYxaJYcfpncQ=="],
@@ -453,11 +452,13 @@
 
     "lodash.merge": ["lodash.merge@4.6.2", "https://registry.aws.itential.com/repository/itential/lodash.merge/-/lodash.merge-4.6.2.tgz", {}, "sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ=="],
 
-    "log": ["log@github:fatlard1993/log#2c586fb", {}, "fatlard1993-log-2c586fb"],
+    "log": ["log@github:fatlard1993/log#e0d55f6", {}, "fatlard1993-log-e0d55f6"],
 
     "lowdb": ["lowdb@7.0.1", "https://registry.aws.itential.com/repository/itential/lowdb/-/lowdb-7.0.1.tgz", { "dependencies": { "steno": "^4.0.2" } }, "sha512-neJAj8GwF0e8EpycYIDFqEPcx9Qz4GUho20jWFR7YiFeXzF1YMLdxB36PypcTSPMA+4+LvgyMacYhlr18Zlymw=="],
 
     "lz-string": ["lz-string@1.5.0", "https://registry.aws.itential.com/repository/itential/lz-string/-/lz-string-1.5.0.tgz", { "bin": { "lz-string": "bin/bin.js" } }, "sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ=="],
+
+    "marked": ["marked@16.3.0", "https://registry.aws.itential.com/repository/itential/marked/-/marked-16.3.0.tgz", { "bin": { "marked": "bin/marked.js" } }, "sha512-K3UxuKu6l6bmA5FUwYho8CfJBlsUWAooKtdGgMcERSpF7gcBUrCGsLH7wDaaNOzwq18JzSUDyoEb/YsrqMac3w=="],
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "https://registry.aws.itential.com/repository/itential/math-intrinsics/-/math-intrinsics-1.1.0.tgz", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 

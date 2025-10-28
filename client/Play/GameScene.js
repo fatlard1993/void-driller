@@ -359,15 +359,26 @@ export default class GameScene extends Phaser.Scene {
 		if (window.debugLog) window.debugLog('Scene create() started');
 
 		try {
+			console.log('🎮 CHECKPOINT 1: Starting GameScene.create()');
 			sounds.forEach(sound => {
 				gameContext.sounds[sound] = this.sound.add(sound);
 			});
 
+			console.log('🎮 CHECKPOINT 2: Sounds loaded, starting grid iteration');
+			console.log('🎮 Grid dimensions:', gameContext.serverState.world.grid.length, 'x', gameContext.serverState.world.grid[0]?.length);
+
 			gameContext.serverState.world.grid.forEach((layer, x) => {
+				if (x % 10 === 0) console.log(`🎮 Processing column ${x}/${gameContext.serverState.world.grid.length}`);
 				layer.forEach((gridConfig = { ground: {}, items: [], hazards: [] }, y) => {
-					if (gridConfig.ground.type) {
-						gameContext.serverState.world.grid[x][y].ground.sprite = new Ground(this, x, y, gridConfig.ground.type);
-						gameContext.sceneLayers.ground.add(gameContext.serverState.world.grid[x][y].ground.sprite);
+					if (gridConfig.ground?.type) {
+						if (x === 0 && y < 5) console.log(`🎮 Creating ground sprite at (${x},${y}) type:`, gridConfig.ground.type);
+						try {
+							gameContext.serverState.world.grid[x][y].ground.sprite = new Ground(this, x, y, gridConfig.ground.type);
+							gameContext.sceneLayers.ground.add(gameContext.serverState.world.grid[x][y].ground.sprite);
+						} catch (err) {
+							console.error(`🎮 ERROR creating ground at (${x},${y}):`, err.message, gridConfig.ground);
+							throw err;
+						}
 					}
 
 					if (gridConfig.hazards.length) {
@@ -423,6 +434,8 @@ export default class GameScene extends Phaser.Scene {
 				});
 			});
 
+			console.log('🎮 CHECKPOINT 3: Grid iteration complete, creating Spaceco');
+
 			gameContext.spaceco = new Spaceco(
 				this,
 				gameContext.serverState.world.spaceco.position.x,
@@ -430,7 +443,11 @@ export default class GameScene extends Phaser.Scene {
 				gameContext.serverState.world.spaceco.variant,
 			);
 
+			console.log('🎮 CHECKPOINT 4: Spaceco created, adding to scene');
+
 			gameContext.sceneLayers.hazards.add(gameContext.spaceco);
+
+			console.log('🎮 CHECKPOINT 5: Processing players');
 
 			gameContext.serverState.players.forEach(player => {
 				// Validate player data before creating sprites
@@ -502,10 +519,13 @@ export default class GameScene extends Phaser.Scene {
 				}
 			});
 
+			console.log('🎮 CHECKPOINT 6: All sprites created, setting up camera and completion');
+
 			// Hide loading UI and show completion
 			setTimeout(() => {
 				this.updateLoadingProgress(100, 'Mining rig systems online - Welcome to the void!');
 				setTimeout(() => {
+					console.log('🎮 CHECKPOINT 7: Hiding loading UI');
 					this.hideLoadingUI();
 
 					// Show briefing dialog after loading completes

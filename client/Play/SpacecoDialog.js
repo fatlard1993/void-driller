@@ -1,4 +1,3 @@
-import { TinyColor } from '@ctrl/tinycolor';
 import {
 	Component,
 	Label,
@@ -42,7 +41,6 @@ import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
 import { drills, engines, items, minerals, parts, spacecoAchievements, vehicles, worlds } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
-import { chance } from '../../utils';
 import { spacecoLog } from '../../utils/logger.js';
 import Notify from '../shared/Notify';
 
@@ -64,15 +62,18 @@ function calculateTradeInDiscount(currentEquipmentId, upgradeConfigs, type) {
 
 const generateAsteroidPreview = (worldDef, options = {}) => {
 	const {
-		size = 64, // Canvas size in pixels
-		resolution = 8, // Grid resolution (8x8, 16x16, etc.)
+		size = 96, // Canvas size in pixels (larger for more detail)
+		resolution = 32, // Grid resolution (higher for better detail)
 	} = options;
+
+	if (!worldDef) return null;
 
 	// Create canvas
 	const canvas = document.createElement('canvas');
 	canvas.width = size;
 	canvas.height = size;
 	canvas.style.display = 'block';
+	canvas.style.imageRendering = 'pixelated'; // Keep pixels crisp
 	const ctx = canvas.getContext('2d');
 
 	// Calculate cell size
@@ -80,79 +81,149 @@ const generateAsteroidPreview = (worldDef, options = {}) => {
 
 	// Get world properties with defaults
 	const world = {
-		holeChance: 33,
-		mineralChance: 33,
-		layers: [],
+		ground: {
+			base: 'white',
+			veins: [],
+		},
+		craters: {},
+		caves: {},
+		tunnelSystems: {},
 		...worldDef,
 	};
 
-	// Resolve weighted distribution
-	const resolveDistribution = (value, validValues) => {
-		if (typeof value === 'string') {
-			return validValues.includes(value) ? value : validValues[0];
-		}
-		if (Array.isArray(value)) {
-			return value[randInt(0, value.length - 1)];
-		}
-		if (typeof value === 'object' && value !== null) {
-			// Weighted selection
-			const totalWeight = Object.values(value).reduce((sum, weight) => sum + weight, 0);
-			let random = rand(0, totalWeight);
+	// Create a simple grid - full resolution, no shape complications
+	const grid = Array.from({ length: resolution }, () =>
+		Array.from({ length: resolution }, () => ({ type: 'ground', color: world.ground?.base || 'white' }))
+	);
 
-			for (const [key, weight] of Object.entries(value)) {
-				random -= weight;
-				if (random <= 0) return key;
-			}
-		}
-		return validValues[0];
+	// Helper to get crater/cave count range average
+	const getAverage = (range) => {
+		if (Array.isArray(range)) return (range[0] + range[1]) / 2;
+		return range || 0;
 	};
 
-	const layerBoundaries = [];
-	const usableDepth = resolution;
-	const layerDepth = Math.floor(usableDepth / world.layers.length);
+	// 1. Place craters (surface holes)
+	const craterCount = Math.floor(
+		getAverage(world.craters?.huge || [0, 0]) * 0.3 +
+		getAverage(world.craters?.big || [0, 0]) * 0.5 +
+		getAverage(world.craters?.medium || [0, 0]) * 0.7 +
+		getAverage(world.craters?.small || [0, 0]) * 1 +
+		getAverage(world.craters?.tiny || [0, 0]) * 1.2
+	);
 
-	for (let i = 0; i < world.layers.length; i++) {
-		const startY = i * layerDepth;
-		let endY = startY + layerDepth - 1;
-		if (i === world.layers.length - 1) {
-			endY = resolution - 1;
+	for (let i = 0; i < craterCount; i++) {
+		const x = randInt(0, resolution - 1);
+		const y = randInt(0, Math.floor(resolution * 0.3)); // Top 30%
+		const radius = randInt(1, 3);
+
+		for (let dx = -radius; dx <= radius; dx++) {
+			for (let dy = -radius; dy <= radius; dy++) {
+				const nx = x + dx;
+				const ny = y + dy;
+				const dist = Math.sqrt(dx * dx + dy * dy);
+				if (nx >= 0 && nx < resolution && ny >= 0 && ny < resolution && dist <= radius) {
+					grid[ny][nx] = { type: 'hole', color: 'transparent' };
+				}
+			}
 		}
-
-		layerBoundaries.push({
-			start: startY,
-			end: endY,
-			layer: world.layers[i],
-		});
 	}
 
-	for (let x = 0; x < resolution; x++) {
-		for (let y = 0; y < resolution; y++) {
-			const layerInfo = layerBoundaries.find(({ start, end }) => y >= start && y <= end);
-			if (!layerInfo) continue;
+	// 2. Place caves (internal holes)
+	const caveCount = Math.floor(
+		getAverage(world.caves?.huge || [0, 0]) * 0.3 +
+		getAverage(world.caves?.big || [0, 0]) * 0.5 +
+		getAverage(world.caves?.medium || [0, 0]) * 0.7 +
+		getAverage(world.caves?.small || [0, 0]) * 1 +
+		getAverage(world.caves?.tiny || [0, 0]) * 1.2
+	);
 
-			const { layer } = layerInfo;
-			const depthPercent = y / resolution;
+	for (let i = 0; i < caveCount; i++) {
+		const x = randInt(0, resolution - 1);
+		const y = randInt(Math.floor(resolution * 0.2), resolution - 1); // Below surface
+		const radius = randInt(1, 2);
 
-			const holeChance = layer.holeChance ?? Math.min(world.holeChance * depthPercent, 90);
-			const mineralChance = layer.mineralChance ?? Math.min(world.mineralChance * depthPercent, 90);
-			const groundType = resolveDistribution(layer.ground, Object.keys(minerals));
-			const shouldBeHole = chance(holeChance);
-
-			if (!shouldBeHole) {
-				// Solid rock
-				spacecoLog.debug({ groundType, colors: theme.colors }, theme.colors[groundType]);
-				let color = theme.colors[groundType];
-
-				if (chance(mineralChance)) {
-					// Brighten for pure minerals (2x value)
-					color = new TinyColor(color).brighten(30);
+		for (let dx = -radius; dx <= radius; dx++) {
+			for (let dy = -radius; dy <= radius; dy++) {
+				const nx = x + dx;
+				const ny = y + dy;
+				const dist = Math.sqrt(dx * dx + dy * dy);
+				if (nx >= 0 && nx < resolution && ny >= 0 && ny < resolution && dist <= radius) {
+					grid[ny][nx] = { type: 'hole', color: 'transparent' };
 				}
+			}
+		}
+	}
 
+	// 3. Place tunnel systems
+	const tunnelCount = getAverage(world.tunnelSystems?.count || [0, 0]);
+	for (let i = 0; i < tunnelCount; i++) {
+		let x = randInt(0, resolution - 1);
+		let y = randInt(Math.floor(resolution * 0.3), resolution - 1);
+		const segmentLength = randInt(3, 8);
+
+		for (let j = 0; j < segmentLength; j++) {
+			// Draw tunnel segment
+			if (x >= 0 && x < resolution && y >= 0 && y < resolution) {
+				grid[y][x] = { type: 'hole', color: 'transparent' };
+			}
+
+			// Move in random direction
+			const dir = randInt(0, 3);
+			if (dir === 0) y = Math.min(resolution - 1, y + 1); // Down
+			else if (dir === 1) x = Math.min(resolution - 1, x + 1); // Right
+			else if (dir === 2) x = Math.max(0, x - 1); // Left
+			else y = Math.max(0, y - 1); // Up
+		}
+	}
+
+	// 4. Apply vein-based ground colors
+	if (world.ground?.veins && world.ground.veins.length > 0) {
+		for (const vein of world.ground.veins) {
+			const veinColor = vein.color;
+			const density = vein.density || 5;
+			const veinSize = vein.size || 1;
+
+			// Generate vein positions based on density
+			const veinCount = Math.floor((density / 100) * resolution * resolution * 0.3);
+
+			for (let i = 0; i < veinCount; i++) {
+				const x = randInt(0, resolution - 1);
+				const y = randInt(0, resolution - 1);
+				const radius = Math.max(1, Math.floor(veinSize * 0.8));
+
+				for (let dx = -radius; dx <= radius; dx++) {
+					for (let dy = -radius; dy <= radius; dy++) {
+						const nx = x + dx;
+						const ny = y + dy;
+						const dist = Math.sqrt(dx * dx + dy * dy);
+
+						if (nx >= 0 && nx < resolution && ny >= 0 && ny < resolution && dist <= radius) {
+							// Only apply to ground cells, not holes
+							if (grid[ny][nx].type === 'ground') {
+								grid[ny][nx].color = veinColor;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Render the grid to canvas
+	// First, clear to transparent
+	ctx.clearRect(0, 0, size, size);
+
+	for (let y = 0; y < resolution; y++) {
+		for (let x = 0; x < resolution; x++) {
+			const cell = grid[y][x];
+
+			if (cell.type === 'hole') {
+				// Holes - transparent (skip rendering)
+				continue;
+			} else if (cell.type === 'ground') {
+				// Ground - use the color from veins or base
+				const color = theme.colors[cell.color] || theme.colors.white;
 				ctx.fillStyle = color;
-				ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-			} else {
-				// Empty space
-				ctx.fillStyle = theme.colors.vantablack;
 				ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 			}
 		}
@@ -1677,30 +1748,114 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				);
 				const locked = price > player.credits || missingRequirements;
 
+				const worldDef = worlds.find(world => world.name === key);
+				const preview = generateAsteroidPreview(worldDef);
+
 				return [
 					new Card({
-						header: capitalize(key.replaceAll('_', ' '), true),
+						header: new Elem({
+							content: capitalize(key.replaceAll('_', ' '), true),
+							style: {
+								background: 'rgba(0, 0, 0, 0.85)',
+								padding: '6px 12px',
+								borderRadius: '4px',
+								textAlign: 'center',
+							},
+						}),
+						style: preview ? {
+							backgroundImage: `url(${preview.toDataURL()})`,
+							backgroundSize: 'cover',
+							backgroundPosition: 'center',
+							position: 'relative',
+						} : {},
 						body: new Elem({
 							style: {
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
 								gap: '4px',
+								background: 'rgba(0, 0, 0, 0.7)',
+								padding: '8px',
+								borderRadius: '4px',
 							},
 							append: [
-								!locked && generateAsteroidPreview(worlds.find(world => world.name === key)),
-								missingRequirements &&
+								missingRequirements ?
 									new Elem({
-										tag: 'p',
-										content: 'Requirements',
-										className: 'description',
-										append: new List({
-											items: requirements.map(([key, goal]) =>
-												minerals[key]
-													? `${capitalize(minerals[key].name)}: ${gameContext.serverState.world.spaceco.hull?.[key] ?? 0} / ${goal}`
-													: `GMS: ${gameContext.serverState.world.spaceco?.[key] ?? 0} / ${goal}`,
-											),
-										}),
+										style: {
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '8px',
+											width: '100%',
+										},
+										append: [
+											new Elem({
+												tag: 'p',
+												content: 'Requirements',
+												style: {
+													fontSize: '13px',
+													fontWeight: 'bold',
+													marginBottom: '4px',
+													textAlign: 'center',
+												},
+											}),
+											...requirements.map(([key, goal]) => {
+												const current = minerals[key]
+													? (gameContext.serverState.world.spaceco.hull?.[key] ?? 0)
+													: (gameContext.serverState.world.spaceco?.[key] ?? 0);
+												const percentage = Math.min((current / goal) * 100, 100);
+												const label = minerals[key]
+													? capitalize(minerals[key].name)
+													: 'Pension Credits';
+
+												return new Elem({
+													style: {
+														display: 'flex',
+														flexDirection: 'column',
+														gap: '4px',
+													},
+													append: [
+														new Elem({
+															content: `${label}: ${current} / ${goal}`,
+															style: {
+																fontSize: '12px',
+																textAlign: 'left',
+																fontWeight: 'bold',
+															},
+														}),
+														new Elem({
+															style: {
+																width: '100%',
+																height: '16px',
+																background: 'rgba(255, 255, 255, 0.15)',
+																borderRadius: '8px',
+																overflow: 'hidden',
+																position: 'relative',
+																border: '1px solid rgba(255, 255, 255, 0.2)',
+															},
+															append: new Elem({
+																style: {
+																	width: `${percentage}%`,
+																	height: '100%',
+																	background: percentage >= 100
+																		? theme.colors.green
+																		: `linear-gradient(90deg, ${theme.colors.red}, ${theme.colors.yellow})`,
+																	transition: 'width 0.3s ease',
+																	boxShadow: percentage > 0 ? 'inset 0 1px 3px rgba(0, 0, 0, 0.3)' : 'none',
+																},
+															}),
+														}),
+													],
+												});
+											}),
+										],
+									}) :
+									new DescriptionText({
+										summary: worldDef?.summary || '',
+										description: worldDef?.description || '',
+										title: worldDef?.name || '',
+										style: {
+											textAlign: 'center',
+										},
 									}),
 							],
 						}),
@@ -1709,6 +1864,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								gap: '4px',
+								background: 'rgba(0, 0, 0, 0.8)',
+								padding: '8px',
+								borderRadius: '4px',
 							},
 							append: [
 								new Elem({

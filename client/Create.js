@@ -9,16 +9,16 @@ import { ConsoleContainer } from './shared/ConsoleContainer';
 export default configured(Create, {
 	formData: {
 		name: contractName(),
-		worldName: 'Training Shallows',
+		worldName: 'L1: Training Shallows',
 	},
 	formInputs: [
 		{ key: 'name', label: 'Contract ID' },
-		{
+		...(window.DEV_MODE ? [{
 			InputComponent: Select,
 			key: 'worldName',
 			label: 'World',
 			options: worlds.map(({ name }) => name),
-		},
+		}] : []),
 	],
 	toolbar: {
 		heading: 'New Drilling Contract',

@@ -31,6 +31,7 @@ import {
 	spacecoAchievements,
 } from '../constants';
 import { gameLog, playerLog, worldLog, spacecoLog } from '../utils/logger.js';
+import { generateAsteroid } from './generateAsteroid.js';
 import server from './server';
 import { explode } from './effects';
 
@@ -98,7 +99,7 @@ export default class Game extends BaseGame {
 		super({ saveState, server, ...options });
 
 		// Initialize game-specific properties
-		this.world = saveState.world || this.generateWorld(WORLDS[options.worldName] || options);
+		this.world = saveState.world || generateAsteroid(WORLDS[options.worldName] || options);
 		this.url = server.url;
 	}
 
@@ -1545,6 +1546,20 @@ export default class Game extends BaseGame {
 			this.broadcast('useItem', { playerId, updates, item });
 
 			explode({ game: this, position: { x: parseInt(x, 10), y: parseInt(y, 10) }, radius: 5, playerId });
+		} else if (item.startsWith('void_detonator')) {
+			const [, , x, y] = item.split('_');
+
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			this.broadcast('useItem', { playerId, updates, item });
+
+			this.implode({
+				game: this,
+				position: { x: parseInt(x, 10), y: parseInt(y, 10) },
+				radius: 6,
+				playerId,
+				implosionType: 'void',
+			});
 		} else if (item === 'gravity_charge') {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			const bombPosition = { ...player.position };
@@ -1565,24 +1580,12 @@ export default class Game extends BaseGame {
 				2000,
 			); // 2 second delay
 		} else if (item === 'void_implosion') {
-			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			const bombPosition = { ...player.position };
 
 			this.world.grid[bombPosition.x][bombPosition.y].items.push({ name: item });
-
+			updates.items = { ...updates.items, [`void_detonator_${bombPosition.x}_${bombPosition.y}`]: 1 };
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item, bombPosition });
-
-			setTimeout(
-				() =>
-					this.implode({
-						game: this,
-						position: bombPosition,
-						radius: 6,
-						playerId: playerId,
-						implosionType: 'void',
-					}),
-				1500,
-			); // 1.5 second delay
 		} else if (item === 'advanced_teleporter') {
 			const stationPosition = { ...player.position };
 
@@ -2559,13 +2562,51 @@ export default class Game extends BaseGame {
 
 		const preGeneratedTunnels = world.tunnelSystems ? generateTunnelSystems() : new Set();
 
-		// Generate grid
-		try {
+		// Generate natural asteroid shape
+		const isInsideAsteroid = (x, y) => {
+			// Normalized coordinates (0 to 1)
+			const nx = x / (world.width - 1);
+			const ny = y / (world.depth - 1);
+
+			// Elliptical base shape with some noise
+			const centerX = 0.5;
+			const centerY = 0.5;
+			const radiusX = 0.45; // Slightly smaller than full width for natural edges
+			const radiusY = 0.45; // Slightly smaller than full depth
+
+			// Distance from center
+			const dx = (nx - centerX) / radiusX;
+			const dy = (ny - centerY) / radiusY;
+			const ellipseDistance = dx * dx + dy * dy;
+
+			// Perlin-like noise for irregular edges (simplified)
+			const noiseX = Math.sin(nx * 8 + ny * 6) * 0.1;
+			const noiseY = Math.cos(ny * 10 + nx * 4) * 0.1;
+			const noiseFactor = 1 + noiseX + noiseY;
+
+			// Edge softening - gradual transition near borders
+			const edgeSoftness = 0.15;
+			const softEdge = Math.max(0, Math.min(1, (1.1 - ellipseDistance) / edgeSoftness));
+
+			// Combine ellipse with noise and soft edges
+			return (ellipseDistance * noiseFactor) <= 1.0 && softEdge > Math.random() * 0.3;
+		};
+
+		// Use shared layered asteroid generation system
+		return generateAsteroid(options, { items, aliens: {} });
+
+		// Legacy generation code preserved below (will be removed once new system is tested)
+		/*try {
 			for (let x = 0; x < world.width; x++) {
 				world.grid[x] = [];
 
 				for (let y = 0; y < world.depth; y++) {
 					world.grid[x][y] = { ground: {}, items: [], hazards: [] };
+
+					// Check if this cell is part of the natural asteroid shape
+					if (!isInsideAsteroid(x, y)) {
+						continue; // Skip generation for cells outside the asteroid
+					}
 
 					if (y <= world.airGap) continue;
 
@@ -2577,17 +2618,18 @@ export default class Game extends BaseGame {
 
 					const { layer, index: layerIndex } = layerInfo;
 
-					// Calculate depth-based scaling
+					// Calculate depth-based scaling - more gradual progression
 					const depthPercent = (y - world.airGap) / (world.depth - world.airGap);
-					const depthScaling = Math.min(1.0, depthPercent * 1.5);
+					const depthScaling = Math.min(1.0, depthPercent * 1.1);
 
 					// Get properties for this position (layer overrides world defaults)
-					const holeChance = layer.holeChance ?? Math.min(world.holeChance * depthScaling, 90);
+					const rawHoleChance = layer.holeChance ?? Math.min(world.holeChance * depthScaling, 90);
+					const holeChance = rawHoleChance * 0.5; // Scale down by 50% to reduce excessive holes while preserving definition range
 					const mineralChance = layer.mineralChance ?? Math.min(world.mineralChance * depthScaling, 90);
 					const itemChance = layer.itemChance ?? Math.min(world.itemChance * depthScaling, 50);
-					// Apply scaling to hazardChance to reduce excessive alien spawning while preserving definition range
+					// Apply sparse alien scaling - target max ~12 aliens per world, respecting config progression
 					const rawHazardChance = layer.hazardChance ?? Math.min(world.hazardChance * depthScaling, 80);
-					const hazardChance = rawHazardChance * 0.6; // Scale down by 40% to reduce alien density
+					const hazardChance = rawHazardChance * 0.001; // Optimized scaling for 0-12 aliens per world progression
 					const hazardDef = layer.hazards ?? world.hazards;
 					const itemDef = layer.items ?? world.items;
 					const mineralsDef = layer.minerals ?? world.minerals;
@@ -2645,7 +2687,14 @@ export default class Game extends BaseGame {
 							}
 						}
 					} else {
-						// Open space - add content with priority system
+						// Open space - add content with priority system (only if has ground support)
+						const hasGroundSupport = y + 1 < world.depth && world.grid[x] && world.grid[x][y + 1] && world.grid[x][y + 1].ground && world.grid[x][y + 1].ground.type;
+
+						// Skip spawning items and aliens in open spaces without ground support
+						if (!hasGroundSupport) {
+							continue;
+						}
+
 						let contentAdded = false;
 
 						// 1. Add mystery spawners
@@ -2774,6 +2823,7 @@ export default class Game extends BaseGame {
 		});
 
 		return world;
+		*/
 	}
 
 	// Helper method for hazard spreading
@@ -5292,18 +5342,24 @@ export default class Game extends BaseGame {
 			return;
 		}
 
-		// Find and remove remote charge from cell
-		const bombIndex = cell.items.findIndex(item => item.name === 'remote_charge');
+		// Find and remove bomb from cell (support both remote_charge and void_implosion)
+		const bombIndex = cell.items.findIndex(item =>
+			item.name === 'remote_charge' || item.name === 'void_implosion'
+		);
 		if (bombIndex === -1) {
-			playerLog.warning('No remote charge found at position', { playerId, position });
+			playerLog.warning('No bomb found at position', { playerId, position });
 			return;
 		}
+
+		const bombType = cell.items[bombIndex].name;
 
 		// Remove the bomb from the cell
 		cell.items.splice(bombIndex, 1);
 
-		// Remove detonator from ALL players who have it
-		const detonatorKey = `detonator_${x}_${y}`;
+		// Remove appropriate detonator from ALL players who have it
+		const detonatorKey = bombType === 'void_implosion'
+			? `void_detonator_${x}_${y}`
+			: `detonator_${x}_${y}`;
 		this.players.forEach((playerData, playerIdIter) => {
 			if (playerData.items[detonatorKey]) {
 				const updates = { items: { ...playerData.items, [detonatorKey]: playerData.items[detonatorKey] - 1 } };
@@ -5311,11 +5367,11 @@ export default class Game extends BaseGame {
 					delete updates.items[detonatorKey];
 				}
 				this.players.update(playerIdIter, _ => ({ ..._, ...updates }));
-				
+
 				// Broadcast the inventory update to the affected player
-				this.broadcast('useItem', { 
-					playerId: playerIdIter, 
-					updates: updates, 
+				this.broadcast('useItem', {
+					playerId: playerIdIter,
+					updates: updates,
 					item: 'remove_detonator'
 				});
 			}
@@ -5324,11 +5380,11 @@ export default class Game extends BaseGame {
 		playerLog.info('Bomb disarmed successfully', { playerId, position });
 
 		// Broadcast the bomb removal
-		this.broadcast('useItem', { 
-			playerId, 
-			updates: { items: player.items }, 
+		this.broadcast('useItem', {
+			playerId,
+			updates: { items: player.items },
 			item: 'disarm_bomb',
-			bombPosition: position 
+			bombPosition: position
 		});
 	}
 
@@ -5365,11 +5421,11 @@ export default class Game extends BaseGame {
 					delete updates.items[teleporterKey];
 				}
 				this.players.update(playerIdIter, _ => ({ ..._, ...updates }));
-				
+
 				// Broadcast the inventory update to the affected player
-				this.broadcast('useItem', { 
-					playerId: playerIdIter, 
-					updates: updates, 
+				this.broadcast('useItem', {
+					playerId: playerIdIter,
+					updates: updates,
 					item: 'remove_teleporter'
 				});
 			}
@@ -5378,11 +5434,11 @@ export default class Game extends BaseGame {
 		playerLog.info('Teleporter deactivated successfully', { playerId, position });
 
 		// Broadcast the teleporter removal
-		this.broadcast('useItem', { 
-			playerId, 
-			updates: { items: player.items }, 
+		this.broadcast('useItem', {
+			playerId,
+			updates: { items: player.items },
 			item: 'deactivate_teleporter',
-			stationPosition: position 
+			stationPosition: position
 		});
 	}
 }

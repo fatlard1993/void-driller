@@ -20,7 +20,7 @@ import {
 import { DrillImage, EngineImage, ItemImage, MineralImage, PartImage, VehicleImage } from '../shared/SpriteSheetImage';
 import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
-import { useItem } from '../api';
+import { useItem, disarmBomb, spacecoBuyRescue } from '../api';
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
 import { drills, engines, items, minerals, parts, playerAchievements, vehicles } from '../../constants';
@@ -29,6 +29,7 @@ import { DescriptionText } from '../shared/DescriptionText';
 import { InfoButton } from '../shared/InfoButton';
 import Notify from '../shared/Notify';
 import { formatPlayerAchievementRewards } from '../../utils';
+import audioPlayer from '../shared/AudioPlayer';
 import {
 	toggleAutoPath,
 	setAutoPathRadius,
@@ -399,11 +400,60 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			border-radius: 6px;
 		}
 	}
+
+	.rescueButton {
+		background-color: ${({ colors }) => colors.darkest(colors.red)} !important;
+		border: 2px solid ${({ colors }) => colors.red} !important;
+		color: ${({ colors }) => colors.red} !important;
+		font-weight: bold !important;
+		animation: pulse 2s infinite;
+
+		&:hover {
+			background-color: ${({ colors }) => colors.darker(colors.red)} !important;
+		}
+
+		&:disabled {
+			opacity: 0.5;
+			background-color: ${({ colors }) => colors.darkest(colors.gray)} !important;
+			border-color: ${({ colors }) => colors.gray} !important;
+			color: ${({ colors }) => colors.gray} !important;
+		}
+	}
 `) {
 	constructor(options = {}) {
+		const player = gameContext.players.currentPlayer;
+		// Player needs rescue if they can't move due to insufficient fuel or no health
+		// Basic fuel consumption is 0.3 / fuelEfficiency (minimum to move one tile)
+		const basicFuelConsumption = player ? 0.3 / (player.fuelEfficiency || 1) : 0;
+		const needsRescue = (player?.fuel < basicFuelConsumption) || player?.health <= 0;
+
+		// Build buttons array - add rescue button if player needs rescue
+		const buttons = [];
+
+		if (needsRescue) {
+			buttons.push({
+				textContent: player.credits >= 50 ? 'SpaceCo Emergency Rescue ($50)' : 'SpaceCo Emergency Rescue ($50) - Insufficient Funds',
+				addClass: ['rescueButton'],
+				disabled: player.credits < 50,
+			});
+		}
+
+		buttons.push('Close');
+
 		super({
 			header: 'Console',
 			view: localStorage.getItem('console_defaultMenu') || 'help_Docs',
+			buttons,
+			onButtonPress: ({ button, closeDialog }) => {
+				// Handle rescue button
+				if (button.textContent?.includes('SpaceCo Emergency Rescue')) {
+					spacecoBuyRescue();
+					closeDialog();
+				} else {
+					// Handle close button
+					this.handleClose();
+				}
+			},
 			...options,
 		});
 	}
@@ -1005,7 +1055,22 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								},
 								disabled: !canUse,
 							}),
-						],
+							// Add remote disarm button for void_detonator items
+							key.startsWith('void_detonator_') && new Button({
+								content: 'Remote Disarm',
+								variant: 'secondary',
+								onPointerPress: () => {
+									// Extract coordinates from void_detonator_x_y format
+									const coords = key.split('_');
+									const x = parseInt(coords[2], 10);
+									const y = parseInt(coords[3], 10);
+
+									disarmBomb({ x, y });
+									Notify.success('Void implosion remotely disarmed');
+									this.close();
+								},
+							}),
+						].filter(Boolean),
 					}),
 				];
 			}),
@@ -1179,7 +1244,53 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	async render_help_briefing() {
 		this.renderHelpMenu();
 
-		const helpFile = await GET(`docs/briefings/${gameContext.serverState.world.name}.md`);
+		const worldName = gameContext.serverState.world.name;
+
+		// Check if audio files exist for this world
+		const hasBriefingAudio = await audioPlayer.hasAudio(worldName, 'briefing');
+		const hasBulletinAudio = await audioPlayer.hasAudio(worldName, 'bulletin');
+
+		// Add audio controls if any audio exists
+		if (hasBriefingAudio || hasBulletinAudio) {
+			const audioControls = new Elem({
+				appendTo: this._subMenuBody,
+				style: {
+					display: 'flex',
+					gap: '6px',
+					marginBottom: '12px',
+					padding: '6px',
+					background: theme.colors.darkest(theme.colors.gray),
+					borderRadius: '6px',
+					border: `1px solid ${theme.colors.darker(theme.colors.gray)}`,
+				},
+			});
+
+			if (hasBriefingAudio) {
+				new Button({
+					content: '📡 Play Briefing Audio',
+					appendTo: audioControls,
+					style: { flex: 1 },
+					onPointerPress: () => {
+						console.log('[ConsoleDialog] Briefing button clicked');
+						audioPlayer.play(worldName, 'briefing');
+					},
+				});
+			}
+
+			if (hasBulletinAudio) {
+				new Button({
+					content: '📋 Play Bulletin Audio',
+					appendTo: audioControls,
+					style: { flex: 1 },
+					onPointerPress: () => {
+						console.log('[ConsoleDialog] Bulletin button clicked');
+						audioPlayer.play(worldName, 'bulletin');
+					},
+				});
+			}
+		}
+
+		const helpFile = await GET(`docs/briefings/${worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_')}.md`);
 
 		if (!helpFile.response.ok) {
 			new Notify({

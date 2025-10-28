@@ -4,14 +4,33 @@ import { gameLog } from '../utils/logger.js';
 export const explode = ({ game, position, radius, playerId = null }) => {
 	gameLog.info('Explosion triggered', { position, radius, playerId });
 
+	const collectedMinerals = {};
+	const collectedItems = {};
 	const playersToFall = [];
 
-	// First pass: trigger chain reactions before destruction
+	// First pass: trigger chain reactions before destruction and collect materials
 	const chainReactions = [];
 	getSurroundingRadius(position, radius).forEach(({ x, y }) => {
 		if (game.world.grid[x]?.[y]) {
-			game.world.grid[x][y].items.forEach(item => {
-				// Fuel items and explosive items that chain react
+			const cell = game.world.grid[x][y];
+
+			// Collect minerals from ground
+			if (cell.ground?.type) {
+				const mineralType = cell.ground.type;
+				collectedMinerals[mineralType] = (collectedMinerals[mineralType] || 0) + 1;
+			}
+
+			// Collect pure minerals and items
+			cell.items.forEach(item => {
+				if (item.name.startsWith('mineral_')) {
+					const mineralType = item.name.replace('mineral_', '');
+					const pureKey = `mineral_${mineralType}`;
+					collectedMinerals[pureKey] = (collectedMinerals[pureKey] || 0) + 1;
+				} else if (!item.name.includes('charge') && !item.name.includes('implosion')) {
+					collectedItems[item.name] = (collectedItems[item.name] || 0) + 1;
+				}
+
+				// Check for chain reactions
 				const isFuel = ['oil', 'battery', 'super_oxygen_liquid_nitrogen'].includes(item.name);
 				const isExplosive = ['timed_charge', 'remote_charge'].includes(item.name);
 				const isImplosive = ['gravity_charge', 'void_implosion'].includes(item.name);
@@ -22,6 +41,29 @@ export const explode = ({ game, position, radius, playerId = null }) => {
 			});
 		}
 	});
+
+	// Award collected materials to the player
+	const player = game.players.get(playerId);
+	if (player && (Object.keys(collectedMinerals).length > 0 || Object.keys(collectedItems).length > 0)) {
+		const updatedHull = { ...player.hull };
+		const updatedItems = { ...player.items };
+
+		Object.entries(collectedMinerals).forEach(([mineralType, count]) => {
+			updatedHull[mineralType] = (updatedHull[mineralType] || 0) + count;
+		});
+
+		Object.entries(collectedItems).forEach(([itemType, count]) => {
+			updatedItems[itemType] = (updatedItems[itemType] || 0) + count;
+		});
+
+		game.players.update(playerId, _ => ({
+			..._,
+			hull: updatedHull,
+			items: updatedItems,
+		}));
+
+		game.updatePlayerCargo(playerId);
+	}
 
 	// Second pass: destroy everything
 	getSurroundingRadius(position, radius).forEach(({ x, y }) => {
@@ -38,7 +80,7 @@ export const explode = ({ game, position, radius, playerId = null }) => {
 		});
 	});
 
-	game.broadcast('explodeBomb', { radius, position });
+	game.broadcast('explodeBomb', { radius, position, playerId, collectedMinerals, collectedItems });
 
 	game.spacecoFall();
 
