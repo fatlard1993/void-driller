@@ -35,7 +35,7 @@ export default class BriefingDialog extends BaseDialog {
 
 		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile.body, appendTo: this._body });
 
-		// Auto-play briefing audio when dialog opens, queue bulletin after
-		audioPlayer.play(gameContext.serverState.world.name, 'briefing', { autoQueue: true });
+		// Auto-play briefing audio when dialog opens, queue bulletin after with bookends
+		audioPlayer.play(gameContext.serverState.world.name, 'briefing', { autoQueue: true, useBookends: true });
 	}
 }

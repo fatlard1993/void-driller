@@ -5,6 +5,8 @@ import gameContext from '../shared/gameContext';
 import { drills, vehicles } from '../../constants';
 import { gameLog, clientLog } from '../../utils/logger.js';
 import { repairPlayerPosition } from '../api';
+import MusicManager from '../shared/MusicManager.js';
+import musicConfig from '../shared/musicConfig.js';
 import { Ground, Item, Mineral, Spaceco, Drill, Lava, Gas, Player } from './GameObjects';
 import { createAlien } from './GameObjects/aliens';
 import BriefingDialog from './BriefingDialog';
@@ -15,6 +17,13 @@ const sounds = [
 	'alert0',
 	'alert',
 	'alert2',
+	'alert_cargo',
+	'alert_fuel',
+	'alert_health',
+	'alert_spaceco_slogan',
+	'alert_thank_you',
+	'alert_trade',
+	'alert_trx',
 	'blip',
 	'close',
 	'coin',
@@ -29,15 +38,31 @@ const sounds = [
 	'path_select',
 	'path_accept',
 	'pickup',
+	'pickup_egg',
 	'powerup',
 	'repair',
 	'scan',
 	'teleport',
-	'music/chip1',
-	'music/chip2',
-	'music/chip3',
-	'music/chip4',
-	'music/chip5',
+	// Level music tracks
+	'music/L1_Training_Shallows',
+	'music/L2_Surface_Prospects',
+	'music/L3_Amber_Extraction_Zone',
+	'music/L3B_Fractured_Prospects',
+	'music/L4_Verdant_Volatiles',
+	'music/L5_Ethereal_Depths',
+	'music/L6_Azure_Anomalies',
+	'music/L7_Prismatic_Confluence',
+	'music/L7B_Unstable_Confluence',
+	'music/L8_Resonant_Caverns',
+	'music/L9_Crimson_Foundries',
+	'music/L9B_Thermal_Breach',
+	'music/L10_Obsidian_Throne',
+	'music/L11_Sacred_Fragments',
+	'music/L11B_Resonance_Chamber',
+	'music/L11C_Void_Sanctum',
+	// Special music tracks
+	'music/transport_transition',
+	'music/spaceco_bulletin_bookends',
 ];
 
 export default class GameScene extends Phaser.Scene {
@@ -528,10 +553,32 @@ export default class GameScene extends Phaser.Scene {
 					console.log('🎮 CHECKPOINT 7: Hiding loading UI');
 					this.hideLoadingUI();
 
+					// Initialize music manager
+					if (!gameContext.musicManager) {
+						gameContext.musicManager = new MusicManager(this);
+					}
+
 					// Show briefing dialog after loading completes
 					setTimeout(() => {
 						if (!gameContext.briefings[gameContext.serverState.world.name]) {
 							gameContext.openDialog = new BriefingDialog();
+						}
+
+						// Start level music after briefing shows (or immediately if briefing was seen)
+						const worldName = gameContext.serverState.world.name;
+						const musicKey = worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_');
+						console.log('[GameScene] World name:', worldName, '-> Music key:', musicKey);
+
+						const config = musicConfig[musicKey];
+						console.log('[GameScene] Music config found:', !!config);
+
+						if (config) {
+							setTimeout(() => {
+								console.log('[GameScene] Starting music for:', musicKey);
+								gameContext.musicManager.play(musicKey, config);
+							}, gameContext.briefings[worldName] ? 0 : 1000); // Delay if showing briefing
+						} else {
+							console.warn('[GameScene] No music config found for world:', worldName);
 						}
 					}, 500);
 				}, 1000);

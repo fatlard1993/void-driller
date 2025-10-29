@@ -6,9 +6,10 @@ gameContext.sceneLayers = {};
 gameContext.sounds = {};
 gameContext.volume = {
 	music: 0.2,
-	alerts: 0.3,
-	interfaces: 0.1,
-	effects: 0.2,
+	briefings: 0.5,
+	alerts: 0.5,
+	interfaces: 0.06,
+	effects: 0.3,
 	...JSON.parse(localStorage.getItem('volume')),
 };
 gameContext.alert = { fuel: 0.33, health: 0.33, cargo: 0.33, ...JSON.parse(localStorage.getItem('alert')) };

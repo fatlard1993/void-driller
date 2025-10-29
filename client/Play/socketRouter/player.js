@@ -16,7 +16,7 @@ export function checkResourceAlerts(player) {
 	if (player.fuel && player.maxFuel) {
 		const fuelRatio = player.fuel / player.maxFuel;
 		if (fuelRatio <= alerts.fuel && !dismissed.fuel) {
-			gameContext.sounds.alert?.play({ volume: gameContext.volume.alerts });
+			gameContext.sounds.alert_fuel?.play({ volume: gameContext.volume.alerts });
 			gameContext.dismissedAlerts.fuel = true;
 
 			// Show visual alert positioned near center, avoiding player UI
@@ -36,7 +36,7 @@ export function checkResourceAlerts(player) {
 	if (player.health && player.maxHealth) {
 		const healthRatio = player.health / player.maxHealth;
 		if (healthRatio <= alerts.health && !dismissed.health) {
-			gameContext.sounds.alert?.play({ volume: gameContext.volume.alerts });
+			gameContext.sounds.alert_health?.play({ volume: gameContext.volume.alerts });
 			gameContext.dismissedAlerts.health = true;
 
 			// Show visual alert positioned near center, stacked above fuel alerts
@@ -56,7 +56,7 @@ export function checkResourceAlerts(player) {
 	if (player.cargo && player.maxCargo) {
 		const cargoRatio = player.cargo / player.maxCargo;
 		if (cargoRatio >= 1 - alerts.cargo && !dismissed.cargo) {
-			gameContext.sounds.alert?.play({ volume: gameContext.volume.alerts });
+			gameContext.sounds.alert_cargo?.play({ volume: gameContext.volume.alerts });
 			gameContext.dismissedAlerts.cargo = true;
 
 			// Show visual alert positioned near center, stacked below fuel alerts
