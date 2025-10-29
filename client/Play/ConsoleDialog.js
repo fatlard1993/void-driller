@@ -1131,6 +1131,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			new CollapsibleLabel(
 				{ label: 'Volume' },
 				new VolumeControl({ key: 'music' }),
+				new VolumeControl({ key: 'briefings' }),
 				new VolumeControl({ key: 'alerts' }),
 				new VolumeControl({ key: 'interfaces' }),
 				new VolumeControl({ key: 'effects' }),
@@ -1265,6 +1266,19 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				},
 			});
 
+			// If both briefing and bulletin exist, show a "Play All" button
+			if (hasBriefingAudio && hasBulletinAudio) {
+				new Button({
+					content: '📻 Play Briefing + Bulletin',
+					appendTo: audioControls,
+					style: { flex: 1 },
+					onPointerPress: () => {
+						console.log('[ConsoleDialog] Play All button clicked');
+						audioPlayer.play(worldName, 'briefing', { autoQueue: true, useBookends: true });
+					},
+				});
+			}
+
 			if (hasBriefingAudio) {
 				new Button({
 					content: '📡 Play Briefing Audio',
@@ -1284,7 +1298,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					style: { flex: 1 },
 					onPointerPress: () => {
 						console.log('[ConsoleDialog] Bulletin button clicked');
-						audioPlayer.play(worldName, 'bulletin');
+						audioPlayer.play(worldName, 'bulletin', { useBookends: true });
 					},
 				});
 			}

@@ -9,7 +9,7 @@ import { checkResourceAlerts } from './player';
 export default data => {
 	if (data.update === 'spacecoBuyTransport') {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		
+
 		// Check for resource alerts after transport purchase
 		if (data.playerId === gameContext.playerId) {
 			const updatedPlayer = gameContext.players.get(data.playerId);
@@ -26,15 +26,29 @@ export default data => {
 		}
 
 		if (data.playerId === gameContext.playerId) {
-			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
-				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
-			);
 
 			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
 
 			gameContext.spaceco.dialog.options.view = 'transport';
+
+			// Handle music transition (outro + transport transition)
+			if (gameContext.musicManager) {
+			// Play coin sounds and thank you alert at the same time as transport transition
+			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
+				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+			);
+
+			// Play thank you sound immediately with coins
+			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
+
+				gameContext.musicManager.playTransportTransition(() => {
+					window.location.reload();
+				});
+			} else {
+				// Fallback if music manager not available
+				setTimeout(() => window.location.reload(), 1500);
+			}
 		}
-		setTimeout(() => window.location.reload(), 1500);
 	} else if (data.update === 'spacecoAchievement') {
 		new Achievement({ achievement: data.achievement });
 
@@ -76,7 +90,7 @@ export default data => {
 	} else if (data.playerId === gameContext.playerId) {
 		if (data.update === 'spacecoSell') {
 			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-			
+
 			// Check for resource alerts after selling (cargo reduced)
 			const updatedPlayer = gameContext.players.get(data.playerId);
 			checkResourceAlerts(updatedPlayer);
@@ -84,6 +98,9 @@ export default data => {
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.gain / 10))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 			);
+
+			// Play thank you sound immediately with coins
+			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
 
 			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
 
@@ -105,7 +122,7 @@ export default data => {
 			if (data.playerId === gameContext.playerId) {
 				const { sprite } = gameContext.players.get(data.playerId);
 				sprite.updateStatusBars();
-				
+
 				// Check for resource alerts after refuel
 				const updatedPlayer = gameContext.players.get(data.playerId);
 				checkResourceAlerts(updatedPlayer);
@@ -114,6 +131,9 @@ export default data => {
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 			);
+
+			// Play thank you sound immediately with coins
+			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
 
 			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
 
@@ -146,6 +166,9 @@ export default data => {
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.purchasedRepairs))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.heal.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 			);
+
+			// Play thank you sound immediately with coins and heals
+			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
 
 			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
 
@@ -213,7 +236,7 @@ export default data => {
 			});
 		} else if (data.update === 'spacecoBuyItem') {
 			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-			
+
 			// Check for resource alerts after buying item
 			const updatedPlayer = gameContext.players.get(data.playerId);
 			checkResourceAlerts(updatedPlayer);
@@ -221,6 +244,11 @@ export default data => {
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 			);
+
+			// Play thank you sound after coins
+			setTimeout(() => {
+				gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
+			}, Math.min(100, data.cost) * 60);
 
 			// Update SpaceCo state with complete data if provided
 			if (data.spaceco) {
@@ -301,7 +329,7 @@ export default data => {
 			if (data.playerId === gameContext.playerId) {
 				const { sprite } = gameContext.players.get(data.playerId);
 				sprite.updateStatusBars();
-				
+
 				// Check for resource alerts after upgrade
 				const updatedPlayer = gameContext.players.get(data.playerId);
 				checkResourceAlerts(updatedPlayer);
@@ -310,6 +338,9 @@ export default data => {
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 			);
+
+			// Play thank you sound immediately with coins
+			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
 
 			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
 

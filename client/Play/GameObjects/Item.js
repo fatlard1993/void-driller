@@ -52,7 +52,12 @@ export class Item extends Phaser.GameObjects.Sprite {
 			onComplete: () => {
 				this.destroy();
 
-				gameContext.scene.sound.play('pickup', { volume: gameContext.volume.effects });
+				// Play special sound for psykick eggs
+				if (this.name === 'psykick_egg') {
+					gameContext.scene.sound.play('pickup_egg', { volume: gameContext.volume.effects });
+				} else {
+					gameContext.scene.sound.play('pickup', { volume: gameContext.volume.effects });
+				}
 			},
 		});
 	}
