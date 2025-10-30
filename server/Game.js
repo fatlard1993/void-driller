@@ -203,12 +203,26 @@ export default class Game extends BaseGame {
 						else {
 							const [key, value] = award;
 
+							playerLog.info(`Processing achievement award`, {
+								playerId,
+								key,
+								value,
+								isInItems: !!items[key],
+							});
+
 							if (items[key]) {
 								updatedPlayer.items = { ...updatedPlayer.items, [key]: (updatedPlayer.items[key] ?? 0) + 1 };
 							} else {
-								updatedPlayer[key] =
-									updatedPlayer[key] +
-									(key === 'credits' ? getScaledAchievementReward(value, this.world.spaceco.xp) : value);
+								const awardAmount = key === 'credits' ? getScaledAchievementReward(value, 'credits', this.world.spaceco.xp) : value;
+								playerLog.info(`Awarding achievement reward`, {
+									playerId,
+									key,
+									baseValue: value,
+									awardAmount,
+									currentValue: updatedPlayer[key],
+									newValue: updatedPlayer[key] + awardAmount,
+								});
+								updatedPlayer[key] = updatedPlayer[key] + awardAmount;
 							}
 						}
 					});
@@ -346,6 +360,21 @@ export default class Game extends BaseGame {
 			gamePlayerCount: this.players.size + 1,
 			sessionStartTime: new Date().toISOString(),
 		});
+
+		// Clean up any stale trades involving this player ID (from previous sessions)
+		if (this.world.activeTrades) {
+			const staleTrades = Array.from(this.world.activeTrades.values()).filter(
+				trade => trade.player1Id === id || trade.player2Id === id,
+			);
+
+			staleTrades.forEach(trade => {
+				playerLog.info('Cleaning up stale trade for joining player', {
+					playerId: id,
+					tradeId: trade.id,
+				});
+				this.world.activeTrades.delete(trade.id);
+			});
+		}
 
 		this.players.set(id, {
 			credits: 0,
@@ -1424,6 +1453,14 @@ export default class Game extends BaseGame {
 				updates,
 				cost: transportCost,
 				world: newWorld.name,
+				newWorldState: {
+					...this.world,
+					// Send full world state for seamless transition
+					players: Array.from(this.players.values()).map(p => ({
+						...p,
+						sprite: undefined, // Don't send sprites
+					})),
+				},
 			},
 			['hull'],
 		);
@@ -1786,6 +1823,23 @@ export default class Game extends BaseGame {
 			});
 		}
 
+		// Cancel any active trades involving this player
+		if (this.world.activeTrades) {
+			const tradesToCancel = Array.from(this.world.activeTrades.values()).filter(
+				trade => (trade.player1Id === id || trade.player2Id === id) && trade.status === 'active',
+			);
+
+			tradesToCancel.forEach(trade => {
+				this.world.activeTrades.delete(trade.id);
+				this.broadcast('tradeCancelled', {
+					tradeId: trade.id,
+					cancelledBy: id,
+					player1Id: trade.player1Id,
+					player2Id: trade.player2Id,
+				});
+			});
+		}
+
 		this.players.delete(id);
 		this.updateSpacecoStock();
 		this.broadcast('removePlayer', { id });
@@ -1795,7 +1849,7 @@ export default class Game extends BaseGame {
 
 	// Add these methods to the Game class in ./server/Game.js
 
-	initiateTrade(initiatorId, targetId, offer, request) {
+	initiateTrade(initiatorId, targetId) {
 		const initiator = this.players.get(initiatorId);
 		const target = this.players.get(targetId);
 
@@ -1811,12 +1865,6 @@ export default class Game extends BaseGame {
 			return { success: false, error: 'Players must be adjacent to trade' };
 		}
 
-		// Validate that initiator has what they're offering
-		const validation = this.validateTradeResources(initiator, offer);
-		if (!validation.valid) {
-			return { success: false, error: validation.error };
-		}
-
 		// Check for existing active trades involving these players
 		if (!this.world.activeTrades) {
 			this.world.activeTrades = new Map();
@@ -1824,118 +1872,305 @@ export default class Game extends BaseGame {
 
 		const existingTrade = Array.from(this.world.activeTrades.values()).find(
 			trade =>
-				(trade.initiatorId === initiatorId ||
-					trade.targetId === initiatorId ||
-					trade.initiatorId === targetId ||
-					trade.targetId === targetId) &&
-				trade.status === 'pending',
+				(trade.player1Id === initiatorId ||
+					trade.player2Id === initiatorId ||
+					trade.player1Id === targetId ||
+					trade.player2Id === targetId) &&
+				trade.status === 'active',
 		);
 
 		if (existingTrade) {
-			return { success: false, error: 'Players already have an active trade' };
+			playerLog.warning('Cannot initiate trade - players already have active trade', {
+				initiatorId,
+				targetId,
+				existingTradeId: existingTrade.id,
+				existingTradeStatus: existingTrade.status,
+			});
+			// Force cleanup the stale trade and allow new one
+			playerLog.info('Force cleaning up stale trade to allow new session', {
+				tradeId: existingTrade.id,
+			});
+			this.world.activeTrades.delete(existingTrade.id);
+			this.broadcast('tradeCancelled', {
+				tradeId: existingTrade.id,
+				cancelledBy: initiatorId,
+				player1Id: existingTrade.player1Id,
+				player2Id: existingTrade.player2Id,
+			});
 		}
 
 		const tradeId = simpleId();
 		const trade = {
 			id: tradeId,
-			initiatorId,
-			targetId,
-			offer,
-			request,
-			status: 'pending',
+			player1Id: initiatorId,
+			player2Id: targetId,
+			player1Offer: { credits: 0, items: {}, minerals: {} },
+			player2Offer: { credits: 0, items: {}, minerals: {} },
+			player1Accepted: false,
+			player2Accepted: false,
+			status: 'active',
 			createdAt: Date.now(),
 			expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
 		};
 
 		this.world.activeTrades.set(tradeId, trade);
 
-		// Broadcast trade initiation to both players
-		this.broadcast('tradeInitiated', {
+		// Broadcast trade session started to both players
+		this.broadcast('tradeSessionStarted', {
 			trade,
-			initiatorName: initiator.name,
-			targetName: target.name,
+			player1Name: initiator.name,
+			player2Name: target.name,
 		});
 
 		return { success: true, tradeId };
 	}
 
-	respondToTrade(playerId, tradeId, accept) {
+	updateTradeOffer(playerId, tradeId, offer) {
 		const trade = this.world.activeTrades?.get(tradeId);
 
 		if (!trade) {
 			return { success: false, error: 'Trade not found or expired' };
 		}
 
-		if (trade.targetId !== playerId) {
-			return { success: false, error: 'Only the target player can respond to this trade' };
-		}
-
-		if (trade.status !== 'pending') {
+		if (trade.status !== 'active') {
 			return { success: false, error: 'Trade is no longer active' };
 		}
 
-		if (Date.now() > trade.expiresAt) {
-			this.world.activeTrades.delete(tradeId);
-			return { success: false, error: 'Trade has expired' };
+		if (trade.player1Id !== playerId && trade.player2Id !== playerId) {
+			return { success: false, error: 'You are not part of this trade' };
 		}
 
-		if (!accept) {
-			// Trade declined
-			trade.status = 'declined';
-			this.world.activeTrades.delete(tradeId);
-
-			this.broadcast('tradeDeclined', {
-				tradeId,
-				initiatorId: trade.initiatorId,
-				targetId: trade.targetId,
-			});
-
-			return { success: true };
+		const player = this.players.get(playerId);
+		if (!player) {
+			return { success: false, error: 'Player not found' };
 		}
 
-		// Trade accepted - execute the trade
-		const result = this.executeTrade(trade);
+		// Validate that player has what they're offering
+		const validation = this.validateTradeResources(player, offer);
+		if (!validation.valid) {
+			return { success: false, error: validation.error };
+		}
 
-		if (result.success) {
-			trade.status = 'completed';
-			this.world.activeTrades.delete(tradeId);
-
-			this.broadcast('tradeCompleted', {
-				tradeId,
-				initiatorId: trade.initiatorId,
-				targetId: trade.targetId,
-				initiatorUpdates: result.initiatorUpdates,
-				targetUpdates: result.targetUpdates,
-			});
+		// Update the offer and reset acceptance flags
+		if (trade.player1Id === playerId) {
+			trade.player1Offer = offer;
 		} else {
-			trade.status = 'failed';
-			this.world.activeTrades.delete(tradeId);
+			trade.player2Offer = offer;
+		}
 
-			this.broadcast('tradeFailed', {
-				tradeId,
-				error: result.error,
-				initiatorId: trade.initiatorId,
-				targetId: trade.targetId,
+		// Reset both acceptance flags when either player changes their offer
+		trade.player1Accepted = false;
+		trade.player2Accepted = false;
+
+		// Broadcast the updated trade state to both players
+		this.broadcast('tradeUpdated', {
+			tradeId,
+			trade,
+			updatedBy: playerId,
+		});
+
+		return { success: true };
+	}
+
+	acceptTrade(playerId, tradeId) {
+		const trade = this.world.activeTrades?.get(tradeId);
+
+		if (!trade) {
+			return { success: false, error: 'Trade not found or expired' };
+		}
+
+		if (trade.status !== 'active') {
+			return { success: false, error: 'Trade is no longer active' };
+		}
+
+		if (trade.player1Id !== playerId && trade.player2Id !== playerId) {
+			return { success: false, error: 'You are not part of this trade' };
+		}
+
+		// Mark this player as accepted
+		if (trade.player1Id === playerId) {
+			trade.player1Accepted = true;
+		} else {
+			trade.player2Accepted = true;
+		}
+
+		// Broadcast acceptance update
+		this.broadcast('tradeAcceptanceChanged', {
+			tradeId,
+			playerId,
+			player1Accepted: trade.player1Accepted,
+			player2Accepted: trade.player2Accepted,
+		});
+
+		// If both players accepted, execute the trade
+		if (trade.player1Accepted && trade.player2Accepted) {
+			return this.executeTradeSession(trade);
+		}
+
+		return { success: true, waitingForOther: true };
+	}
+
+	executeTradeSession(trade) {
+		const player1 = this.players.get(trade.player1Id);
+		const player2 = this.players.get(trade.player2Id);
+
+		if (!player1 || !player2) {
+			return { success: false, error: 'One or both players no longer exist' };
+		}
+
+		// Final validation of resources
+		const player1Validation = this.validateTradeResources(player1, trade.player1Offer);
+		if (!player1Validation.valid) {
+			return { success: false, error: `${player1.name}: ${player1Validation.error}` };
+		}
+
+		const player2Validation = this.validateTradeResources(player2, trade.player2Offer);
+		if (!player2Validation.valid) {
+			return { success: false, error: `${player2.name}: ${player2Validation.error}` };
+		}
+
+		// Execute the trade
+		const player1Updates = {
+			credits: player1.credits,
+			items: { ...player1.items },
+			hull: { ...player1.hull },
+			stats: { ...player1.stats },
+		};
+
+		const player2Updates = {
+			credits: player2.credits,
+			items: { ...player2.items },
+			hull: { ...player2.hull },
+			stats: { ...player2.stats },
+		};
+
+		// Remove offered resources from player1
+		if (trade.player1Offer.credits) {
+			player1Updates.credits -= trade.player1Offer.credits;
+		}
+
+		if (trade.player1Offer.items) {
+			Object.entries(trade.player1Offer.items).forEach(([itemName, quantity]) => {
+				player1Updates.items[itemName] = (player1Updates.items[itemName] || 0) - quantity;
+				if (player1Updates.items[itemName] <= 0) {
+					delete player1Updates.items[itemName];
+				}
 			});
 		}
 
-		return result;
+		if (trade.player1Offer.minerals) {
+			Object.entries(trade.player1Offer.minerals).forEach(([mineralName, quantity]) => {
+				player1Updates.hull[mineralName] = (player1Updates.hull[mineralName] || 0) - quantity;
+				if (player1Updates.hull[mineralName] <= 0) {
+					delete player1Updates.hull[mineralName];
+				}
+			});
+		}
+
+		// Remove offered resources from player2
+		if (trade.player2Offer.credits) {
+			player2Updates.credits -= trade.player2Offer.credits;
+		}
+
+		if (trade.player2Offer.items) {
+			Object.entries(trade.player2Offer.items).forEach(([itemName, quantity]) => {
+				player2Updates.items[itemName] = (player2Updates.items[itemName] || 0) - quantity;
+				if (player2Updates.items[itemName] <= 0) {
+					delete player2Updates.items[itemName];
+				}
+			});
+		}
+
+		if (trade.player2Offer.minerals) {
+			Object.entries(trade.player2Offer.minerals).forEach(([mineralName, quantity]) => {
+				player2Updates.hull[mineralName] = (player2Updates.hull[mineralName] || 0) - quantity;
+				if (player2Updates.hull[mineralName] <= 0) {
+					delete player2Updates.hull[mineralName];
+				}
+			});
+		}
+
+		// Add received resources to player1
+		if (trade.player2Offer.credits) {
+			player1Updates.credits += trade.player2Offer.credits;
+		}
+
+		if (trade.player2Offer.items) {
+			Object.entries(trade.player2Offer.items).forEach(([itemName, quantity]) => {
+				player1Updates.items[itemName] = (player1Updates.items[itemName] || 0) + quantity;
+			});
+		}
+
+		if (trade.player2Offer.minerals) {
+			Object.entries(trade.player2Offer.minerals).forEach(([mineralName, quantity]) => {
+				player1Updates.hull[mineralName] = (player1Updates.hull[mineralName] || 0) + quantity;
+			});
+		}
+
+		// Add received resources to player2
+		if (trade.player1Offer.credits) {
+			player2Updates.credits += trade.player1Offer.credits;
+		}
+
+		if (trade.player1Offer.items) {
+			Object.entries(trade.player1Offer.items).forEach(([itemName, quantity]) => {
+				player2Updates.items[itemName] = (player2Updates.items[itemName] || 0) + quantity;
+			});
+		}
+
+		if (trade.player1Offer.minerals) {
+			Object.entries(trade.player1Offer.minerals).forEach(([mineralName, quantity]) => {
+				player2Updates.hull[mineralName] = (player2Updates.hull[mineralName] || 0) + quantity;
+			});
+		}
+
+		// Update stats
+		player1Updates.stats.tradesCompleted = (player1Updates.stats.tradesCompleted || 0) + 1;
+		player2Updates.stats.tradesCompleted = (player2Updates.stats.tradesCompleted || 0) + 1;
+
+		// Apply updates
+		this.players.set(trade.player1Id, { ...player1, ...player1Updates });
+		this.players.set(trade.player2Id, { ...player2, ...player2Updates });
+
+		// Update cargo weights
+		this.updatePlayerCargo(trade.player1Id);
+		this.updatePlayerCargo(trade.player2Id);
+
+		trade.status = 'completed';
+		this.world.activeTrades.delete(trade.id);
+
+		this.broadcast('tradeCompleted', {
+			tradeId: trade.id,
+			player1Id: trade.player1Id,
+			player2Id: trade.player2Id,
+			player1Updates,
+			player2Updates,
+		});
+
+		return { success: true, player1Updates, player2Updates };
 	}
 
 	cancelTrade(playerId, tradeId) {
 		const trade = this.world.activeTrades?.get(tradeId);
 
 		if (!trade) {
+			playerLog.warning('Attempted to cancel non-existent trade', { playerId, tradeId });
 			return { success: false, error: 'Trade not found' };
 		}
 
-		if (trade.initiatorId !== playerId && trade.targetId !== playerId) {
+		if (trade.player1Id !== playerId && trade.player2Id !== playerId) {
+			playerLog.warning('Player attempted to cancel trade they are not part of', { playerId, tradeId });
 			return { success: false, error: 'You are not part of this trade' };
 		}
 
-		if (trade.status !== 'pending') {
-			return { success: false, error: 'Trade cannot be cancelled' };
+		if (trade.status !== 'active') {
+			playerLog.warning('Attempted to cancel non-active trade', { playerId, tradeId, status: trade.status });
+			// Still delete it to clean up
+			this.world.activeTrades.delete(tradeId);
+			return { success: true }; // Return success to prevent errors on cleanup
 		}
+
+		playerLog.info('Trade cancelled', { playerId, tradeId });
 
 		trade.status = 'cancelled';
 		this.world.activeTrades.delete(tradeId);
@@ -1943,14 +2178,19 @@ export default class Game extends BaseGame {
 		this.broadcast('tradeCancelled', {
 			tradeId,
 			cancelledBy: playerId,
-			initiatorId: trade.initiatorId,
-			targetId: trade.targetId,
+			player1Id: trade.player1Id,
+			player2Id: trade.player2Id,
 		});
 
 		return { success: true };
 	}
 
 	validateTradeResources(player, tradeItems) {
+		// Handle null/undefined trade items
+		if (!tradeItems) {
+			return { valid: true };
+		}
+
 		// Check credits
 		if (tradeItems.credits && tradeItems.credits > player.credits) {
 			return { valid: false, error: 'Insufficient credits' };
@@ -1979,138 +2219,6 @@ export default class Game extends BaseGame {
 		return { valid: true };
 	}
 
-	executeTrade(trade) {
-		const initiator = this.players.get(trade.initiatorId);
-		const target = this.players.get(trade.targetId);
-
-		if (!initiator || !target) {
-			return { success: false, error: 'One or both players no longer exist' };
-		}
-
-		// Final validation of resources
-		const initiatorValidation = this.validateTradeResources(initiator, trade.offer);
-		if (!initiatorValidation.valid) {
-			return { success: false, error: `Initiator: ${initiatorValidation.error}` };
-		}
-
-		const targetValidation = this.validateTradeResources(target, trade.request);
-		if (!targetValidation.valid) {
-			return { success: false, error: `Target: ${targetValidation.error}` };
-		}
-
-		// Execute the trade
-		const initiatorUpdates = {
-			credits: initiator.credits,
-			items: { ...initiator.items },
-			hull: { ...initiator.hull },
-			stats: { ...initiator.stats },
-		};
-
-		const targetUpdates = {
-			credits: target.credits,
-			items: { ...target.items },
-			hull: { ...target.hull },
-			stats: { ...target.stats },
-		};
-
-		// Remove offered resources from initiator
-		if (trade.offer.credits) {
-			initiatorUpdates.credits -= trade.offer.credits;
-		}
-
-		if (trade.offer.items) {
-			Object.entries(trade.offer.items).forEach(([itemName, quantity]) => {
-				initiatorUpdates.items[itemName] = (initiatorUpdates.items[itemName] || 0) - quantity;
-				if (initiatorUpdates.items[itemName] <= 0) {
-					delete initiatorUpdates.items[itemName];
-				}
-			});
-		}
-
-		if (trade.offer.minerals) {
-			Object.entries(trade.offer.minerals).forEach(([mineralName, quantity]) => {
-				initiatorUpdates.hull[mineralName] = (initiatorUpdates.hull[mineralName] || 0) - quantity;
-				if (initiatorUpdates.hull[mineralName] <= 0) {
-					delete initiatorUpdates.hull[mineralName];
-				}
-			});
-		}
-
-		// Remove requested resources from target
-		if (trade.request.credits) {
-			targetUpdates.credits -= trade.request.credits;
-		}
-
-		if (trade.request.items) {
-			Object.entries(trade.request.items).forEach(([itemName, quantity]) => {
-				targetUpdates.items[itemName] = (targetUpdates.items[itemName] || 0) - quantity;
-				if (targetUpdates.items[itemName] <= 0) {
-					delete targetUpdates.items[itemName];
-				}
-			});
-		}
-
-		if (trade.request.minerals) {
-			Object.entries(trade.request.minerals).forEach(([mineralName, quantity]) => {
-				targetUpdates.hull[mineralName] = (targetUpdates.hull[mineralName] || 0) - quantity;
-				if (targetUpdates.hull[mineralName] <= 0) {
-					delete targetUpdates.hull[mineralName];
-				}
-			});
-		}
-
-		// Add received resources to each player
-		if (trade.request.credits) {
-			initiatorUpdates.credits += trade.request.credits;
-		}
-
-		if (trade.request.items) {
-			Object.entries(trade.request.items).forEach(([itemName, quantity]) => {
-				initiatorUpdates.items[itemName] = (initiatorUpdates.items[itemName] || 0) + quantity;
-			});
-		}
-
-		if (trade.request.minerals) {
-			Object.entries(trade.request.minerals).forEach(([mineralName, quantity]) => {
-				initiatorUpdates.hull[mineralName] = (initiatorUpdates.hull[mineralName] || 0) + quantity;
-			});
-		}
-
-		if (trade.offer.credits) {
-			targetUpdates.credits += trade.offer.credits;
-		}
-
-		if (trade.offer.items) {
-			Object.entries(trade.offer.items).forEach(([itemName, quantity]) => {
-				targetUpdates.items[itemName] = (targetUpdates.items[itemName] || 0) + quantity;
-			});
-		}
-
-		if (trade.offer.minerals) {
-			Object.entries(trade.offer.minerals).forEach(([mineralName, quantity]) => {
-				targetUpdates.hull[mineralName] = (targetUpdates.hull[mineralName] || 0) + quantity;
-			});
-		}
-
-		// Update stats
-		initiatorUpdates.stats.tradesCompleted = (initiatorUpdates.stats.tradesCompleted || 0) + 1;
-		targetUpdates.stats.tradesCompleted = (targetUpdates.stats.tradesCompleted || 0) + 1;
-
-		// Apply updates
-		this.players.set(trade.initiatorId, { ...initiator, ...initiatorUpdates });
-		this.players.set(trade.targetId, { ...target, ...targetUpdates });
-
-		// Update cargo weights
-		this.updatePlayerCargo(trade.initiatorId);
-		this.updatePlayerCargo(trade.targetId);
-
-		return {
-			success: true,
-			initiatorUpdates,
-			targetUpdates,
-		};
-	}
-
 	// Add cleanup method to periodically remove expired trades
 	cleanupExpiredTrades() {
 		if (!this.world.activeTrades) return;
@@ -2119,7 +2227,7 @@ export default class Game extends BaseGame {
 		const expiredTrades = [];
 
 		for (const [tradeId, trade] of this.world.activeTrades.entries()) {
-			if (now > trade.expiresAt && trade.status === 'pending') {
+			if (now > trade.expiresAt && trade.status === 'active') {
 				expiredTrades.push(tradeId);
 			}
 		}
@@ -2130,8 +2238,8 @@ export default class Game extends BaseGame {
 
 			this.broadcast('tradeExpired', {
 				tradeId,
-				initiatorId: trade.initiatorId,
-				targetId: trade.targetId,
+				player1Id: trade.player1Id,
+				player2Id: trade.player2Id,
 			});
 		});
 	}
@@ -4022,6 +4130,20 @@ export default class Game extends BaseGame {
 					// Use existing explosion effect system
 					explode({ game: this, position, radius: explosionRadius, playerId });
 				}, 600); // Delay for tension buildup
+			}
+		}
+
+		// Pink ground (saronite) - pulsates and may cause visions
+		else if (groundType === 'pink') {
+			// 3% chance of triggering psychic effect when mined
+			if (chance(3)) {
+				// Broadcast psychic effect event
+				this.broadcast('groundEffect', {
+					type: 'psychicPulse',
+					position,
+					groundType,
+					playerId,
+				});
 			}
 		}
 	}

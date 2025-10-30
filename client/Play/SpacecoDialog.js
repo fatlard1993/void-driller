@@ -27,6 +27,7 @@ import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { DescriptionText } from '../shared/DescriptionText';
 import { InfoButton } from '../shared/InfoButton';
+import PriceDisplay from '../shared/PriceDisplay';
 import {
 	spacecoBuyItem,
 	spacecoBuyTransport,
@@ -315,24 +316,43 @@ class UpgradePricing extends (styled.Component`
 		const { basePrice, tradeInDiscount } = this.options;
 
 		if (tradeInDiscount > 0) {
-			new Elem({
-				appendTo: this,
-				content: `List Price: $${basePrice}`,
-				style: {
-					textDecoration: 'line-through',
-					color: theme.colors.gray,
-					fontSize: '0.9em',
+			new Elem(
+				{
+					appendTo: this,
+					style: {
+						textDecoration: 'line-through',
+						color: theme.colors.gray,
+						fontSize: '0.9em',
+						display: 'flex',
+						alignItems: 'center',
+						gap: '4px',
+					},
 				},
-			});
+				new Elem({ content: 'List Price:' }),
+				new PriceDisplay({
+					amount: basePrice,
+					size: 14,
+				}),
+			);
 
-			new Elem({
-				appendTo: this,
-				content: `Trade-in Credit: -$${tradeInDiscount}`,
-				style: {
-					color: theme.colors.green,
-					fontSize: '0.9em',
+			new Elem(
+				{
+					appendTo: this,
+					style: {
+						color: theme.colors.green,
+						fontSize: '0.9em',
+						display: 'flex',
+						alignItems: 'center',
+						gap: '4px',
+					},
 				},
-			});
+				new Elem({ content: 'Trade-in Credit: -' }),
+				new PriceDisplay({
+					amount: tradeInDiscount,
+					size: 14,
+					variant: 'success',
+				}),
+			);
 		}
 	}
 }
@@ -588,7 +608,15 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	renderPlayerCredits() {
 		const player = gameContext.players.currentPlayer;
 
-		this._menuBody.append(new Label('Credits', `$${player.credits.toFixed(2)}`));
+		this._menuBody.append(
+			new Label(
+				'Credits',
+				new PriceDisplay({
+					amount: player.credits.toFixed(2),
+					size: 20,
+				}),
+			),
+		);
 
 		// Show egg hunt progress if any eggs have been submitted
 		const eggHunt = gameContext.serverState.world.spaceco.eggHunt;
@@ -641,7 +669,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
 
 		new Button({
-			content: `Full Repair ($${spacecoRepairCost})`,
+			content: new Elem(
+				{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+				new Elem({ content: 'Full Repair' }),
+				new Elem({ content: '(' }),
+				new PriceDisplay({ amount: spacecoRepairCost, size: 14 }),
+				new Elem({ content: ')' }),
+			),
 			appendTo: this._body,
 			onPointerPress: () => spacecoRepair({ type: 'outpost' }),
 			disabled: spacecoRepairCost > player.credits,
@@ -725,7 +759,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			}),
 		});
 
-		sellButton.options.content = `Sell All ($${credits.toFixed(2)})`;
+		sellButton.options.content = new Elem(
+			{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+			new Elem({ content: 'Sell All' }),
+			new Elem({ content: '(' }),
+			new PriceDisplay({ amount: credits.toFixed(2), size: 14, variant: 'success' }),
+			new Elem({ content: ')' }),
+		);
 	}
 
 	render_success() {
@@ -965,7 +1005,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footerButtons: true,
 					footer: [
 						new Button({
-							content: `Buy ($${finalCost})`,
+							content: new Elem(
+								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								new Elem({ content: 'Buy' }),
+								new Elem({ content: '(' }),
+								new PriceDisplay({ amount: finalCost, size: 14 }),
+								new Elem({ content: ')' }),
+							),
 							style: {
 								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.red),
 							},
@@ -1048,7 +1094,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footerButtons: true,
 					footer: [
 						new Button({
-							content: `Buy ($${finalCost})`,
+							content: new Elem(
+								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								new Elem({ content: 'Buy' }),
+								new Elem({ content: '(' }),
+								new PriceDisplay({ amount: finalCost, size: 14 }),
+								new Elem({ content: ')' }),
+							),
 							style: {
 								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.red),
 							},
@@ -1149,7 +1201,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footerButtons: true,
 					footer: [
 						new Button({
-							content: `Buy ($${finalCost})`,
+							content: new Elem(
+								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								new Elem({ content: 'Buy' }),
+								new Elem({ content: '(' }),
+								new PriceDisplay({ amount: finalCost, size: 14 }),
+								new Elem({ content: ')' }),
+							),
 							style: {
 								backgroundColor: !missingRequirements && canAfford ? '' : theme.colors.darkest(theme.colors.red),
 							},
@@ -1257,7 +1315,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footerButtons: true,
 					footer: [
 						new Button({
-							content: `Buy ($${finalCost})`,
+							content: new Elem(
+								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								new Elem({ content: 'Buy' }),
+								new Elem({ content: '(' }),
+								new PriceDisplay({ amount: finalCost, size: 14 }),
+								new Elem({ content: ')' }),
+							),
 							onPointerPress: () => {
 								spacecoBuyUpgrade({ upgrade: id, type: 'parts' });
 							},
@@ -1303,7 +1367,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				...[5, 10, 20, 40, 50].map(amount => {
 					if (player.credits > amount && amount <= cost) {
 						return new Button({
-							content: `$${amount}`,
+							content: new PriceDisplay({ amount: amount, size: 14 }),
 							onPointerPress: () => spacecoRefuel({ amount }),
 						});
 					}
@@ -1311,14 +1375,20 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				player.credits &&
 					cost > player.credits &&
 					new Button({
-						content: `$${player.credits.toFixed(2)}`,
+						content: new PriceDisplay({ amount: player.credits.toFixed(2), size: 14 }),
 						onPointerPress: () =>
 							spacecoRefuel({
 								amount: player.credits,
 							}),
 					}),
 				new Button({
-					content: `Fill ($${cost.toFixed(2)})`,
+					content: new Elem(
+						{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+						new Elem({ content: 'Fill' }),
+						new Elem({ content: '(' }),
+						new PriceDisplay({ amount: cost.toFixed(2), size: 14 }),
+						new Elem({ content: ')' }),
+					),
 					onPointerPress: () => spacecoRefuel({ amount: cost }),
 					disabled: cost > player.credits,
 					style: {
@@ -1350,7 +1420,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			);
 
 			new Button({
-				textContent: `Full Repair ($${cost.toFixed(2)})`,
+				content: new Elem(
+					{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+					new Elem({ content: 'Full Repair' }),
+					new Elem({ content: '(' }),
+					new PriceDisplay({ amount: cost.toFixed(2), size: 14 }),
+					new Elem({ content: ')' }),
+				),
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: playerRepairs,
 				onPointerPress: () => spacecoRepair({ type: 'player' }),
@@ -1367,7 +1443,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
 
 			new Button({
-				textContent: `Full Repair ($${spacecoRepairCost})`,
+				content: new Elem(
+					{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+					new Elem({ content: 'Full Repair' }),
+					new Elem({ content: '(' }),
+					new PriceDisplay({ amount: spacecoRepairCost, size: 14 }),
+					new Elem({ content: ')' }),
+				),
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: spacecoRepairs,
 				onPointerPress: () => spacecoRepair({ type: 'outpost' }),
@@ -1492,7 +1574,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						footerButtons: true,
 						footer: [
 							new Button({
-								content: `Buy ($${scaledPrice})`,
+								content: new Elem(
+									{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+									new Elem({ content: 'Buy' }),
+									new Elem({ content: '(' }),
+									new PriceDisplay({ amount: scaledPrice, size: 14 }),
+									new Elem({ content: ')' }),
+								),
 								style: {
 									backgroundColor: canPurchase ? '' : theme.colors.darkest(theme.colors.red),
 								},
@@ -1699,7 +1787,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									content: `($${currentMarketPrice} - 30% restocking fee)`,
 								}),
 								new Button({
-									content: count > 1 ? `Sell 1 ($${sellPrice})` : `Sell ($${sellPrice})`,
+									content: new Elem(
+										{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+										new Elem({ content: count > 1 ? 'Sell 1' : 'Sell' }),
+										new Elem({ content: '(' }),
+										new PriceDisplay({ amount: sellPrice, size: 14, variant: 'success' }),
+										new Elem({ content: ')' }),
+									),
 									onPointerPress: async () => {
 										spacecoLog.info('Attempting to sell item:', key, 'count:', 1);
 										try {
@@ -1714,7 +1808,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								...(count > 1
 									? [
 											new Button({
-												content: `Sell All ($${sellPrice * count})`,
+												content: new Elem(
+													{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+													new Elem({ content: 'Sell All' }),
+													new Elem({ content: '(' }),
+													new PriceDisplay({ amount: sellPrice * count, size: 14, variant: 'success' }),
+													new Elem({ content: ')' }),
+												),
 												onPointerPress: async () => {
 													spacecoLog.info('Attempting to sell all items:', key, 'count:', count);
 													try {
@@ -1869,14 +1969,15 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								borderRadius: '4px',
 							},
 							append: [
-								new Elem({
+								new PriceDisplay({
+									amount: price,
+									size: 18,
 									style: {
 										fontSize: '14px',
 										color: theme.colors.green,
-										textAlign: 'center',
+										justifyContent: 'center',
 										fontWeight: 'bold',
 									},
-									content: `$${price}`,
 								}),
 								new Button({
 									content: `Buy Transport`,

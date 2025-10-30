@@ -390,53 +390,8 @@ const _game = async (request, server) => {
 		return Response.json({}, { status: 200 });
 	}
 
-	match = requestMatch('POST', '/games/:gameId/:playerId/trade', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { targetPlayerId, offer, request: tradeRequest } = body;
-
-		// Validate request body
-		if (!targetPlayerId || !offer || !tradeRequest) {
-			return Response.json({ message: 'Invalid trade parameters' }, { status: 400 });
-		}
-
-		// Validate trade structure
-		const validateTradeItems = items => {
-			if (
-				!items.credits &&
-				(!items.items || Object.keys(items.items).length === 0) &&
-				(!items.minerals || Object.keys(items.minerals).length === 0)
-			) {
-				return false;
-			}
-			return true;
-		};
-
-		if (!validateTradeItems(offer) && !validateTradeItems(tradeRequest)) {
-			return Response.json({ message: 'Trade must include at least one item from each party' }, { status: 400 });
-		}
-
-		try {
-			const result = server.games[gameId].initiateTrade(playerId, targetPlayerId, offer, tradeRequest);
-
-			if (!result.success) {
-				return Response.json({ message: result.error }, { status: 400 });
-			}
-
-			return Response.json({ tradeId: result.tradeId }, { status: 200 });
-		} catch (tradeError) {
-			gameLog.error('Trade initiation error', { playerId, gameId, error: tradeError.message });
-			return Response.json({ message: 'Trade system error. Please try again.' }, { status: 500 });
-		}
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/trade/:tradeId/respond', request);
+	// Update trade offer (must come before base /trade route)
+	match = requestMatch('POST', '/games/:gameId/:playerId/trade/:tradeId/offer', request);
 	if (match) {
 		const { gameId, playerId, tradeId, error } = {
 			...validateGameMatch(match, server, request),
@@ -445,17 +400,17 @@ const _game = async (request, server) => {
 
 		if (error) return error;
 
-		const { body, error: parseError } = await parseRequestBody(request);
+		const { body, error: parseError} = await parseRequestBody(request);
 		if (parseError) return parseError;
 
-		const { accept } = body;
+		const { offer } = body;
 
-		if (typeof accept !== 'boolean') {
-			return Response.json({ message: 'Invalid response - must specify accept as true or false' }, { status: 400 });
+		if (!offer) {
+			return Response.json({ message: 'Offer required' }, { status: 400 });
 		}
 
 		try {
-			const result = server.games[gameId].respondToTrade(playerId, tradeId, accept);
+			const result = server.games[gameId].updateTradeOffer(playerId, tradeId, offer);
 
 			if (!result.success) {
 				return Response.json({ message: result.error }, { status: 400 });
@@ -463,11 +418,36 @@ const _game = async (request, server) => {
 
 			return Response.json({ success: true }, { status: 200 });
 		} catch (tradeError) {
-			gameLog.error('Trade response error', { playerId, gameId, error: tradeError.message });
+			gameLog.error('Trade offer update error', { playerId, gameId, tradeId, error: tradeError.message });
 			return Response.json({ message: 'Trade system error. Please try again.' }, { status: 500 });
 		}
 	}
 
+	// Accept trade (must come before base /trade route)
+	match = requestMatch('POST', '/games/:gameId/:playerId/trade/:tradeId/accept', request);
+	if (match) {
+		const { gameId, playerId, tradeId, error } = {
+			...validateGameMatch(match, server, request),
+			tradeId: match.tradeId,
+		};
+
+		if (error) return error;
+
+		try {
+			const result = server.games[gameId].acceptTrade(playerId, tradeId);
+
+			if (!result.success) {
+				return Response.json({ message: result.error }, { status: 400 });
+			}
+
+			return Response.json({ success: true, waitingForOther: result.waitingForOther }, { status: 200 });
+		} catch (tradeError) {
+			gameLog.error('Trade accept error', { playerId, gameId, tradeId, error: tradeError.message });
+			return Response.json({ message: 'Trade system error. Please try again.' }, { status: 500 });
+		}
+	}
+
+	// Cancel trade (DELETE must come before base /trade route)
 	match = requestMatch('DELETE', '/games/:gameId/:playerId/trade/:tradeId', request);
 	if (match) {
 		const { gameId, playerId, tradeId, error } = {
@@ -487,6 +467,36 @@ const _game = async (request, server) => {
 			return Response.json({ success: true }, { status: 200 });
 		} catch (tradeError) {
 			gameLog.error('Trade cancellation error', { playerId, gameId, error: tradeError.message });
+			return Response.json({ message: 'Trade system error. Please try again.' }, { status: 500 });
+		}
+	}
+
+	// Initiate trade session (must come AFTER more specific routes)
+	match = requestMatch('POST', '/games/:gameId/:playerId/trade', request);
+	if (match) {
+		const { gameId, playerId, error } = validateGameMatch(match, server, request);
+
+		if (error) return error;
+
+		const { body, error: parseError } = await parseRequestBody(request);
+		if (parseError) return parseError;
+
+		const { targetPlayerId } = body;
+
+		if (!targetPlayerId) {
+			return Response.json({ message: 'Target player ID required' }, { status: 400 });
+		}
+
+		try {
+			const result = server.games[gameId].initiateTrade(playerId, targetPlayerId);
+
+			if (!result.success) {
+				return Response.json({ message: result.error }, { status: 400 });
+			}
+
+			return Response.json({ tradeId: result.tradeId }, { status: 200 });
+		} catch (tradeError) {
+			gameLog.error('Trade initiation error', { playerId, gameId, error: tradeError.message });
 			return Response.json({ message: 'Trade system error. Please try again.' }, { status: 500 });
 		}
 	}

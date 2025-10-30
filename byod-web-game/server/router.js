@@ -33,7 +33,7 @@ const router = async (request, server) => {
 	let match;
 
 	match = requestMatch('GET', '/games', request);
-	if (match) return Response.json(Object.values(games).map(game => game.toClient()));
+	if (match) return Response.json(Object.values(games).filter(game => game).map(game => game.toClient()));
 
 	match = requestMatch('GET', '/games/:gameId', request);
 	if (match) {

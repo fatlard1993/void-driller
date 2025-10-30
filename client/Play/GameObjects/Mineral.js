@@ -29,7 +29,7 @@ export class Mineral extends Phaser.GameObjects.Image {
 
 		this.name = name;
 
-		this.setOrigin(origin.x ?? rand(-0.3, 1.2), origin.y ?? rand(-0.3, 1.2));
+		this.setOrigin(origin?.x ?? rand(-0.3, 1.2), origin?.y ?? rand(-0.3, 1.2));
 		this.setAlpha(0.9);
 		this.setScale(rand(0.6, 0.8));
 		this.setAngle(randInt(-33, 33));

@@ -5,7 +5,8 @@ import Phaser from 'phaser';
 import { gridToPxPosition, getSurroundingRadius } from '../../../utils';
 import gameContext from '../../shared/gameContext';
 import TradeDialog from '../TradeDialog';
-import { disarmBomb, deactivateTeleporter } from '../../api';
+import { disarmBomb, deactivateTeleporter, initiateTrade } from '../../api';
+import Notify from '../../shared/Notify';
 import { Drill } from './Drill';
 
 export class Player extends Drill {
@@ -100,10 +101,16 @@ export class Player extends Drill {
 		const nearbyPlayers = this.findNearbyPlayers(1);
 		const hasNearbyPlayers = nearbyPlayers.length > 0;
 
-		// Show or hide trade prompt based on nearby players
-		if (hasNearbyPlayers && !this.tradePromptVisible) {
+		// Check if there's a pending trade invitation with a nearby player
+		const pendingTrade = gameContext.pendingTradeInvitation;
+		const hasPendingTradeWithNearby = nearbyPlayers.some(
+			player => pendingTrade && (pendingTrade.player1Id === player.id || pendingTrade.player2Id === player.id),
+		);
+
+		// Show or hide trade prompt based on nearby players OR pending trade
+		if ((hasNearbyPlayers || hasPendingTradeWithNearby) && !this.tradePromptVisible) {
 			this.showTradePrompt(nearbyPlayers[0]);
-		} else if (!hasNearbyPlayers && this.tradePromptVisible) {
+		} else if (!hasNearbyPlayers && !hasPendingTradeWithNearby && this.tradePromptVisible) {
 			this.hideTradePrompt();
 		}
 
@@ -138,11 +145,44 @@ export class Player extends Drill {
 			this.tradeButton.y = this.tradeButton.y + 1;
 		});
 
-		this.tradeButton.on('pointerdown', () => {
+		this.tradeButton.on('pointerdown', async () => {
 			if (!gameContext.openDialog?.elem?.open) {
-				gameContext.openDialog = new TradeDialog({
-					targetPlayer: targetPlayer,
-				});
+				// Check if there's a pending trade invitation with this player
+				const pendingTrade = gameContext.pendingTradeInvitation;
+				if (
+					pendingTrade &&
+					(pendingTrade.player1Id === targetPlayer.id || pendingTrade.player2Id === targetPlayer.id)
+				) {
+					// Join the existing trade session
+					gameContext.openDialog = new TradeDialog({
+						otherPlayer: targetPlayer,
+						tradeSession: pendingTrade,
+					});
+
+					// Clear the pending invitation
+					gameContext.pendingTradeInvitation = null;
+				} else {
+					// Start a new trade session
+					try {
+						const result = await initiateTrade({ targetPlayerId: targetPlayer.id });
+						// Dialog will open automatically via socket event for initiator
+						console.log('Trade initiated:', result);
+					} catch (error) {
+						console.error('Trade initiation error:', error);
+						// If error is "already have active trade", try to cancel and retry
+						if (error.message?.includes('already have an active trade')) {
+							new Notify({
+								type: 'warning',
+								content: 'Previous trade still active. Please close it first.',
+							});
+						} else {
+							new Notify({
+								type: 'error',
+								content: error.message || 'Failed to start trade',
+							});
+						}
+					}
+				}
 			}
 		});
 
