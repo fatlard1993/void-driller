@@ -13,9 +13,20 @@ export default class Hub extends View {
 			containerComponent: !!options.containerComponent,
 			noGamesText: !!options.noGamesText,
 		});
+
+		// Extract Hub-specific options that shouldn't be passed to parent
+		const {
+			containerComponent,
+			noGamesText,
+			gamesFoundText,
+			gamesFoundTextFn,
+			buttons,
+			...parentOptions
+		} = options;
+
 		super(
 			{
-				...options,
+				...parentOptions,
 				toolbar: {
 					heading: options.toolbar?.heading || 'Game Hub',
 					left: options.toolbar?.left || [],
@@ -30,6 +41,13 @@ export default class Hub extends View {
 			},
 			...children,
 		);
+
+		// Store Hub-specific options separately
+		this.containerComponent = containerComponent;
+		this.noGamesText = noGamesText;
+		this.gamesFoundText = gamesFoundText;
+		this.gamesFoundTextFn = gamesFoundTextFn;
+		this.buttonOptions = buttons;
 
 		this.options.onPointerUp = () => {
 			if (this.gamePopover) this.gamePopover.elem.remove();
@@ -69,15 +87,14 @@ export default class Hub extends View {
 		if (!games.body?.length) {
 			// Allow games to provide their own container component for empty state
 			console.log('Debug options:', {
-				containerComponent: !!this.options.containerComponent,
-				noGamesText: !!this.options.noGamesText,
-				options: this.options,
+				containerComponent: !!this.containerComponent,
+				noGamesText: !!this.noGamesText,
 			});
-			if (this.options.containerComponent && this.options.noGamesText) {
-				const ContainerComponent = this.options.containerComponent;
+			if (this.containerComponent && this.noGamesText) {
+				const ContainerComponent = this.containerComponent;
 				this.container = new ContainerComponent({
 					appendTo: this._body,
-					textContent: this.options.noGamesText,
+					textContent: this.noGamesText,
 				});
 			} else {
 				const noGamesMessage = this.options.noGamesMessage || 'No games found. Create one to get started!';
@@ -94,7 +111,7 @@ export default class Hub extends View {
 				append: [
 					new GameListText({ content: name }),
 					new Button({
-						content: this.options.buttons?.linkText || 'Copy Link',
+						content: this.buttonOptions?.linkText || 'Copy Link',
 						onPointerPress: event => {
 							event.stopPropagation();
 
@@ -110,7 +127,7 @@ export default class Hub extends View {
 						},
 					}),
 					new Button({
-						content: this.options.buttons?.infoText || 'Info',
+						content: this.buttonOptions?.infoText || 'Info',
 						onPointerPress: event => {
 							event.stopPropagation();
 
@@ -119,7 +136,7 @@ export default class Hub extends View {
 						},
 					}),
 					new Link({
-						content: this.options.buttons?.joinText || 'Join',
+						content: this.buttonOptions?.joinText || 'Join',
 						href: `#/join/${id}`,
 						variant: 'button',
 					}),
@@ -129,11 +146,11 @@ export default class Hub extends View {
 		});
 
 		// Allow games to provide their own container component for games list
-		if (this.options.containerComponent && (this.options.gamesFoundText || this.options.gamesFoundTextFn)) {
-			const ContainerComponent = this.options.containerComponent;
-			const gamesText = this.options.gamesFoundTextFn
-				? this.options.gamesFoundTextFn(games.body.length)
-				: this.options.gamesFoundText;
+		if (this.containerComponent && (this.gamesFoundText || this.gamesFoundTextFn)) {
+			const ContainerComponent = this.containerComponent;
+			const gamesText = this.gamesFoundTextFn
+				? this.gamesFoundTextFn(games.body.length)
+				: this.gamesFoundText;
 
 			this.container = new ContainerComponent(
 				{

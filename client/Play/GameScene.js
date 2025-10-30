@@ -299,6 +299,7 @@ export default class GameScene extends Phaser.Scene {
 				this.load.image('crack_img', 'img/crack.png');
 				this.load.image('icons_img', 'img/icons.png');
 				this.load.image('minerals_img', 'img/minerals.png');
+				this.load.image('transport', 'img/transport.png');
 
 				// Set up callback to convert images to spritesheets after load
 				this.load.on(
@@ -343,6 +344,7 @@ export default class GameScene extends Phaser.Scene {
 				this.load.spritesheet('crack', 'img/crack.png', { frameWidth: 64, frameHeight: 64 });
 				this.load.spritesheet('icons', 'img/icons.png', { frameWidth: 32, frameHeight: 32 });
 				this.load.spritesheet('minerals', 'img/minerals.png', { frameWidth: 32, frameHeight: 32 });
+				this.load.image('transport', 'img/transport.png');
 			}
 
 			// Load all audio for both mobile and desktop
@@ -632,5 +634,306 @@ export default class GameScene extends Phaser.Scene {
 		} catch (error) {
 			if (window.debugLog) window.debugLog('Create error: ' + error.message);
 		}
+	}
+
+	startWorldTransition(newWorldState) {
+		console.log('🌍 Starting world transition with transport ship:', newWorldState);
+
+		// Disable input during transition
+		gameContext.transitioning = true;
+
+		// Close any open dialogs immediately
+		if (gameContext.openDialog?.elem?.open) {
+			gameContext.openDialog.close();
+		}
+
+		// Create transport ship sprite using screen coordinates
+		const screenWidth = this.cameras.main.width;
+		const screenHeight = this.cameras.main.height;
+		const ship = this.add.image(-400, screenHeight / 2, 'transport');
+		ship.setDepth(10000); // Above everything
+		ship.setScale(0.6); // Smaller - 60% of original size
+		ship.setAlpha(0);
+		ship.setScrollFactor(0); // Stay in camera view (screen coordinates)
+
+		console.log('🚀 Transport ship created:', {
+			screenWidth,
+			screenHeight,
+			shipY: ship.y,
+			texture: ship.texture.key,
+			textureExists: this.textures.exists('transport'),
+			spacecoExists: !!gameContext.spaceco
+		});
+
+		// Fade in the ship
+		this.tweens.add({
+			targets: ship,
+			alpha: 1,
+			duration: 1000,
+			ease: 'Power2',
+		});
+
+		// Animate ship flying across screen - longer duration to match music
+		this.tweens.add({
+			targets: ship,
+			x: screenWidth + 400, // Go further off-screen on both sides
+			duration: 17000, // 17 seconds total (added 2s)
+			ease: 'Sine.easeInOut',
+			onComplete: () => {
+				clearInterval(bobInterval);
+				ship.destroy();
+				console.log('🚀 Transport ship animation complete');
+			},
+		});
+
+		// Add sine wave bobbing motion
+		let time = 0;
+		const bobInterval = setInterval(() => {
+			if (!ship || !ship.active) {
+				clearInterval(bobInterval);
+				return;
+			}
+			time += 0.03;
+			const baseY = screenHeight / 2;
+			ship.y = baseY + Math.sin(time) * 40;
+		}, 16);
+
+		// Fade out all scene layers including interfaces (keep stars visible in background)
+		const fadeDuration = 800;
+		Object.values(gameContext.sceneLayers).forEach(layer => {
+			this.tweens.add({
+				targets: layer,
+				alpha: 0,
+				duration: fadeDuration,
+				ease: 'Power2',
+			});
+		});
+
+		// Fade out SpaceCo building separately (it's in hazards layer but needs explicit fade)
+		if (gameContext.spaceco) {
+			this.tweens.add({
+				targets: gameContext.spaceco,
+				alpha: 0,
+				duration: fadeDuration,
+				ease: 'Power2',
+			});
+
+			// Also fade out SpaceCo's trade button if it exists
+			if (gameContext.spaceco.tradeButton) {
+				this.tweens.add({
+					targets: gameContext.spaceco.tradeButton,
+					alpha: 0,
+					duration: fadeDuration,
+					ease: 'Power2',
+				});
+			}
+		}
+
+		// After fade completes, rebuild the world
+		setTimeout(() => {
+			console.log('📺 Layers faded out, rebuilding world...');
+
+			// Destroy all existing sprites
+			Object.values(gameContext.sceneLayers).forEach(layer => {
+				layer.removeAll(true); // Remove and destroy all children
+				layer.alpha = 0; // Keep layers invisible
+			});
+
+			// Clear player sprites
+			gameContext.players.forEach((player, playerId) => {
+				if (player.sprite) {
+					player.sprite.destroy();
+				}
+			});
+			gameContext.players.clear();
+
+			// Destroy SpaceCo sprite
+			if (gameContext.spaceco) {
+				gameContext.spaceco.destroy();
+				gameContext.spaceco = null;
+			}
+
+			// Update server state with new world
+			gameContext.serverState.world = newWorldState;
+
+			// Recreate the world
+			this.createWorldFromState();
+
+			console.log('✅ World rebuilt, waiting for music to finish...');
+		}, fadeDuration);
+	}
+
+	fadeInWorld() {
+		console.log('🎨 Fading in new world...');
+
+		// Re-enable input
+		gameContext.transitioning = false;
+
+		// Fade in all scene layers
+		const fadeInDuration = 1200;
+		Object.values(gameContext.sceneLayers).forEach(layer => {
+			this.tweens.add({
+				targets: layer,
+				alpha: 1,
+				duration: fadeInDuration,
+				ease: 'Power2',
+			});
+		});
+
+		// Fade in SpaceCo sprite separately
+		if (gameContext.spaceco) {
+			this.tweens.add({
+				targets: gameContext.spaceco,
+				alpha: 1,
+				duration: fadeInDuration,
+				ease: 'Power2',
+			});
+
+			// Fade in SpaceCo's trade button
+			if (gameContext.spaceco.tradeButton) {
+				this.tweens.add({
+					targets: gameContext.spaceco.tradeButton,
+					alpha: 1,
+					duration: fadeInDuration,
+					ease: 'Power2',
+				});
+			}
+		}
+
+		setTimeout(() => {
+			console.log('✅ World transition complete!');
+		}, fadeInDuration);
+	}
+
+	createWorldFromState() {
+		console.log('🎮 Creating world from state...');
+
+		// Recreate ground, hazards, and items
+		for (let x = 0; x < gameContext.serverState.world.grid.length; x++) {
+			for (let y = 0; y < gameContext.serverState.world.grid[x].length; y++) {
+				const gridConfig = gameContext.serverState.world.grid[x][y];
+
+				if (!gridConfig) continue;
+
+				// Ground
+				if (gridConfig.ground?.type) {
+					try {
+						gridConfig.ground.sprite = new Ground(this, x, y, gridConfig.ground.type);
+						gameContext.sceneLayers.ground.add(gridConfig.ground.sprite);
+					} catch (error) {
+						console.error('Error creating ground:', error, { x, y, type: gridConfig.ground.type });
+					}
+				}
+
+				// Hazards
+				if (gridConfig.hazards && Array.isArray(gridConfig.hazards)) {
+					for (let z = 0; z < gridConfig.hazards.length; z++) {
+						const hazard = gridConfig.hazards[z];
+						if (!hazard) continue;
+
+						let sprite = null;
+
+						try {
+							if (hazard.type === 'gas') {
+								sprite = new Gas(this, x, y, 'fill');
+							} else if (hazard.type === 'lava') {
+								sprite = new Lava(this, x, y, 'fill');
+							} else if (hazard.type === 'alien' && hazard.name) {
+								sprite = createAlien(this, x, y, hazard.name, 'right');
+							}
+
+							if (sprite) {
+								gridConfig.hazards[z].sprite = sprite;
+								gameContext.sceneLayers.hazards.add(sprite);
+							}
+						} catch (error) {
+							console.error('Error creating hazard:', error, { x, y, hazard });
+						}
+					}
+				}
+
+				// Items
+				if (gridConfig.items && Array.isArray(gridConfig.items)) {
+					for (let z = 0; z < gridConfig.items.length; z++) {
+						const item = gridConfig.items[z];
+						if (!item || !item.name) continue;
+
+						let sprite = null;
+
+						try {
+							if (item.name.startsWith('mineral_')) {
+								sprite = new Mineral(this, x, y, item.name.replace('mineral_', ''));
+							} else {
+								sprite = new Item(this, x, y, item.name);
+							}
+
+							if (sprite) {
+								gridConfig.items[z].sprite = sprite;
+								gameContext.sceneLayers.items.add(sprite);
+							}
+						} catch (error) {
+							console.error('Error creating item:', error, { x, y, item });
+						}
+					}
+				}
+			}
+		}
+
+		// Recreate SpaceCo
+		if (gameContext.serverState.world.spaceco) {
+			gameContext.spaceco = new Spaceco(
+				this,
+				gameContext.serverState.world.spaceco.position.x,
+				gameContext.serverState.world.spaceco.position.y,
+			);
+			// Keep it invisible until fade-in
+			gameContext.spaceco.setAlpha(0);
+			if (gameContext.spaceco.tradeButton) {
+				gameContext.spaceco.tradeButton.setAlpha(0);
+			}
+		}
+
+		// Recreate players
+		gameContext.serverState.world.players.forEach(player => {
+			if (!player || !player.position) {
+				console.error('Invalid player data:', player);
+				return;
+			}
+
+			let sprite;
+
+			// If this is the current player, create a Player sprite (with status bars, etc)
+			if (player.id === gameContext.playerId) {
+				sprite = new Player(
+					this,
+					player.position.x,
+					player.position.y,
+					player.orientation,
+					vehicles[player.configuration.vehicle].spriteIndex,
+					drills[player.configuration.drill].spriteIndex,
+					player.name,
+				);
+
+				// Setup camera follow
+				this.cameras.main.startFollow(sprite, false, 0.09, 0.09);
+				this.cameras.main.setZoom(gameContext.scale);
+			} else {
+				// Other players get a simple Drill sprite
+				sprite = new Drill(
+					this,
+					player.position.x,
+					player.position.y,
+					player.orientation,
+					vehicles[player.configuration.vehicle].spriteIndex,
+					drills[player.configuration.drill].spriteIndex,
+					player.name,
+				);
+			}
+
+			gameContext.players.set(player.id, { ...player, sprite });
+			gameContext.sceneLayers.players.add(sprite);
+		});
+
+		console.log('✅ World creation complete');
 	}
 }

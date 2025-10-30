@@ -25,29 +25,49 @@ export default data => {
 			}
 		}
 
+		// All players experience the transport transition
 		if (data.playerId === gameContext.playerId) {
-
+			// Player who bought transport gets the thank you and coins
 			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
 
-			gameContext.spaceco.dialog.options.view = 'transport';
-
-			// Handle music transition (outro + transport transition)
-			if (gameContext.musicManager) {
-			// Play coin sounds and thank you alert at the same time as transport transition
+			// Play coin sounds and thank you alert
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 			);
 
-			// Play thank you sound immediately with coins
 			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
+		} else {
+			// Other players get a notification that transport is happening
+			new Notify({ type: 'info', content: `Transporting to ${data.world}...`, timeout: 2000 });
+		}
 
-				gameContext.musicManager.playTransportTransition(() => {
-					window.location.reload();
-				});
-			} else {
-				// Fallback if music manager not available
-				setTimeout(() => window.location.reload(), 1500);
-			}
+		// Close any open dialogs for all players
+		if (gameContext.openDialog?.elem?.open) {
+			gameContext.openDialog.close();
+		}
+		if (gameContext.spaceco?.dialog?.elem?.open) {
+			gameContext.spaceco.dialog.close();
+		}
+
+		// Start music transition for all players
+		if (gameContext.musicManager) {
+			gameContext.musicManager.playTransportTransition(() => {
+				// Music finished - fade in the new world
+				console.log('🎵 Music transition complete, fading in world');
+				if (gameContext.scene?.fadeInWorld) {
+					gameContext.scene.fadeInWorld();
+				}
+			});
+		}
+
+		// Immediately start the world transition (don't wait for music)
+		if (data.newWorldState && gameContext.scene?.startWorldTransition) {
+			setTimeout(() => {
+				gameContext.scene.startWorldTransition(data.newWorldState);
+			}, 500);
+		} else {
+			// Fallback if seamless transition not available
+			setTimeout(() => window.location.reload(), 1500);
 		}
 	} else if (data.update === 'spacecoAchievement') {
 		new Achievement({ achievement: data.achievement });

@@ -100,10 +100,14 @@ export class MineralImage extends SpriteSheetImage {
 export class ItemImage extends SpriteSheetImage {
 	constructor(name, options = {}) {
 		const { displaySize, displayWidth, displayHeight, ...style } = options;
+
+		// Special case for credits (not in items constant)
+		const spriteIndex = name === 'credits' ? 15 : items[name].spriteIndex;
+
 		super({
 			url: 'img/items.png',
 			size: 64,
-			x: items[name].spriteIndex,
+			x: spriteIndex,
 			displaySize,
 			displayWidth,
 			displayHeight,

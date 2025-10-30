@@ -97,8 +97,8 @@ export const minerals = {
 		weight: 3.2,
 		tint: '#c1745e',
 		spriteIndex: 2,
-		description: 'Visible in early fields, but impossible to extract without serious upgrades.',
-		flavor: 'So heavy it makes your rig groan - this is what density looks like when physics gets serious.',
+		description: 'Radiates faint heat. Dense enough to warp drills, unstable enough to warrant serious upgrades.',
+		flavor: 'Compressed to the edge of stability - occasionally rearranges your surroundings without warning. SpaceCo calls it "spicy ore."',
 	},
 	black: {
 		name: 'quadium',

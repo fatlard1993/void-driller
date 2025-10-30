@@ -253,6 +253,20 @@ export default data => {
 					timeout: 3000,
 				});
 			}
+		} else if (data.type === 'psychicPulse') {
+			// Play psychic pulse sound for saronite
+			gameContext.scene.sound.play('pickup_egg', {
+				volume: gameContext.volume.effects * 0.4,
+			});
+
+			// Show notification if current player triggered it
+			if (data.playerId === gameContext.playerId) {
+				new Notify({
+					type: 'tip',
+					content: 'Saronite pulsates eerily...',
+					timeout: 2000,
+				});
+			}
 		}
 	}
 

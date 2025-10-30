@@ -4,6 +4,7 @@ import { socketLog } from '../../../utils/logger.js';
 import player from './player';
 import spaceco from './spaceco';
 import world from './world';
+import trade from './trade';
 
 // Validation helper functions
 const validateMessage = data => {
@@ -79,6 +80,11 @@ const validateWorldMessage = data => {
 export default data => {
 	if (!validateMessage(data)) return;
 
+	// Log all incoming socket messages for debugging
+	if (data.update === 'addPlayer') {
+		console.log('📨 Socket message received:', data.update, data);
+	}
+
 	// Apply specific validation based on message type
 	const playerUpdates = [
 		'playerMove',
@@ -107,6 +113,14 @@ export default data => {
 		'explodeImplosion',
 		'groundEffect',
 	];
+	const tradeUpdates = [
+		'tradeSessionStarted',
+		'tradeUpdated',
+		'tradeAcceptanceChanged',
+		'tradeCompleted',
+		'tradeFailed',
+		'tradeCancelled',
+	];
 
 	if (playerUpdates.includes(data.update) && !validatePlayerMessage(data)) return;
 	if (worldUpdates.includes(data.update) && !validateWorldMessage(data)) return;
@@ -115,4 +129,5 @@ export default data => {
 	if (player(data)) return;
 	if (spaceco(data)) return;
 	if (world(data)) return;
+	if (trade(data)) return;
 };

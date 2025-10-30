@@ -4,6 +4,7 @@ import { destroyGround } from '../effects';
 import { Drill, Item } from '../GameObjects';
 import { Achievement } from '../../shared/Achievement';
 import Notify from '../../shared/Notify';
+import { vehicles, drills } from '../../../constants';
 
 // Check player resource levels against alert thresholds
 export function checkResourceAlerts(player) {
@@ -111,17 +112,22 @@ export default data => {
 		gameContext.serverState.world.grid[player.position.x][player.position.y].ground = {};
 		gameContext.serverState.world.grid[player.position.x][player.position.y].items = [];
 	} else if (data.update === 'addPlayer') {
+		console.log('🎮 addPlayer event received:', data.newPlayer);
+
 		const sprite = new Drill(
 			gameContext.scene,
 			data.newPlayer.position.x,
 			data.newPlayer.position.y,
 			data.newPlayer.orientation,
-			gameContext.serverState.world.vehicles[data.newPlayer.configuration.vehicle].spriteIndex,
-			gameContext.serverState.world.drills[data.newPlayer.configuration.drill].spriteIndex,
+			vehicles[data.newPlayer.configuration.vehicle].spriteIndex,
+			drills[data.newPlayer.configuration.drill].spriteIndex,
+			data.newPlayer.name,
 		);
 
 		gameContext.players.set(data.newPlayer.id, { ...data.newPlayer, sprite });
 		gameContext.sceneLayers.players.add(sprite);
+
+		console.log('✅ Player added successfully:', data.newPlayer.id, gameContext.players.size, 'total players');
 	} else if (data.update === 'removePlayer') {
 		const player = gameContext.players.get(data.id);
 
@@ -246,7 +252,10 @@ export default data => {
 		}));
 	} else if (data.update === 'achievement') {
 		console.log('achievement', data);
-		new Achievement({ achievement: data.achievement });
+		// Only show achievement to the player who earned it
+		if (data.playerId === gameContext.playerId) {
+			new Achievement({ achievement: data.achievement });
+		}
 	}
 
 	return false;

@@ -2,6 +2,7 @@ import { Elem, styled } from 'vanilla-bean-components';
 
 import { formatNotificationAchievementRewards } from '../../utils';
 import gameContext from './gameContext';
+import PriceDisplay from './PriceDisplay';
 
 export class Achievement extends styled.Popover(
 	({ colors }) => `
@@ -277,18 +278,30 @@ export class Achievement extends styled.Popover(
 			const rewardItems = awards
 				.filter(award => Array.isArray(award))
 				.map(([type, amount]) => {
-					let text;
-					switch (type) {
-						case 'xp':
-							text = `+${amount} GMS`;
-							break;
-						case 'credits':
-							text = `+$${amount}`;
-							break;
-						default:
-							text = `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`;
+					if (type === 'xp') {
+						return new Elem({
+							className: 'reward-item',
+							textContent: `+${amount} GMS`
+						});
+					} else if (type === 'credits') {
+						return new Elem(
+							{
+								className: 'reward-item',
+								style: { display: 'flex', alignItems: 'center', gap: '4px' }
+							},
+							new Elem({ content: '+' }),
+							new PriceDisplay({
+								amount,
+								size: 14,
+								variant: 'success',
+							}),
+						);
+					} else {
+						return new Elem({
+							className: 'reward-item',
+							textContent: `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`
+						});
 					}
-					return new Elem({ className: 'reward-item', textContent: text });
 				});
 
 			if (rewardItems.length > 0) {

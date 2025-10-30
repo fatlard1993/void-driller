@@ -1,8 +1,7 @@
 import { Button, Elem, Input, Label, Select, capitalize, styled, theme, Context } from 'vanilla-bean-components';
 
 import { MineralImage, ItemImage } from '../shared/SpriteSheetImage';
-import { Card } from '../shared/Card';
-import { initiateTrade, respondToTrade, cancelTrade } from '../api';
+import { updateTradeOffer, acceptTrade, cancelTrade } from '../api';
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
 import { minerals, items } from '../../constants';
@@ -62,11 +61,159 @@ const TradeItemRow = styled.Component`
 	}
 `;
 
+class TradeItemsList extends (styled.Component`
+	flex: 1;
+	max-height: 280px;
+	overflow-y: auto;
+	margin-bottom: 12px;
+
+	.empty-trade {
+		color: ${({ colors }) => colors.lighter(colors.gray)};
+		text-align: center;
+		font-style: italic;
+		padding: 24px 12px;
+	}
+`) {
+	render() {
+		super.render();
+
+		const { offer, editable, tradeDialog } = this.options;
+		this.renderContent(offer, editable, tradeDialog);
+	}
+
+	_setOption(key, value) {
+		if (key === 'offer') {
+			// Don't call super._setOption to avoid recursion
+			// Just clear and re-render the content
+			if (this.elem) {
+				this.elem.innerHTML = '';
+				const { editable, tradeDialog } = this.options;
+				this.renderContent(value, editable, tradeDialog);
+			}
+		} else {
+			super._setOption(key, value);
+		}
+	}
+
+	renderContent(offer, editable, tradeDialog) {
+		console.log(`🎨 TradeItemsList renderContent:`, offer);
+
+		let hasItems = false;
+
+		// Credits
+		if ((offer.credits || 0) > 0) {
+			hasItems = true;
+
+			this.append(
+				new TradeItemRow(
+					{},
+					new ItemImage('credits', { className: 'item-image' }),
+					new Elem(
+						{ tag: 'div', className: 'item-info' },
+						new Elem({ tag: 'div', className: 'item-name', content: 'Credits' }),
+						editable &&
+							new Elem({
+								tag: 'div',
+								className: 'item-available',
+								content: `Available: ${tradeDialog.currentPlayer.credits}`,
+							}),
+					),
+					editable
+						? tradeDialog.renderQuantityControls(offer, 'credits')
+						: new Elem({
+								tag: 'div',
+								content: offer.credits.toString(),
+								style: { fontWeight: 'bold', minWidth: '40px', textAlign: 'right' },
+							}),
+				),
+			);
+		}
+
+		// Items
+		Object.entries(offer.items || {}).forEach(([itemName, quantity]) => {
+			if (quantity <= 0) return;
+			hasItems = true;
+
+			this.append(
+				new TradeItemRow(
+					{},
+					new ItemImage(itemName, { className: 'item-image' }),
+					new Elem(
+						{ tag: 'div', className: 'item-info' },
+						new Elem({
+							tag: 'div',
+							className: 'item-name',
+							content: capitalize(itemName.replaceAll('_', ' '), true),
+						}),
+						editable &&
+							new Elem({
+								tag: 'div',
+								className: 'item-available',
+								content: `Available: ${tradeDialog.currentPlayer.items[itemName] || 0}`,
+							}),
+					),
+					editable
+						? tradeDialog.renderQuantityControls(offer.items, itemName)
+						: new Elem({
+								tag: 'div',
+								content: `x${quantity}`,
+								style: { fontWeight: 'bold', minWidth: '40px', textAlign: 'right' },
+							}),
+				),
+			);
+		});
+
+		// Minerals
+		Object.entries(offer.minerals || {}).forEach(([mineralName, quantity]) => {
+			if (quantity <= 0) return;
+			hasItems = true;
+
+			const displayName = mineralName.startsWith('mineral_')
+				? `Pure ${minerals[mineralName.replace('mineral_', '')].name}`
+				: minerals[mineralName].name;
+
+			this.append(
+				new TradeItemRow(
+					{},
+					new MineralImage(mineralName.replace('mineral_', ''), { className: 'item-image' }),
+					new Elem(
+						{ tag: 'div', className: 'item-info' },
+						new Elem({ tag: 'div', className: 'item-name', content: capitalize(displayName) }),
+						editable &&
+							new Elem({
+								tag: 'div',
+								className: 'item-available',
+								content: `Available: ${tradeDialog.currentPlayer.hull[mineralName] || 0}`,
+							}),
+					),
+					editable
+						? tradeDialog.renderQuantityControls(offer.minerals, mineralName)
+						: new Elem({
+								tag: 'div',
+								content: `x${quantity}`,
+								style: { fontWeight: 'bold', minWidth: '40px', textAlign: 'right' },
+							}),
+				),
+			);
+		});
+
+		if (!hasItems) {
+			this.append(
+				new Elem({
+					tag: 'div',
+					className: 'empty-trade',
+					content: editable ? 'Add items below' : 'Nothing offered',
+				}),
+			);
+		}
+	}
+}
+
 export default class TradeDialog extends (styled(BaseDialog)`
 	.trade-container {
 		display: flex;
 		gap: 12px;
-		height: 400px;
+		min-height: 400px;
 	}
 
 	.trade-side {
@@ -75,13 +222,15 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		border-radius: 6px;
 		padding: 12px;
 		background: ${({ colors }) => colors.white.setAlpha(0.02)};
+		display: flex;
+		flex-direction: column;
 	}
 
-	.trade-side.offering {
+	.trade-side.your-offer {
 		border-color: ${({ colors }) => colors.blue.setAlpha(0.3)};
 	}
 
-	.trade-side.requesting {
+	.trade-side.their-offer {
 		border-color: ${({ colors }) => colors.green.setAlpha(0.3)};
 	}
 
@@ -93,6 +242,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	}
 
 	.trade-items {
+		flex: 1;
 		max-height: 280px;
 		overflow-y: auto;
 		margin-bottom: 12px;
@@ -101,7 +251,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	.add-item-section {
 		border-top: 1px solid ${({ colors }) => colors.white.setAlpha(0.1)};
 		padding-top: 12px;
-		margin-top: 12px;
+		margin-top: auto;
 	}
 
 	.credits-section {
@@ -118,30 +268,19 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	.menu {
 		display: flex;
-		flex-wrap: wrap-reverse;
 		gap: 6px;
 		margin: 6px;
+		justify-content: space-between;
+		align-items: center;
 
-		button {
-			flex: 1;
+		.left-buttons {
+			display: flex;
+			gap: 6px;
 		}
 
-		button:disabled {
-			background: transparent;
-
-			&:before {
-				content: '';
-				background-color: ${({ colors }) => colors.white.setAlpha(0.02)};
-				width: calc(100% - 3px);
-				height: calc(100% + 17px);
-				position: absolute;
-				top: -12px;
-				left: -3px;
-			}
-
-			&:after {
-				content: none;
-			}
+		.right-buttons {
+			display: flex;
+			gap: 6px;
 		}
 	}
 
@@ -157,364 +296,283 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		padding: 24px 12px;
 	}
 
-	.pending-actions {
-		background: ${({ colors }) => colors.yellow.setAlpha(0.1)};
-		border: 2px solid ${({ colors }) => colors.yellow.setAlpha(0.3)};
-		border-radius: 6px;
+	.acceptance-bar {
+		display: flex;
+		gap: 12px;
 		padding: 12px;
-		margin-top: 12px;
-		text-align: center;
+		background: ${({ colors }) => colors.white.setAlpha(0.05)};
+		border-bottom: 2px solid ${({ colors }) => colors.white.setAlpha(0.1)};
+		margin: -12px -18px 12px -18px;
+		align-items: center;
+		justify-content: space-between;
 	}
 
-	.pending-message {
-		color: ${({ colors }) => colors.yellow};
+	.acceptance-player {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.player-name {
 		font-weight: bold;
-		margin-bottom: 12px;
+		font-size: 0.9em;
+	}
+
+	.accept-indicator {
+		padding: 4px 12px;
+		border-radius: 4px;
+		font-size: 0.85em;
+		font-weight: bold;
+	}
+
+	.accept-indicator.accepted {
+		background: ${({ colors }) => colors.green};
+		color: ${({ colors }) => colors.black};
+	}
+
+	.accept-indicator.waiting {
+		background: ${({ colors }) => colors.gray.setAlpha(0.3)};
+		color: ${({ colors }) => colors.lighter(colors.gray)};
+	}
+
+	.accept-button {
+		padding: 6px 16px;
 	}
 `) {
 	constructor(options = {}) {
-		const { targetPlayer, pendingTrade } = options;
+		const { otherPlayer, tradeSession } = options;
 
 		super({
-			header: pendingTrade
-				? `Trade Request from ${targetPlayer?.name || 'Unknown'}`
-				: `Trade with ${targetPlayer?.name || 'Unknown'}`,
-			buttons: pendingTrade ? [] : ['Close'],
-			view: pendingTrade ? 'pending' : 'create',
+			header: `Trade with ${otherPlayer?.name || 'Unknown'}`,
+			buttons: ['Close'],
 			onButtonPress: () => {
 				this.handleClose();
 			},
 			...options,
 		});
 
-		this.targetPlayer = targetPlayer;
+		this.otherPlayer = otherPlayer;
 		this.currentPlayer = gameContext.players.currentPlayer;
-		this.pendingTrade = pendingTrade;
-		this.activeTrade = pendingTrade;
+		this.tradeSession = tradeSession;
+
+		// Determine which player we are in the trade
+		this.isPlayer1 = tradeSession.player1Id === gameContext.playerId;
+		this.myOffer = this.isPlayer1 ? tradeSession.player1Offer : tradeSession.player2Offer;
+		this.theirOffer = this.isPlayer1 ? tradeSession.player2Offer : tradeSession.player1Offer;
+		this.iAccepted = this.isPlayer1 ? tradeSession.player1Accepted : tradeSession.player2Accepted;
+		this.theyAccepted = this.isPlayer1 ? tradeSession.player2Accepted : tradeSession.player1Accepted;
 
 		// Create reactive context for trade state
 		this.tradeContext = new Context({
-			offer: {
-				credits: pendingTrade?.request?.credits || 0,
-				items: { ...(pendingTrade?.request?.items || {}) },
-				minerals: { ...(pendingTrade?.request?.minerals || {}) },
-			},
-			request: {
-				credits: pendingTrade?.offer?.credits || 0,
-				items: { ...(pendingTrade?.offer?.items || {}) },
-				minerals: { ...(pendingTrade?.offer?.minerals || {}) },
-			},
+			myOffer: { ...this.myOffer },
+			theirOffer: { ...this.theirOffer },
+			iAccepted: this.iAccepted,
+			theyAccepted: this.theyAccepted,
 		});
+
+		// Debounce timer for offer updates
+		this.updateDebounceTimer = null;
+		this.pendingOffer = null;
+
+		// Component references for updating
+		this.myOfferList = null;
+		this.theirOfferList = null;
+		this.acceptanceBar = null;
+
+		// Set view after initialization is complete
+		this.options.view = 'trade';
 	}
 
 	handleClose() {
-		if (this.activeTrade && !this.pendingTrade) {
-			cancelTrade({ tradeId: this.activeTrade.id });
+		if (this.tradeSession && this.tradeSession.status === 'active') {
+			cancelTrade({ tradeId: this.tradeSession.id }).catch(() => {
+				// Ignore errors on close - trade may already be completed/cancelled
+			});
 		}
 		super.handleClose();
 	}
 
-	renderMenu() {
-		if (this.pendingTrade) {
-			// No menu needed for pending trades
-			return;
+	updateFromSocketEvent(trade) {
+		console.log('🔄 TradeDialog.updateFromSocketEvent called:', {
+			isPlayer1: this.isPlayer1,
+			oldMyOffer: this.myOffer,
+			oldTheirOffer: this.theirOffer,
+			newPlayer1Offer: trade.player1Offer,
+			newPlayer2Offer: trade.player2Offer,
+		});
+
+		// Update trade session data
+		this.tradeSession = trade;
+		this.myOffer = this.isPlayer1 ? trade.player1Offer : trade.player2Offer;
+		this.theirOffer = this.isPlayer1 ? trade.player2Offer : trade.player1Offer;
+		this.iAccepted = this.isPlayer1 ? trade.player1Accepted : trade.player2Accepted;
+		this.theyAccepted = this.isPlayer1 ? trade.player2Accepted : trade.player1Accepted;
+
+		console.log('🔄 After update:', {
+			myOffer: this.myOffer,
+			theirOffer: this.theirOffer,
+		});
+
+		console.log('📝 About to update context with:', {
+			myOffer: { ...this.myOffer },
+			theirOffer: { ...this.theirOffer },
+		});
+
+		// Update context to trigger re-render - must be new object reference
+		this.tradeContext.myOffer = { ...this.myOffer };
+		this.tradeContext.theirOffer = { ...this.theirOffer };
+		this.tradeContext.iAccepted = this.iAccepted;
+		this.tradeContext.theyAccepted = this.theyAccepted;
+
+		console.log('✅ Context updated. Current context values:', {
+			myOffer: this.tradeContext.myOffer,
+			theirOffer: this.tradeContext.theirOffer,
+			iAccepted: this.tradeContext.iAccepted,
+			theyAccepted: this.tradeContext.theyAccepted,
+		});
+
+		// Manually update the list components
+		if (this.myOfferList) {
+			this.myOfferList.options.offer = this.myOffer;
+		}
+		if (this.theirOfferList) {
+			this.theirOfferList.options.offer = this.theirOffer;
 		}
 
-		new Elem(
-			{ className: 'menu', appendTo: this._body },
-			['Offer', 'Request'].map(
-				view =>
-					new Button({
-						content: `Your ${view}`,
-						onPointerPress: () => {
-							this.options.view = view.toLowerCase();
-						},
-						disabled: this.options.view === view.toLowerCase(),
-					}),
-			),
-		);
+		// Update acceptance bar
+		this.updateAcceptanceBar();
 
-		this._menuBody = new Elem({ className: 'menuBody', appendTo: this._body });
+		console.log('🔄 Updated list components');
 	}
 
-	render_pending() {
-		// Show what they're offering vs what they want
-		new Elem(
-			{ className: 'trade-container', appendTo: this._body },
+	renderAcceptanceBar() {
+		this.theirAcceptIndicator = new Elem({
+			className: `accept-indicator ${this.theyAccepted ? 'accepted' : 'waiting'}`,
+			content: this.theyAccepted ? '✓ Accepted' : 'Not Accepted',
+		});
 
-			// What they're offering (what we'd receive)
-			new Card({
-				header: `${this.targetPlayer.name} offers:`,
-				style: {
-					flex: '1',
-					border: `2px solid ${theme.colors.green.setAlpha(0.3)}`,
-				},
-				body: this.renderTradeItems(this.tradeContext.request, false),
-			}),
+		this.myAcceptButton = new Button({
+			className: 'accept-button',
+			content: this.iAccepted ? '✓ You Accepted' : 'Accept Trade',
+			style: {
+				backgroundColor: this.iAccepted ? theme.colors.green : theme.colors.blue,
+			},
+			onPointerPress: async () => {
+				if (!this.iAccepted) {
+					try {
+						await acceptTrade({ tradeId: this.tradeSession.id });
+					} catch (error) {
+						new Notify({
+							type: 'error',
+							content: error.message || 'Failed to accept trade',
+						});
+					}
+				}
+			},
+			disabled: this.iAccepted,
+		});
 
-			// What they want (what we'd give)
-			new Card({
-				header: `${this.targetPlayer.name} wants:`,
-				style: {
-					flex: '1',
-					border: `2px solid ${theme.colors.blue.setAlpha(0.3)}`,
-				},
-				body: this.renderTradeItems(this.tradeContext.offer, false),
-			}),
-		);
+		return new Elem(
+			{ className: 'acceptance-bar' },
 
-		// Action buttons for pending trade
-		new Elem(
-			{ className: 'pending-actions', appendTo: this._body },
-			new Elem({
-				className: 'pending-message',
-				content: 'Do you accept this trade?',
-			}),
+			// Other player's status
 			new Elem(
-				{ style: { display: 'flex', gap: '12px', justifyContent: 'center' } },
-				new Button({
-					content: 'Accept Trade',
-					style: { backgroundColor: theme.colors.green },
-					onPointerPress: async () => {
-						try {
-							await respondToTrade({
-								tradeId: this.pendingTrade.id,
-								accept: true,
-							});
-							this.close();
-						} catch (error) {
-							new Notify({
-								type: 'error',
-								content: error.message || 'Failed to accept trade',
-							});
-						}
-					},
-				}),
-				new Button({
-					content: 'Decline Trade',
-					style: { backgroundColor: theme.colors.red },
-					onPointerPress: async () => {
-						try {
-							await respondToTrade({
-								tradeId: this.pendingTrade.id,
-								accept: false,
-							});
-							this.close();
-						} catch (error) {
-							new Notify({
-								type: 'error',
-								content: error.message || 'Failed to decline trade',
-							});
-						}
-					},
-				}),
+				{ className: 'acceptance-player' },
+				new Elem({ className: 'player-name', content: this.otherPlayer.name }),
+				this.theirAcceptIndicator,
+			),
+
+			// Your accept button
+			this.myAcceptButton,
+		);
+	}
+
+	updateAcceptanceBar() {
+		console.log('🔄 Updating acceptance bar:', {
+			iAccepted: this.iAccepted,
+			theyAccepted: this.theyAccepted,
+		});
+
+		if (this.theirAcceptIndicator) {
+			this.theirAcceptIndicator.elem.className = `accept-indicator ${this.theyAccepted ? 'accepted' : 'waiting'}`;
+			this.theirAcceptIndicator.elem.textContent = this.theyAccepted ? '✓ Accepted' : 'Not Accepted';
+		}
+
+		if (this.myAcceptButton) {
+			this.myAcceptButton.elem.textContent = this.iAccepted ? '✓ You Accepted' : 'Accept Trade';
+			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted ? theme.colors.green.toRgbString() : theme.colors.blue.toRgbString();
+			this.myAcceptButton.elem.disabled = this.iAccepted;
+		}
+
+		console.log('✅ Acceptance bar updated');
+	}
+
+	render_trade() {
+		// Add acceptance bar at the top
+		this._body.append(this.renderAcceptanceBar());
+
+		// Create TradeItemsList components
+		this.myOfferList = new TradeItemsList({
+			offer: this.tradeContext.myOffer,
+			editable: true,
+			tradeDialog: this,
+		});
+
+		this.theirOfferList = new TradeItemsList({
+			offer: this.tradeContext.theirOffer,
+			editable: false,
+			tradeDialog: this,
+		});
+
+		this._body.append(
+			new Elem(
+				{ className: 'trade-container' },
+
+				// Your Offer (editable)
+				new Elem(
+					{ className: 'trade-side your-offer' },
+					new Elem({ className: 'trade-header', content: 'Your Offer' }),
+					this.myOfferList,
+					this.renderAddItemSection(),
+				),
+
+				// Their Offer (read-only)
+				new Elem(
+					{ className: 'trade-side their-offer' },
+					new Elem({ className: 'trade-header', content: `${this.otherPlayer.name}'s Offer` }),
+					this.theirOfferList,
+				),
 			),
 		);
 	}
 
-	render_create() {
-		this.options.view = 'offer';
-	}
 
-	render_offer() {
-		this.renderMenu();
-
-		this._menuBody.append(
-			new Card({
-				header: 'Items You Will Give',
-				body: new Elem({
-					append: [this.renderTradeItems(this.tradeContext.offer, true, 'offer'), this.renderAddItemSection('offer')],
-				}),
-			}),
-
-			new Button({
-				content: 'Send Trade Offer',
-				style: {
-					backgroundColor: theme.colors.green,
-					marginTop: '12px',
-					width: '100%',
-				},
-				onPointerPress: () => this.sendTradeOffer(),
-				disabled: this.tradeContext.subscriber(
-					['offer', 'request'],
-					(offer, request) => !this.isValidTrade(offer, request),
-				),
-			}),
-		);
-	}
-
-	render_request() {
-		this.renderMenu();
-
-		this._menuBody.append(
-			new Card({
-				header: 'Items You Want to Receive',
-				body: new Elem({
-					append: [
-						this.renderTradeItems(this.tradeContext.request, true, 'request'),
-						this.renderAddItemSection('request'),
-					],
-				}),
-			}),
-
-			new Button({
-				content: 'Send Trade Offer',
-				style: {
-					backgroundColor: theme.colors.green,
-					marginTop: '12px',
-					width: '100%',
-				},
-				onPointerPress: () => this.sendTradeOffer(),
-				disabled: this.tradeContext.subscriber(
-					['offer', 'request'],
-					(offer, request) => !this.isValidTrade(offer, request),
-				),
-			}),
-		);
-	}
-
-	renderTradeItems(tradeData, editable = false, section = null) {
-		const container = new Elem({ className: 'trade-items' });
-
-		if (!tradeData) {
-			tradeData = { credits: 0, items: {}, minerals: {} };
-		}
-
-		let hasItems = false;
-
-		// Credits
-		if ((tradeData.credits || 0) > 0) {
-			hasItems = true;
-			new TradeItemRow(
-				{ appendTo: container },
-				new Elem({
-					className: 'item-image',
-					content: '$',
-					style: {
-						backgroundColor: theme.colors.yellow,
-						color: theme.colors.black,
-						borderRadius: '50%',
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						fontWeight: 'bold',
-					},
-				}),
-				new Elem(
-					{ className: 'item-info' },
-					new Elem({ className: 'item-name', content: 'Credits' }),
-					editable &&
-						new Elem({
-							className: 'item-available',
-							content: `Available: ${this.getAvailableCredits(section)}`,
-						}),
-				),
-				editable
-					? this.renderQuantityControls(tradeData, 'credits', section)
-					: new Elem({
-							content: tradeData.credits.toString(),
-							style: { fontWeight: 'bold', minWidth: '40px', textAlign: 'right' },
-						}),
-			);
-		}
-
-		// Items
-		Object.entries(tradeData.items || {}).forEach(([itemName, quantity]) => {
-			if (quantity <= 0) return;
-			hasItems = true;
-
-			new TradeItemRow(
-				{ appendTo: container },
-				new ItemImage(itemName, { className: 'item-image' }),
-				new Elem(
-					{ className: 'item-info' },
-					new Elem({
-						className: 'item-name',
-						content: capitalize(itemName.replaceAll('_', ' '), true),
-					}),
-					editable &&
-						new Elem({
-							className: 'item-available',
-							content: `Available: ${this.getAvailableQuantity(itemName, 'items', section)}`,
-						}),
-				),
-				editable
-					? this.renderQuantityControls(tradeData.items, itemName, section)
-					: new Elem({
-							content: `x${quantity}`,
-							style: { fontWeight: 'bold', minWidth: '40px', textAlign: 'right' },
-						}),
-			);
-		});
-
-		// Minerals
-		Object.entries(tradeData.minerals || {}).forEach(([mineralName, quantity]) => {
-			if (quantity <= 0) return;
-			hasItems = true;
-
-			const displayName = mineralName.startsWith('mineral_')
-				? `Pure ${minerals[mineralName.replace('mineral_', '')].name}`
-				: minerals[mineralName].name;
-
-			new TradeItemRow(
-				{ appendTo: container },
-				new MineralImage(mineralName.replace('mineral_', ''), { className: 'item-image' }),
-				new Elem(
-					{ className: 'item-info' },
-					new Elem({ className: 'item-name', content: capitalize(displayName) }),
-					editable &&
-						new Elem({
-							className: 'item-available',
-							content: `Available: ${this.getAvailableQuantity(mineralName, 'minerals', section)}`,
-						}),
-				),
-				editable
-					? this.renderQuantityControls(tradeData.minerals, mineralName, section)
-					: new Elem({
-							content: `x${quantity}`,
-							style: { fontWeight: 'bold', minWidth: '40px', textAlign: 'right' },
-						}),
-			);
-		});
-
-		if (!hasItems) {
-			new Elem({
-				className: 'empty-trade',
-				content: editable ? 'Add items below' : 'Nothing offered',
-				appendTo: container,
-			});
-		}
-
-		return container;
-	}
-
-	renderQuantityControls(dataObject, key, section) {
+	renderQuantityControls(dataObject, key) {
 		const currentValue = dataObject[key] || 0;
-		let resourceType;
-		if (key === 'credits') {
-			resourceType = 'credits';
-		} else if (Object.keys(items).includes(key)) {
-			resourceType = 'items';
-		} else {
-			resourceType = 'minerals';
-		}
+		let maxValue;
 
-		const maxValue = this.getMaxQuantity(key, resourceType, section);
+		if (key === 'credits') {
+			maxValue = this.currentPlayer.credits;
+		} else if (Object.keys(items).includes(key)) {
+			maxValue = this.currentPlayer.items[key] || 0;
+		} else {
+			maxValue = this.currentPlayer.hull[key] || 0;
+		}
 
 		return new Elem(
 			{ className: 'quantity-controls' },
 			new Button({
 				content: '-',
 				className: 'quantity-button',
-				onPointerPress: () => {
+				onPointerPress: async () => {
 					if (currentValue > 0) {
 						if (currentValue === 1) {
 							delete dataObject[key];
 						} else {
 							dataObject[key] = currentValue - 1;
 						}
-						// Trigger reactive update
-						this.tradeContext[section] = { ...this.tradeContext[section] };
+						await this.sendOfferUpdate();
 					}
 				},
 				disabled: currentValue <= 0,
@@ -525,25 +583,23 @@ export default class TradeDialog extends (styled(BaseDialog)`
 				min: 0,
 				max: maxValue,
 				value: currentValue,
-				onChange: ({ value }) => {
+				onChange: async ({ value }) => {
 					const numValue = parseInt(value, 10) || 0;
 					if (numValue <= 0) {
 						delete dataObject[key];
 					} else {
 						dataObject[key] = Math.min(numValue, maxValue);
 					}
-					// Trigger reactive update
-					this.tradeContext[section] = { ...this.tradeContext[section] };
+					await this.sendOfferUpdate();
 				},
 			}),
 			new Button({
 				content: '+',
 				className: 'quantity-button',
-				onPointerPress: () => {
+				onPointerPress: async () => {
 					if (currentValue < maxValue) {
 						dataObject[key] = currentValue + 1;
-						// Trigger reactive update
-						this.tradeContext[section] = { ...this.tradeContext[section] };
+						await this.sendOfferUpdate();
 					}
 				},
 				disabled: currentValue >= maxValue,
@@ -551,9 +607,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		);
 	}
 
-	renderAddItemSection(section) {
-		const tradeData = this.tradeContext[section];
-
+	renderAddItemSection() {
 		return new Elem(
 			{ className: 'add-item-section' },
 
@@ -564,15 +618,15 @@ export default class TradeDialog extends (styled(BaseDialog)`
 					className: 'credits-input',
 					type: 'number',
 					min: 0,
-					max: this.getMaxQuantity('credits', 'credits', section),
-					value: tradeData.credits || 0,
-					onChange: ({ value }) => {
+					max: this.currentPlayer.credits,
+					value: this.tradeContext.myOffer.credits || 0,
+					onChange: async ({ value }) => {
 						const numValue = parseInt(value, 10) || 0;
-						const maxCredits = this.getMaxQuantity('credits', 'credits', section);
-						this.tradeContext[section] = {
-							...this.tradeContext[section],
-							credits: Math.max(0, Math.min(numValue, maxCredits)),
+						this.tradeContext.myOffer = {
+							...this.tradeContext.myOffer,
+							credits: Math.max(0, Math.min(numValue, this.currentPlayer.credits)),
 						};
+						await this.sendOfferUpdate();
 					},
 				}),
 			),
@@ -583,19 +637,20 @@ export default class TradeDialog extends (styled(BaseDialog)`
 				new Select({
 					options: [
 						{ label: 'Select item', value: '' },
-						...this.getAvailableItems(section).map(item => ({
+						...this.getAvailableItems().map(item => ({
 							label: capitalize(item.replaceAll('_', ' '), true),
 							value: item,
 						})),
 					],
-					onChange: ({ value }) => {
+					onChange: async ({ value }) => {
 						if (value) {
-							const currentItems = { ...this.tradeContext[section].items };
+							const currentItems = { ...(this.tradeContext.myOffer.items || {}) };
 							currentItems[value] = (currentItems[value] || 0) + 1;
-							this.tradeContext[section] = {
-								...this.tradeContext[section],
+							this.tradeContext.myOffer = {
+								...this.tradeContext.myOffer,
 								items: currentItems,
 							};
+							await this.sendOfferUpdate();
 						}
 					},
 				}),
@@ -607,21 +662,22 @@ export default class TradeDialog extends (styled(BaseDialog)`
 				new Select({
 					options: [
 						{ label: 'Select mineral', value: '' },
-						...this.getAvailableMinerals(section).map(mineral => ({
+						...this.getAvailableMinerals().map(mineral => ({
 							label: mineral.startsWith('mineral_')
 								? `Pure ${minerals[mineral.replace('mineral_', '')].name}`
 								: capitalize(minerals[mineral].name),
 							value: mineral,
 						})),
 					],
-					onChange: ({ value }) => {
+					onChange: async ({ value }) => {
 						if (value) {
-							const currentMinerals = { ...this.tradeContext[section].minerals };
+							const currentMinerals = { ...(this.tradeContext.myOffer.minerals || {}) };
 							currentMinerals[value] = (currentMinerals[value] || 0) + 1;
-							this.tradeContext[section] = {
-								...this.tradeContext[section],
+							this.tradeContext.myOffer = {
+								...this.tradeContext.myOffer,
 								minerals: currentMinerals,
 							};
+							await this.sendOfferUpdate();
 						}
 					},
 				}),
@@ -629,108 +685,45 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		);
 	}
 
-	getAvailableItems(section) {
-		const sourcePlayer = section === 'offer' ? this.currentPlayer : this.targetPlayer;
-		if (!sourcePlayer || !sourcePlayer.items) return [];
-
-		return Object.keys(sourcePlayer.items).filter(item => (sourcePlayer.items[item] || 0) > 0);
-	}
-
-	getAvailableMinerals(section) {
-		const sourcePlayer = section === 'offer' ? this.currentPlayer : this.targetPlayer;
-		if (!sourcePlayer || !sourcePlayer.hull) return [];
-
-		return Object.keys(sourcePlayer.hull).filter(mineral => (sourcePlayer.hull[mineral] || 0) > 0);
-	}
-
-	getAvailableQuantity(key, type, section) {
-		const sourcePlayer = section === 'offer' ? this.currentPlayer : this.targetPlayer;
-		if (!sourcePlayer) return 0;
-
-		if (type === 'items') {
-			return sourcePlayer.items?.[key] || 0;
-		} else if (type === 'minerals') {
-			return sourcePlayer.hull?.[key] || 0;
-		}
-		return 0;
-	}
-
-	getAvailableCredits(section) {
-		const sourcePlayer = section === 'offer' ? this.currentPlayer : this.targetPlayer;
-		return sourcePlayer?.credits || 0;
-	}
-
-	getMaxQuantity(key, type, section) {
-		if (type === 'credits') {
-			return this.getAvailableCredits(section);
-		}
-		return this.getAvailableQuantity(key, type, section);
-	}
-
-	isValidTrade(offer, request) {
-		const hasOffer =
-			(offer?.credits || 0) > 0 ||
-			Object.values(offer?.items || {}).some(q => q > 0) ||
-			Object.values(offer?.minerals || {}).some(q => q > 0);
-
-		const hasRequest =
-			(request?.credits || 0) > 0 ||
-			Object.values(request?.items || {}).some(q => q > 0) ||
-			Object.values(request?.minerals || {}).some(q => q > 0);
-
-		return hasOffer && hasRequest;
-	}
-
-	async sendTradeOffer() {
-		const offer = this.tradeContext.offer;
-		const request = this.tradeContext.request;
-
-		if (!this.isValidTrade(offer, request)) {
-			new Notify({
-				type: 'error',
-				content: 'Both players must offer something in the trade',
-			});
-			return;
+	async sendOfferUpdate() {
+		// Clear any existing debounce timer
+		if (this.updateDebounceTimer) {
+			clearTimeout(this.updateDebounceTimer);
 		}
 
-		try {
-			const result = await initiateTrade({
-				targetPlayerId: this.targetPlayer.id,
-				offer,
-				request,
-			});
+		// Store the current offer as pending
+		this.pendingOffer = { ...this.tradeContext.myOffer };
 
-			if (result.tradeId) {
-				new Notify({
-					type: 'success',
-					content: 'Trade offer sent! Waiting for response...',
+		// Debounce the actual API call
+		this.updateDebounceTimer = setTimeout(async () => {
+			try {
+				await updateTradeOffer({
+					tradeId: this.tradeSession.id,
+					offer: this.pendingOffer,
 				});
-				this.activeTrade = { id: result.tradeId };
-				this.close();
-			} else {
+			} catch (error) {
 				new Notify({
 					type: 'error',
-					content: result.message || 'Failed to send trade offer',
+					content: error.message || 'Failed to update offer',
 				});
 			}
-		} catch (error) {
-			new Notify({
-				type: 'error',
-				content: error.message || 'Failed to send trade offer',
-			});
-		}
+		}, 500); // 500ms debounce
+	}
+
+	getAvailableItems() {
+		if (!this.currentPlayer || !this.currentPlayer.items) return [];
+		return Object.keys(this.currentPlayer.items).filter(item => (this.currentPlayer.items[item] || 0) > 0);
+	}
+
+	getAvailableMinerals() {
+		if (!this.currentPlayer || !this.currentPlayer.hull) return [];
+		return Object.keys(this.currentPlayer.hull).filter(mineral => (this.currentPlayer.hull[mineral] || 0) > 0);
 	}
 
 	_setOption(key, value) {
 		if (key === 'view') {
 			this._body.empty();
-
-			if (this.pendingTrade) {
-				this.render_pending();
-			} else {
-				this.renderMenu();
-				this[`render_${value.toLowerCase()}`]();
-			}
+			this[`render_${value.toLowerCase()}`]();
 		} else {
 			super._setOption(key, value);
 		}

@@ -10,19 +10,26 @@ const apiContext = {
 	},
 };
 
-export const initiateTrade = async ({ targetPlayerId, offer, request }, options) =>
+export const initiateTrade = async ({ targetPlayerId }, options) =>
 	await POST('/games/:gameId/:playerId/trade', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
-		body: { targetPlayerId, offer, request },
+		body: { targetPlayerId },
 		...options,
 	});
 
-export const respondToTrade = async ({ tradeId, accept }, options) =>
-	await POST('/games/:gameId/:playerId/trade/:tradeId/respond', {
+export const updateTradeOffer = async ({ tradeId, offer }, options) =>
+	await POST('/games/:gameId/:playerId/trade/:tradeId/offer', {
 		invalidates: ['games'],
 		urlParameters: { ...apiContext, tradeId },
-		body: { accept },
+		body: { offer },
+		...options,
+	});
+
+export const acceptTrade = async ({ tradeId }, options) =>
+	await POST('/games/:gameId/:playerId/trade/:tradeId/accept', {
+		invalidates: ['games'],
+		urlParameters: { ...apiContext, tradeId },
 		...options,
 	});
 
