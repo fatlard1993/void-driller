@@ -11,7 +11,8 @@ import { Ground, Item, Mineral, Spaceco, Drill, Lava, Gas, Player } from './Game
 import { createAlien } from './GameObjects/aliens';
 import BriefingDialog from './BriefingDialog';
 
-const sounds = [
+// Essential sounds loaded immediately at startup
+const essentialSounds = [
 	'achievement',
 	'achievement_close',
 	'alert0',
@@ -43,7 +44,10 @@ const sounds = [
 	'repair',
 	'scan',
 	'teleport',
-	// Level music tracks
+];
+
+// Music tracks loaded on-demand when needed
+const deferredMusic = [
 	'music/L1_Training_Shallows',
 	'music/L2_Surface_Prospects',
 	'music/L3_Amber_Extraction_Zone',
@@ -60,12 +64,50 @@ const sounds = [
 	'music/L11_Sacred_Fragments',
 	'music/L11B_Resonance_Chamber',
 	'music/L11C_Void_Sanctum',
-	// Special music tracks
 	'music/transport_transition',
 	'music/spaceco_bulletin_bookends',
 ];
 
 export default class GameScene extends Phaser.Scene {
+	/**
+	 * Load a music track on-demand if not already loaded
+	 * @param {string} musicKey - The music key (e.g., 'music/L1_Training_Shallows')
+	 * @returns {Promise<void>} Resolves when music is loaded
+	 */
+	async loadMusicIfNeeded(musicKey) {
+		// Check if already loaded
+		if (this.cache.audio.exists(musicKey)) {
+			return;
+		}
+
+		// Check if it's in our deferred music list
+		if (!deferredMusic.includes(musicKey)) {
+			console.warn(`[GameScene] Music key not in deferred list: ${musicKey}`);
+			return;
+		}
+
+		console.log(`[GameScene] Loading music on-demand: ${musicKey}`);
+
+		// Load the music file
+		return new Promise((resolve, reject) => {
+			this.load.audio(musicKey, `audio/${musicKey}.wav`);
+
+			this.load.once('complete', () => {
+				// Add to gameContext.sounds for consistency
+				gameContext.sounds[musicKey] = this.sound.add(musicKey);
+				console.log(`[GameScene] Music loaded: ${musicKey}`);
+				resolve();
+			});
+
+			this.load.once('loaderror', (file) => {
+				console.error(`[GameScene] Failed to load music: ${musicKey}`, file);
+				reject(new Error(`Failed to load music: ${musicKey}`));
+			});
+
+			this.load.start();
+		});
+	}
+
 	createLoadingUI() {
 		// Create custom loading container that mimics ConsoleContainer appearance
 		const gameParent = document.querySelector('.game-container') || document.body;
@@ -347,8 +389,8 @@ export default class GameScene extends Phaser.Scene {
 				this.load.image('transport', 'img/transport.png');
 			}
 
-			// Load all audio for both mobile and desktop
-			sounds.forEach(sound => this.load.audio(sound, `audio/${sound}.wav`));
+			// Load only essential sounds at startup (level music loaded on-demand)
+			essentialSounds.forEach(sound => this.load.audio(sound, `audio/${sound}.wav`));
 
 			if (window.debugLog) window.debugLog('All assets queued');
 		} catch (error) {
@@ -387,7 +429,7 @@ export default class GameScene extends Phaser.Scene {
 
 		try {
 			console.log('🎮 CHECKPOINT 1: Starting GameScene.create()');
-			sounds.forEach(sound => {
+			essentialSounds.forEach(sound => {
 				gameContext.sounds[sound] = this.sound.add(sound);
 			});
 
