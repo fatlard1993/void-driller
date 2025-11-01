@@ -6,6 +6,14 @@ export default class Notify extends BaseNotify {
 		super({
 			x: randInt(12, window.innerWidth - 12),
 			y: randInt(72, window.innerHeight / 3),
+			onPointerDown: event => {
+				if (event) {
+					event.stopPropagation();
+					event.preventDefault();
+				}
+
+				this.elem.remove();
+			},
 			...options,
 		});
 	}

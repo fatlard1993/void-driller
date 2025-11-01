@@ -408,7 +408,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		/* Style for currently selected menu - matches content background for continuity */
 		button.selected-menu {
-			color: ${({ colors }) => colors.white} !important;
+			color: ${({ colors }) => colors.green} !important;
+			font-weight: bold !important;
 			opacity: 1 !important;
 
 			&:before {
@@ -1391,9 +1392,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					),
 					onPointerPress: () => spacecoRefuel({ amount: cost }),
 					disabled: cost > player.credits,
-					style: {
-						backgroundColor: cost <= player.credits ? '' : theme.colors.darkest(theme.colors.red),
-					},
 				}),
 			),
 		);

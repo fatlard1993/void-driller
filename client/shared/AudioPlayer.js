@@ -60,6 +60,13 @@ class AudioPlayer extends styled.Component(
 			transition: all 0.2s;
 			border-radius: 4px;
 
+			@media (max-width: 768px) {
+				width: 40px;
+				height: 40px;
+				font-size: 20px;
+				border-width: 2px;
+			}
+
 			&:hover {
 				background: ${colors.gray};
 				transform: scale(1.05);
@@ -72,7 +79,7 @@ class AudioPlayer extends styled.Component(
 			&.play-pause {
 				background: ${colors.darkest(colors.green)};
 				border-color: ${colors.green};
-				color: ${colors.green};
+				color: ${colors.lighter(colors.green)};
 
 				&:hover {
 					background: ${colors.darker(colors.green)};
@@ -82,7 +89,7 @@ class AudioPlayer extends styled.Component(
 			&.close {
 				background: ${colors.darkest(colors.red)};
 				border-color: ${colors.red};
-				color: ${colors.red};
+				color: ${colors.lighter(colors.red)};
 
 				&:hover {
 					background: ${colors.darker(colors.red)};
@@ -147,26 +154,41 @@ class AudioPlayer extends styled.Component(
 
 		// Skip backward 10s button
 		this.skipBackBtn = new Button({
-			icon: 'backward',
+			content: '⏪',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
-			onPointerPress: () => this.skip(-10),
+			onPointerDown: event => {
+				if (event) {
+					event.stopPropagation();
+				}
+				this.skip(-10);
+			},
 		});
 
 		// Play/Pause button
 		this.playPauseBtn = new Button({
-			icon: 'play',
+			content: '▶',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'play-pause'],
-			onPointerPress: () => this.togglePlayPause(),
+			onPointerDown: event => {
+				if (event) {
+					event.stopPropagation();
+				}
+				this.togglePlayPause();
+			},
 		});
 
 		// Skip forward 10s button
 		this.skipForwardBtn = new Button({
-			icon: 'forward',
+			content: '⏩',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
-			onPointerPress: () => this.skip(10),
+			onPointerDown: event => {
+				if (event) {
+					event.stopPropagation();
+				}
+				this.skip(10);
+			},
 		});
 
 		// Visualizer container (populates when playing)
@@ -177,10 +199,16 @@ class AudioPlayer extends styled.Component(
 
 		// Close button
 		this.closeBtn = new Button({
-			icon: 'xmark',
+			content: '✕',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'close'],
-			onPointerPress: () => this.stop(),
+			onPointerDown: event => {
+				if (event) {
+					event.stopPropagation();
+					event.preventDefault();
+				}
+				this.stop();
+			},
 		});
 
 		this.updateUI();
@@ -250,7 +278,6 @@ class AudioPlayer extends styled.Component(
 			if (hasBulletin) {
 				this.queuedType = 'bulletin';
 				this.useBookends = options.useBookends || false;
-
 			}
 		}
 
@@ -375,7 +402,7 @@ class AudioPlayer extends styled.Component(
 		for (let i = 0; i < buffer.length; i++) {
 			for (let channel = 0; channel < numberOfChannels; channel++) {
 				const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
-				data.push(sample < 0 ? sample * 0x8000 : sample * 0x7FFF);
+				data.push(sample < 0 ? sample * 0x8000 : sample * 0x7fff);
 			}
 		}
 
@@ -426,7 +453,7 @@ class AudioPlayer extends styled.Component(
 		// Load both files
 		const [bookendBlob, bulletinBlob] = await Promise.all([
 			fetch(bookendPath).then(r => r.blob()),
-			fetch(bulletinPath).then(r => r.blob())
+			fetch(bulletinPath).then(r => r.blob()),
 		]);
 
 		// Decode audio files using Web Audio API
@@ -434,7 +461,7 @@ class AudioPlayer extends styled.Component(
 
 		const [bookendBuffer, bulletinBuffer] = await Promise.all([
 			bookendBlob.arrayBuffer().then(ab => audioContext.decodeAudioData(ab)),
-			bulletinBlob.arrayBuffer().then(ab => audioContext.decodeAudioData(ab))
+			bulletinBlob.arrayBuffer().then(ab => audioContext.decodeAudioData(ab)),
 		]);
 
 		// Get timing from config
@@ -444,7 +471,7 @@ class AudioPlayer extends styled.Component(
 		const combinedBuffer = this.concatenateAudioBuffers(audioContext, [
 			{ buffer: bookendBuffer, start: 0, end: firstHalfEnd },
 			{ buffer: bulletinBuffer, start: 0, end: null },
-			{ buffer: bookendBuffer, start: secondHalfStart, end: secondHalfEnd }
+			{ buffer: bookendBuffer, start: secondHalfStart, end: secondHalfEnd },
 		]);
 
 		// Convert to WAV blob
@@ -487,7 +514,7 @@ class AudioPlayer extends styled.Component(
 
 		const fadeInterval = setInterval(() => {
 			currentStep++;
-			audio.volume = startVolume + (volumeChange * currentStep / steps);
+			audio.volume = startVolume + (volumeChange * currentStep) / steps;
 
 			if (currentStep >= steps) {
 				clearInterval(fadeInterval);
@@ -588,8 +615,8 @@ class AudioPlayer extends styled.Component(
 		// Update title
 		this.titleElem.content = `${this.currentType === 'briefing' ? '📡 Briefing' : '📋 Bulletin'} Audio`;
 
-		// Update play/pause button icon by setting the icon property
-		this.playPauseBtn.options.icon = this.isPlaying ? 'pause' : 'play';
+		// Update play/pause button content with emoji
+		this.playPauseBtn.elem.textContent = this.isPlaying ? '⏸' : '▶';
 
 		// Update visualizer - always show bars, but only animate when playing
 		this.visualizerElem.empty();

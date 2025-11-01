@@ -1,6 +1,5 @@
 import { Elem, styled } from 'vanilla-bean-components';
 
-import { formatNotificationAchievementRewards } from '../../utils';
 import gameContext from './gameContext';
 import PriceDisplay from './PriceDisplay';
 
@@ -246,19 +245,17 @@ export class Achievement extends styled.Popover(
 			}, 400);
 		};
 
-		// Manual dismiss on click - prevent event from bubbling to game canvas
-		this.onPointerPress(event => {
-			// Stop the click event from propagating to the game canvas
+		this.options.onPointerDown = event => {
 			if (event) {
 				event.stopPropagation();
 				event.preventDefault();
 			}
 			dismissAchievement();
-		});
+		};
 
 		this.autoDismissTimer = setTimeout(() => {
 			dismissAchievement();
-		}, 30*1000);
+		}, 30 * 1000);
 
 		this.count = new Elem({
 			appendTo: this,
@@ -281,13 +278,13 @@ export class Achievement extends styled.Popover(
 					if (type === 'xp') {
 						return new Elem({
 							className: 'reward-item',
-							textContent: `+${amount} GMS`
+							textContent: `+${amount} GMS`,
 						});
 					} else if (type === 'credits') {
 						return new Elem(
 							{
 								className: 'reward-item',
-								style: { display: 'flex', alignItems: 'center', gap: '4px' }
+								style: { display: 'flex', alignItems: 'center', gap: '4px' },
 							},
 							new Elem({ content: '+' }),
 							new PriceDisplay({
@@ -299,7 +296,7 @@ export class Achievement extends styled.Popover(
 					} else {
 						return new Elem({
 							className: 'reward-item',
-							textContent: `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`
+							textContent: `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`,
 						});
 					}
 				});

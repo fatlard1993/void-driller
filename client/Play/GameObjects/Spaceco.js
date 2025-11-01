@@ -26,11 +26,6 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 			padding: { x: 8, y: 4 }
 		});
 
-		// Apply standard button shadow effects to match vanilla-bean-components
-		this.tradeButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.tradeButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.tradeButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.tradeButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
 		this.tradeButton.visible = false;
 
 		this.tradeButton.setInteractive({ draggable: false, cursor: 'pointer' });

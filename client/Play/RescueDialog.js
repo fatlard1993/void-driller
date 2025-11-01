@@ -27,6 +27,8 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 		button:disabled {
 			background: transparent;
+			color: ${({ colors }) => colors.green} !important;
+			font-weight: bold;
 
 			&:before {
 				content: '';

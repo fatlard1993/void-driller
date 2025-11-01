@@ -191,18 +191,15 @@ export default class GameSaveDatabase extends Low {
 			set({ id, data }) {
 				const startTime = performance.now();
 				try {
-					if (!db.data[key][id]) {
-						db.logger.warning('Database set failed - record not found', { collection: key, id });
-						return false;
-					}
+					const isNewRecord = !db.data[key][id];
 
-					db.logger.debug('Database set operation', { collection: key, id });
+					db.logger.debug('Database set operation', { collection: key, id, isNewRecord });
 
 					db.data[key][id] = data;
 					db.write();
 
 					const duration = performance.now() - startTime;
-					db.logger.info('Database record set', {
+					db.logger.info(isNewRecord ? 'Database record created' : 'Database record set', {
 						collection: key,
 						id,
 						duration: `${duration.toFixed(2)}ms`,

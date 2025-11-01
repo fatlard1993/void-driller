@@ -190,12 +190,6 @@ export class Player extends Drill {
 		this.tradePromptVisible = true;
 		gameContext.sceneLayers.interfaces.add(this.tradeButton);
 
-		// Apply standard button shadow effects after adding to scene
-		this.tradeButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.tradeButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.tradeButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.tradeButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
-
 		// Play notification sound
 		gameContext.sounds.blip?.play({ volume: gameContext.volume.interfaces });
 	}
@@ -296,10 +290,6 @@ export class Player extends Drill {
 			padding: { x: 8, y: 4 },
 		});
 
-		this.bombButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.bombButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.bombButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.bombButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
 		this.bombButton.setInteractive({ cursor: 'pointer' });
 
 		this.bombButton.on('pointerover', () => {
@@ -330,10 +320,6 @@ export class Player extends Drill {
 			padding: { x: 8, y: 4 },
 		});
 
-		this.teleportButton.preFX.addShadow(0, 1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.teleportButton.preFX.addShadow(0, -1, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.teleportButton.preFX.addShadow(1, 0, 0.05, 0.3, 0x000000, 2, 1.0);
-		this.teleportButton.preFX.addShadow(-1, 0, 0.05, 0.5, 0x000000, 2, 1.0);
 		this.teleportButton.setInteractive({ cursor: 'pointer' });
 
 		this.teleportButton.on('pointerover', () => {
