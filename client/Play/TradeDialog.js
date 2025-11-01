@@ -214,6 +214,10 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		display: flex;
 		gap: 12px;
 		min-height: 400px;
+
+		@media (max-width: 768px) {
+			flex-direction: column;
+		}
 	}
 
 	.trade-side {
@@ -305,6 +309,10 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		margin: -12px -18px 12px -18px;
 		align-items: center;
 		justify-content: space-between;
+
+		@media (max-width: 768px) {
+			flex-wrap: wrap;
+		}
 	}
 
 	.acceptance-player {
@@ -338,6 +346,12 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	.accept-button {
 		padding: 6px 16px;
+
+		@media (max-width: 768px) {
+			/* Improve button rendering on mobile by using simpler styles */
+			box-shadow: none;
+			border: 1px solid ${({ colors }) => colors.white.setAlpha(0.2)};
+		}
 	}
 `) {
 	constructor(options = {}) {

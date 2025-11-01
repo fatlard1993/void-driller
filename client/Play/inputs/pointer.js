@@ -1040,8 +1040,12 @@ const addToManualPath = (player, position, grid) => {
 };
 
 export const onPointerDown = pointer => {
-	// Don't process pointer events if a dialog is open or transitioning worlds
-	if (gameContext.openDialog?.elem?.open || gameContext.transitioning) return;
+	// Don't process pointer events if a dialog exists or transitioning worlds
+	// Note: We check if openDialog exists, not if it's open, because the close click
+	// happens while the dialog is closing (elem.open becomes false immediately)
+	if (gameContext.openDialog || gameContext.transitioning) {
+		return;
+	}
 
 	const player = gameContext.players.currentPlayer;
 
@@ -1154,8 +1158,8 @@ export const onPointerMove = (pointer, gameObjects) => {
 		return; // Don't process pointer events if socket is down, but let reconnection handle it
 	}
 
-	// Don't process pointer events if a dialog is open or transitioning worlds
-	if (gameContext.openDialog?.elem?.open || gameContext.transitioning) {
+	// Don't process pointer events if a dialog exists or transitioning worlds
+	if (gameContext.openDialog || gameContext.transitioning) {
 		return;
 	}
 
@@ -1380,8 +1384,8 @@ export const onPointerMove = (pointer, gameObjects) => {
 };
 
 export const onPointerUp = () => {
-	// Don't process pointer events if a dialog is open or transitioning worlds
-	if (gameContext.openDialog?.elem?.open || gameContext.transitioning) {
+	// Don't process pointer events if a dialog exists or transitioning worlds
+	if (gameContext.openDialog || gameContext.transitioning) {
 		return;
 	}
 

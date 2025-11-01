@@ -10,6 +10,16 @@ export class ConsoleContainer extends (styled.Component`
 	margin: 6em auto;
 	border-radius: 6px;
 	padding: 6px;
+	box-sizing: border-box;
+
+	@media (max-width: 768px) {
+		width: calc(100% - 24px);
+		max-width: 100vw;
+		margin-left: 12px;
+		margin-right: 12px;
+		margin-top: 3em;
+		margin-bottom: 3em;
+	}
 
 	& > pre {
 		font-family: 'FontWithASyntaxHighlighter', monospace;

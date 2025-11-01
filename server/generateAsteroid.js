@@ -183,26 +183,34 @@ export function generateAsteroid(worldConfig, gameData = {}) {
             const x = centerX + xOffset;
             if (x < 2 || x >= width - 2) continue; // Need room for 3x3 sprite
 
-            // Find first solid ground at this x position
-            for (let y = world.airGap + 1; y < world.depth - 1; y++) {
-                // Check if spaceco can fit (3x3 area with bottom-middle at x,y)
-                const positions = [
-                    {x: x-1, y: y-2}, {x, y: y-2}, {x: x+1, y: y-2}, // Top row
-                    {x: x-1, y: y-1}, {x, y: y-1}, {x: x+1, y: y-1}, // Middle row
-                    {x: x-1, y}, {x, y}, {x: x+1, y}  // Bottom row
-                ];
+            // Find the surface (transition from space to solid) at this x position
+            for (let y = world.airGap; y < world.depth - 1; y++) {
+                // Check if current position is space and position below is solid (this is the surface)
+                const currentIsSpace = world.grid[x]?.[y]?.terrain === 'space';
+                const belowIsSolid = world.grid[x]?.[y + 1]?.terrain === 'solid';
 
-                // Check if all positions are valid and bottom row is on solid ground
-                const bottomRowSolid = positions.slice(6).every(pos =>
-                    world.grid[pos.x]?.[pos.y]?.terrain === 'solid'
-                );
-                const topTwoRowsSpace = positions.slice(0, 6).every(pos =>
-                    world.grid[pos.x]?.[pos.y]?.terrain === 'space'
-                );
+                if (currentIsSpace && belowIsSolid) {
+                    // Found surface at y, now check if SpaceCo can fit here
+                    // SpaceCo is 3 tiles tall, so check y-2, y-1, and y are all space
+                    // and y+1 row (ground below) is solid across 3 tiles width
+                    const canFit =
+                        world.grid[x-1]?.[y-2]?.terrain === 'space' &&
+                        world.grid[x]?.[y-2]?.terrain === 'space' &&
+                        world.grid[x+1]?.[y-2]?.terrain === 'space' &&
+                        world.grid[x-1]?.[y-1]?.terrain === 'space' &&
+                        world.grid[x]?.[y-1]?.terrain === 'space' &&
+                        world.grid[x+1]?.[y-1]?.terrain === 'space' &&
+                        world.grid[x-1]?.[y]?.terrain === 'space' &&
+                        world.grid[x]?.[y]?.terrain === 'space' &&
+                        world.grid[x+1]?.[y]?.terrain === 'space' &&
+                        world.grid[x-1]?.[y+1]?.terrain === 'solid' &&
+                        world.grid[x]?.[y+1]?.terrain === 'solid' &&
+                        world.grid[x+1]?.[y+1]?.terrain === 'solid';
 
-                if (bottomRowSolid && topTwoRowsSpace) {
-                    spacecoPosition = { x, y: y - 1 }; // Subtract 1 to raise spaceco up one tile
-                    break;
+                    if (canFit) {
+                        spacecoPosition = { x, y }; // Anchor at y (the last space position before solid ground)
+                        break;
+                    }
                 }
             }
             if (spacecoPosition) break;

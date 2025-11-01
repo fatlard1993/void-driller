@@ -1,18 +1,34 @@
-import { Dialog } from 'vanilla-bean-components';
+import { Dialog, styled } from 'vanilla-bean-components';
 import gameContext from './gameContext';
 import { InfoButton } from './InfoButton';
-
-// (styled.Dialog`
-// 	@media (max-width: 768px) {
-// 		height: 90vh !important;
-// 		width: 90vh !important;
-// 	}
-// `)
 
 /**
  * Base dialog class that provides common functionality and styling for game dialogs
  */
-export default class BaseDialog extends Dialog {
+const StyledDialog = styled(Dialog)`
+	@media (max-width: 480px) {
+		margin: 0;
+		height: 100% !important;
+
+		&:after {
+			background: none;
+		}
+
+		.content {
+			padding: 0 3px;
+
+			&:before {
+				content: none;
+			}
+		}
+
+		.menuBody {
+			padding: 3px 6px;
+		}
+	}
+`;
+
+export default class BaseDialog extends StyledDialog {
 	constructor(options = {}) {
 		// Default configuration for all game dialogs
 		const defaultConfig = {
@@ -37,6 +53,29 @@ export default class BaseDialog extends Dialog {
 		};
 
 		super(mergedConfig);
+
+		// Prevent dialog clicks from propagating to Phaser canvas
+		// Use the same pattern as Achievement
+		this.options.onPointerDown = (event) => {
+			if (event) {
+				event.stopPropagation();
+				// Don't preventDefault - we need buttons to work
+			}
+		};
+
+		// When dialog closes, delay clearing gameContext.openDialog
+		setTimeout(() => {
+			if (this.elem) {
+				this.elem.addEventListener('close', () => {
+					// Keep openDialog set briefly to block pointer events
+					setTimeout(() => {
+						if (gameContext.openDialog === this) {
+							gameContext.openDialog = null;
+						}
+					}, 100);
+				});
+			}
+		}, 0);
 
 		// Play dialog sound effect
 		this.playDialogSound();

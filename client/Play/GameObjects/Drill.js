@@ -31,9 +31,10 @@ export class Drill extends Phaser.GameObjects.Sprite {
 		this.setOrientation(orientation);
 
 		this.name = name;
-		this.nameTag = scene.add.text(0, 0, name);
+		this.nameTagShadow = scene.add.text(0, 0, name, { color: '#ff0000' });
+		this.nameTag = scene.add.text(2, 2, name);
 
-		this.nameTag.preFX.addShadow(0, 0, 0.06, 0.75, 0xff0000, 4, 0.8);
+		this.nameTagShadow.visible = false;
 		this.nameTag.visible = false;
 
 		this.updateNameTag({ position: { x, y } });
@@ -61,14 +62,22 @@ export class Drill extends Phaser.GameObjects.Sprite {
 
 			const nameWidth = this.name.length * 10;
 
+			if (this.nameTagShadow.visible) {
+				this.scene.tweens.add({ targets: this.nameTagShadow, duration: speed, x: x - nameWidth / 2, y: y - 60 });
+			} else {
+				this.nameTagShadow.x = x - nameWidth / 2;
+				this.nameTagShadow.y = y - 60;
+			}
+
 			if (this.nameTag.visible) {
 				this.scene.tweens.add({ targets: this.nameTag, duration: speed, x: x - nameWidth / 2, y: y - 60 });
 			} else {
-				this.nameTag.x = x - nameWidth / 2;
-				this.nameTag.y = y - 60;
+				this.nameTag.x = x - (nameWidth / 2) - 2;
+				this.nameTag.y = y - 62;
 			}
 		}
 
+		this.nameTagShadow.visible = true;
 		this.nameTag.visible = true;
 	}
 
