@@ -27,7 +27,7 @@ export default class MusicManager {
 	 * @param {string} levelName - e.g., 'L1_Training_Shallows'
 	 * @param {object} config - Music timing configuration
 	 */
-	play(levelName, config) {
+	async play(levelName, config) {
 		console.log('[MusicManager] play() called:', levelName, config);
 
 		// Stop any currently playing music
@@ -37,6 +37,14 @@ export default class MusicManager {
 		const soundKey = `music/${levelName}`;
 
 		console.log('[MusicManager] Looking for sound key:', soundKey);
+
+		// Load music on-demand if needed
+		try {
+			await this.scene.loadMusicIfNeeded(soundKey);
+		} catch (error) {
+			console.error('[MusicManager] Failed to load music:', error);
+			return;
+		}
 
 		// Check if sound exists
 		if (!this.scene.sound.get(soundKey)) {
@@ -280,12 +288,20 @@ export default class MusicManager {
 	 * - Play transport transition sound
 	 * - Wait for both to finish before callback
 	 */
-	playTransportTransition(callback) {
+	async playTransportTransition(callback) {
 		console.log('[MusicManager] playTransportTransition called', {
 			isPlaying: this.isPlaying,
 			currentSection: this.currentSection,
 			hasOutro: !!this.config?.outro
 		});
+
+		// Load transition music if needed
+		try {
+			await this.scene.loadMusicIfNeeded('music/transport_transition');
+		} catch (error) {
+			console.error('[MusicManager] Failed to load transition music:', error);
+			// Continue anyway - callback still needs to be called
+		}
 
 		// Track which sounds have completed
 		let outroCompleted = false;
