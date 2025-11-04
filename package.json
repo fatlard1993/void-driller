@@ -44,6 +44,7 @@
 		"marked": "^16.3.0",
 		"nanoid": "^5.1.5",
 		"phaser": "^3.90.0",
+		"qrcode": "^1.5.4",
 		"vanilla-bean-components": "github:fatlard1993/vanilla-bean-components#fd7c5fa"
 	},
 	"devDependencies": {

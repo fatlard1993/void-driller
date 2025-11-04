@@ -10,6 +10,7 @@ import musicConfig from '../shared/musicConfig.js';
 import { Ground, Item, Mineral, Spaceco, Drill, Lava, Gas, Player } from './GameObjects';
 import { createAlien } from './GameObjects/aliens';
 import BriefingDialog from './BriefingDialog';
+import StatusBarHUD from './GameObjects/StatusBarHUD';
 
 // Essential sounds loaded immediately at startup
 const essentialSounds = [
@@ -573,6 +574,12 @@ export default class GameScene extends Phaser.Scene {
 					gameContext.players.set(player.id, { ...player, sprite });
 
 					sprite.move(player.position, 0, player.orientation);
+
+					// Create status bar HUD for the player
+					if (!gameContext.statusBarHUD) {
+						gameContext.statusBarHUD = new StatusBarHUD(this);
+						gameContext.statusBarHUD.update(player);
+					}
 				} else {
 					const sprite = new Drill(
 						this,
@@ -719,6 +726,7 @@ export default class GameScene extends Phaser.Scene {
 		this.tweens.add({
 			targets: ship,
 			x: screenWidth + 400, // Go further off-screen on both sides
+			delay: 3000, // Start moving 3 seconds after appearing
 			duration: 17000, // 17 seconds total (added 2s)
 			ease: 'Sine.easeInOut',
 			onComplete: () => {
@@ -741,11 +749,21 @@ export default class GameScene extends Phaser.Scene {
 		}, 16);
 
 		// Fade out all scene layers including interfaces (keep stars visible in background)
-		const fadeDuration = 800;
+		const fadeDelay = 1000; // Start fade-out 1 second later
+		const fadeDuration = 2800; // 2 seconds longer than before (was 1800ms)
+
+		// Hide all player name tags before fading out
+		gameContext.players.forEach(player => {
+			if (player.sprite && player.sprite.hideNameTag) {
+				player.sprite.hideNameTag();
+			}
+		});
+
 		Object.values(gameContext.sceneLayers).forEach(layer => {
 			this.tweens.add({
 				targets: layer,
 				alpha: 0,
+				delay: fadeDelay,
 				duration: fadeDuration,
 				ease: 'Power2',
 			});
@@ -756,6 +774,7 @@ export default class GameScene extends Phaser.Scene {
 			this.tweens.add({
 				targets: gameContext.spaceco,
 				alpha: 0,
+				delay: fadeDelay,
 				duration: fadeDuration,
 				ease: 'Power2',
 			});
@@ -765,6 +784,7 @@ export default class GameScene extends Phaser.Scene {
 				this.tweens.add({
 					targets: gameContext.spaceco.tradeButton,
 					alpha: 0,
+					delay: fadeDelay,
 					duration: fadeDuration,
 					ease: 'Power2',
 				});
@@ -782,7 +802,7 @@ export default class GameScene extends Phaser.Scene {
 			});
 
 			// Clear player sprites
-			gameContext.players.forEach((player, playerId) => {
+			gameContext.players.forEach((player) => {
 				if (player.sprite) {
 					player.sprite.destroy();
 				}
@@ -844,6 +864,28 @@ export default class GameScene extends Phaser.Scene {
 
 		setTimeout(() => {
 			console.log('✅ World transition complete!');
+
+			// Show briefing dialog if not yet seen for this world
+			if (!gameContext.briefings[gameContext.serverState.world.name]) {
+				gameContext.openDialog = new BriefingDialog();
+			}
+
+			// Start level music after transition
+			const worldName = gameContext.serverState.world.name;
+			const musicKey = worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_');
+			console.log('[GameScene] Post-transport: Starting music for:', musicKey);
+
+			const musicConfig = require('../shared/musicConfig').default;
+			const config = musicConfig[musicKey];
+
+			if (config && gameContext.musicManager) {
+				setTimeout(() => {
+					console.log('[GameScene] Starting music for:', musicKey);
+					gameContext.musicManager.play(musicKey, config);
+				}, gameContext.briefings[worldName] ? 0 : 1000); // Delay if showing briefing
+			} else {
+				console.warn('[GameScene] No music config found for world:', worldName);
+			}
 		}, fadeInDuration);
 	}
 
@@ -928,6 +970,7 @@ export default class GameScene extends Phaser.Scene {
 				gameContext.serverState.world.spaceco.position.x,
 				gameContext.serverState.world.spaceco.position.y,
 			);
+			gameContext.sceneLayers.hazards.add(gameContext.spaceco);
 			// Keep it invisible until fade-in
 			gameContext.spaceco.setAlpha(0);
 			if (gameContext.spaceco.tradeButton) {
@@ -959,6 +1002,13 @@ export default class GameScene extends Phaser.Scene {
 				// Setup camera follow
 				this.cameras.main.startFollow(sprite, false, 0.09, 0.09);
 				this.cameras.main.setZoom(gameContext.scale);
+
+				// Recreate status bar HUD for the player
+				if (gameContext.statusBarHUD) {
+					gameContext.statusBarHUD.destroy();
+				}
+				gameContext.statusBarHUD = new StatusBarHUD(this);
+				gameContext.statusBarHUD.update(player);
 			} else {
 				// Other players get a simple Drill sprite
 				sprite = new Drill(

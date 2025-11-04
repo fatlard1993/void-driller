@@ -21,11 +21,17 @@ export function checkResourceAlerts(player) {
 			gameContext.dismissedAlerts.fuel = true;
 
 			// Show visual alert positioned near center, avoiding player UI
+			// Calculate fuel bar position (middle bar)
+			const barWidth = window.innerWidth * 0.3;
+			const totalWidth = barWidth * 3;
+			const startX = (window.innerWidth - totalWidth) / 2;
+			const fuelBarCenter = startX + barWidth + barWidth / 2;
+
 			new Notify({
 				type: 'error',
-				content: `FUEL LOW: ${(fuelRatio * 100).toFixed(1)}%`,
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2 - 140,
+				content: 'FUEL',
+				x: fuelBarCenter,
+				y: 40,
 				timeout: 30 * 1000,
 			});
 		} else if (fuelRatio > alerts.fuel) {
@@ -41,11 +47,17 @@ export function checkResourceAlerts(player) {
 			gameContext.dismissedAlerts.health = true;
 
 			// Show visual alert positioned near center, stacked above fuel alerts
+			// Calculate health bar position (left bar)
+			const barWidth = window.innerWidth * 0.3;
+			const totalWidth = barWidth * 3;
+			const startX = (window.innerWidth - totalWidth) / 2;
+			const healthBarCenter = startX + barWidth / 2;
+
 			new Notify({
 				type: 'error',
-				content: `HEALTH CRITICAL: ${(healthRatio * 100).toFixed(1)}%`,
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2 - 180,
+				content: 'HEALTH',
+				x: healthBarCenter,
+				y: 40,
 				timeout: 30 * 1000,
 			});
 		} else if (healthRatio > alerts.health) {
@@ -61,11 +73,17 @@ export function checkResourceAlerts(player) {
 			gameContext.dismissedAlerts.cargo = true;
 
 			// Show visual alert positioned near center, stacked below fuel alerts
+			// Calculate cargo bar position (right bar)
+			const barWidth = window.innerWidth * 0.3;
+			const totalWidth = barWidth * 3;
+			const startX = (window.innerWidth - totalWidth) / 2;
+			const cargoBarCenter = startX + barWidth * 2 + barWidth / 2;
+
 			new Notify({
 				type: 'error',
-				content: `CARGO: ${(cargoRatio * 100).toFixed(1)}%`,
-				x: window.innerWidth / 2,
-				y: window.innerHeight / 2 - 80,
+				content: 'CARGO',
+				x: cargoBarCenter,
+				y: 40,
 				timeout: 30 * 1000,
 			});
 		} else if (cargoRatio < alerts.cargo) {
@@ -109,6 +127,11 @@ export default data => {
 		// Check for resource alerts after player movement
 		checkResourceAlerts(player);
 
+		// Update HUD if it exists
+		if (player.id === gameContext.playerId && gameContext.statusBarHUD) {
+			gameContext.statusBarHUD.update(player);
+		}
+
 		gameContext.serverState.world.grid[player.position.x][player.position.y].ground = {};
 		gameContext.serverState.world.grid[player.position.x][player.position.y].items = [];
 	} else if (data.update === 'addPlayer') {
@@ -147,6 +170,11 @@ export default data => {
 				const updatedPlayer = gameContext.players.get(player.id);
 				checkResourceAlerts(updatedPlayer);
 
+				// Update HUD
+				if (gameContext.statusBarHUD) {
+					gameContext.statusBarHUD.update(updatedPlayer);
+				}
+
 				gameContext.scene.sound.play('hurt', {
 					volume: convertRange(data.damage, [0, 3], [0, gameContext.volume.effects]),
 				});
@@ -159,6 +187,11 @@ export default data => {
 		// Check for resource alerts after using items (fuel, health items, etc.)
 		const updatedPlayer = gameContext.players.get(data.playerId);
 		checkResourceAlerts(updatedPlayer);
+
+		// Update HUD
+		if (data.playerId === gameContext.playerId && gameContext.statusBarHUD) {
+			gameContext.statusBarHUD.update(updatedPlayer);
+		}
 
 		if (data.item === 'spaceco_teleporter' || data.item.startsWith('activated_teleporter')) {
 			gameContext.players.get(data.playerId).sprite.teleport(data.updates.position, 1000);
@@ -236,8 +269,8 @@ export default data => {
 			_stuckClickCount: 0,
 		}));
 
-		// Show rescue dialog if stranded due to no fuel
-		if (data.reason === 'no_fuel' && data.playerId === gameContext.playerId) {
+		// Show rescue dialog if stranded due to no fuel or no health
+		if (['no_fuel', 'no_health'].includes(data.reason) && data.playerId === gameContext.playerId) {
 			import('../RescueDialog.js').then(module => {
 				gameContext.openDialog = new module.default();
 			});

@@ -6,8 +6,8 @@ import { ItemImage } from './SpriteSheetImage';
  * @param {number} amount - The credit amount to display
  * @param {string} variant - 'default', 'success' (green), 'error' (red)
  * @param {number} size - Icon size (default 16)
- * @param {string|Element} prefix - Content to display before the price (e.g., 'Buy (')
- * @param {string|Element} suffix - Content to display after the price (e.g., ')')
+ * @param {string|Element} preText - Content to display before the price (e.g., '(')
+ * @param {string|Element} postText - Content to display after the price (e.g., ')')
  */
 export default class PriceDisplay extends (styled.Component`
 	display: inline-flex;
@@ -38,19 +38,19 @@ export default class PriceDisplay extends (styled.Component`
 	render() {
 		super.render();
 
-		const { amount, variant = 'default', size = 16, prefix, suffix } = this.options;
+		const { amount, variant = 'default', size = 16, preText, postText } = this.options;
 
 		// Add variant class for color styling
 		if (variant !== 'default') {
 			this.elem.classList.add(variant);
 		}
 
-		// Add prefix if provided
-		if (prefix) {
+		// Add preText if provided
+		if (preText) {
 			this.append(
-				typeof prefix === 'string'
-					? new Elem({ tag: 'span', className: 'prefix', content: prefix })
-					: prefix,
+				typeof preText === 'string'
+					? new Elem({ tag: 'span', className: 'prefix', content: preText })
+					: preText,
 			);
 		}
 
@@ -67,12 +67,12 @@ export default class PriceDisplay extends (styled.Component`
 			}),
 		);
 
-		// Add suffix if provided
-		if (suffix) {
+		// Add postText if provided
+		if (postText) {
 			this.append(
-				typeof suffix === 'string'
-					? new Elem({ tag: 'span', className: 'suffix', content: suffix })
-					: suffix,
+				typeof postText === 'string'
+					? new Elem({ tag: 'span', className: 'suffix', content: postText })
+					: postText,
 			);
 		}
 	}

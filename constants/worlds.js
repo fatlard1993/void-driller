@@ -6,8 +6,8 @@ export const worlds = [
 		description:
 			'Entry-level asteroid cluster designated for new contractor orientation and basic extraction training. SpaceCo reminds you that survival during training is considered optional but encouraged.',
 		transportRequirements: [],
-		transportPrice: 25,
-		size: 'medium',
+		transportPrice: 35,
+		size: 'small',
 		shape: 'balanced',
 		craters: {
 			huge: [0, 0],
@@ -87,6 +87,7 @@ export const worlds = [
 			shop: {
 				oil: [2, 3],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T2'],
 			drills: ['T2'],
@@ -110,10 +111,11 @@ export const worlds = [
 		id: 'surface_prospects',
 		name: 'L2: Surface Prospects',
 		summary: 'Stable geology. Predictable yields. Barely dangerous.',
-		description: 'Shallow asteroid fields with reliable mineral deposits. Perfect for building operational experience. Your compliance with productivity targets is noted and appreciated.',
+		description:
+			'Shallow asteroid fields with reliable mineral deposits. Perfect for building operational experience. Your compliance with productivity targets is noted and appreciated.',
 		transportRequirements: [['white', 120]],
-		transportPrice: 75,
-		size: 'medium',
+		transportPrice: 105,
+		size: 'small',
 		shape: 'deep',
 		craters: {
 			huge: [1, 1],
@@ -198,6 +200,7 @@ export const worlds = [
 				oil: [2, 4],
 				repair_nanites: [1, 2],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T3'],
 			drills: ['T3'],
@@ -224,10 +227,11 @@ export const worlds = [
 		id: 'amber_extraction_zone',
 		name: 'L3: Amber Extraction Zone',
 		summary: 'Rich pentrilium deposits. Moderate thermal activity detected.',
-		description: 'Mid-tier asteroid belt showing promising pentrilium concentrations and manageable heat signatures. First-degree burns remain within acceptable operational parameters.',
+		description:
+			'Mid-tier asteroid belt showing promising pentrilium concentrations and manageable heat signatures. First-degree burns remain within acceptable operational parameters.',
 		transportRequirements: [['orange', 150]],
-		transportPrice: 150,
-		size: 'large',
+		transportPrice: 210,
+		size: 'medium',
 		shape: 'wide',
 		craters: {
 			huge: [1, 1],
@@ -325,6 +329,7 @@ export const worlds = [
 				repair_nanites: [2, 3],
 				spaceco_teleporter: [1, 1],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T4'],
 			drills: ['T4'],
@@ -351,7 +356,7 @@ export const worlds = [
 		description:
 			'Byzanium-rich asteroid cluster with elevated instability readings. Proceed with standard caution protocols. Atmospheric toxicity falls within legally defensible exposure limits.',
 		transportRequirements: [['yellow', 180]],
-		transportPrice: 250,
+		transportPrice: 350,
 		size: 'medium',
 		shape: 'wide',
 		craters: {
@@ -448,6 +453,7 @@ export const worlds = [
 				spaceco_teleporter: [1, 2],
 				advanced_teleporter: [0, 1],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T5'],
 			drills: ['T5'],
@@ -472,9 +478,10 @@ export const worlds = [
 		id: 'ethereal_depths',
 		name: 'L5: Ethereal Depths',
 		summary: 'Premium etherium concentration. Crushing depth recommended.',
-		description: 'Deep etherium deposits detected in stable geological formations. Excellent profit margins projected. Void exposure symptoms are temporary and covered under your contract.',
+		description:
+			'Deep etherium deposits detected in stable geological formations. Excellent profit margins projected. Void exposure symptoms are temporary and covered under your contract.',
 		transportRequirements: [['green', 220]],
-		transportPrice: 375,
+		transportPrice: 525,
 		size: 'small',
 		shape: 'tall',
 		craters: {
@@ -581,6 +588,7 @@ export const worlds = [
 				advanced_teleporter: 1,
 				timed_charge: [1, 2],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T6'],
 			drills: ['T6'],
@@ -607,7 +615,7 @@ export const worlds = [
 		description:
 			'Mithril-bearing formations with unusual energy signatures. Geological surveys report minor sensor interference. Hallucinations and temporal displacement are not covered by insurance.',
 		transportRequirements: [['teal', 260]],
-		transportPrice: 550,
+		transportPrice: 770,
 		size: 'small',
 		shape: 'balanced',
 		craters: {
@@ -714,6 +722,7 @@ export const worlds = [
 				timed_charge: [1, 2],
 				remote_charge: [0, 1],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T7'],
 			drills: ['T7'],
@@ -740,7 +749,7 @@ export const worlds = [
 		description:
 			'High-grade octanium deposits in complex crystalline matrices. Extraction teams report "unusual acoustic phenomena." SpaceCo confirms sounds are geological in nature and not distress signals.',
 		transportRequirements: [['blue', 300]],
-		transportPrice: 750,
+		transportPrice: 1050,
 		size: 'large',
 		shape: 'wide',
 		craters: {
@@ -834,6 +843,7 @@ export const worlds = [
 				remote_charge: 1,
 				spaceco_teleport_station: [0, 1],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T8'],
 			drills: ['T8'],
@@ -861,7 +871,7 @@ export const worlds = [
 		description:
 			'Saronite veins embedded in acoustically active rock formations. Equipment malfunctions reported but profits remain strong. Your rig warranty was voided three levels ago.',
 		transportRequirements: [['purple', 340]],
-		transportPrice: 1000,
+		transportPrice: 1400,
 		size: 'large',
 		shape: 'tall',
 		craters: {
@@ -955,6 +965,7 @@ export const worlds = [
 				spaceco_teleport_station: 1,
 				gravity_charge: [0, 1],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T9'],
 			drills: ['T9'],
@@ -981,7 +992,7 @@ export const worlds = [
 		description:
 			'Dense adamantite deposits in thermally unstable substrates. Communications with field teams increasingly irregular. Previous contractors are simply focused on their work.',
 		transportRequirements: [['pink', 380]],
-		transportPrice: 1350,
+		transportPrice: 1890,
 		size: 'medium',
 		shape: 'balanced',
 		craters: {
@@ -1073,6 +1084,7 @@ export const worlds = [
 				spaceco_teleport_station: 1,
 				gravity_charge: 1,
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T10'],
 			drills: ['T10'],
@@ -1099,7 +1111,7 @@ export const worlds = [
 		description:
 			'Maximum-density quadium concentrations detected. All previous survey data has been reclassified. Proceed as directed. Survivors will be debriefed.',
 		transportRequirements: [['red', 420]],
-		transportPrice: 1750,
+		transportPrice: 2450,
 		size: 'large',
 		shape: 'balanced',
 		craters: {
@@ -1194,6 +1206,7 @@ export const worlds = [
 				gravity_charge: [1, 2],
 				void_implosion: [0, 1],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T11'],
 			drills: ['T11'],
@@ -1220,7 +1233,7 @@ export const worlds = [
 		description:
 			'High-value quantum-resonant mineral deposits identified. Recovery of these specimens is of utmost priority to the Collective. Your contribution will be remembered.',
 		transportRequirements: [['black', 500]],
-		transportPrice: 2500,
+		transportPrice: 4900,
 		size: 'huge',
 		shape: 'tall',
 		craters: {
@@ -1308,6 +1321,7 @@ export const worlds = [
 				gravity_charge: [1, 2],
 				void_implosion: 1,
 				transport_insurance: [3, 5],
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T12'],
 			drills: ['T12'],
@@ -1331,12 +1345,13 @@ export const worlds = [
 		id: 'fractured_prospects_b',
 		name: 'L3B: Fractured Prospects',
 		summary: 'Backup site. Unstable but profitable for experienced miners.',
-		description: 'Secondary extraction site with elevated instability markers. Designated as backup operations zone. Previous incidents have been thoroughly investigated and blamed on contractor error.',
+		description:
+			'Secondary extraction site with elevated instability markers. Designated as backup operations zone. Previous incidents have been thoroughly investigated and blamed on contractor error.',
 		transportRequirements: [
 			['orange', 165],
-			['xp', 600],
+			['xp', 3750],
 		],
-		transportPrice: 180,
+		transportPrice: 350,
 		size: 'large',
 		shape: 'wide',
 		craters: {
@@ -1425,6 +1440,7 @@ export const worlds = [
 				spaceco_teleporter: [2, 3],
 				timed_charge: [1, 2],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T4'],
 			parts: ['T2', 'T3'],
@@ -1450,9 +1466,9 @@ export const worlds = [
 			'Volatile secondary site with irregular crystalline formations. Mining operations proceed at contractor discretion. SpaceCo Legal has pre-approved all liability waivers.',
 		transportRequirements: [
 			['blue', 330],
-			['xp', 3000],
+			['xp', 12000],
 		],
-		transportPrice: 900,
+		transportPrice: 1260,
 		size: 'huge',
 		shape: 'balanced',
 		craters: {
@@ -1545,6 +1561,7 @@ export const worlds = [
 				advanced_teleporter: [1, 2],
 				remote_charge: [2, 3],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			engines: ['T8'],
 			parts: ['T6', 'T7'],
@@ -1571,9 +1588,9 @@ export const worlds = [
 			'High-temperature secondary site with extreme geological instability. Operations authorized despite elevated risk profile. Your next of kin have been notified of potential outcomes.',
 		transportRequirements: [
 			['pink', 418],
-			['xp', 6000],
+			['xp', 22500],
 		],
-		transportPrice: 1600,
+		transportPrice: 2240,
 		size: 'large',
 		shape: 'tall',
 		craters: {
@@ -1659,6 +1676,7 @@ export const worlds = [
 				spaceco_teleport_station: [1, 2],
 				gravity_charge: [1, 2],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T10'],
 			drills: ['T10'],
@@ -1685,9 +1703,9 @@ export const worlds = [
 			'Secondary quantum-mineral site with elevated harmonic signatures. Priority recovery operations for specialized specimens. Failure to deliver will result in contract renegotiation.',
 		transportRequirements: [
 			['black', 550],
-			['xp', 15000],
+			['xp', 45000],
 		],
-		transportPrice: 3000,
+		transportPrice: 4200,
 		size: 'large',
 		shape: 'balanced',
 		craters: {
@@ -1781,6 +1799,7 @@ export const worlds = [
 				gravity_charge: [3, 5],
 				void_implosion: [2, 3],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T13'],
 			drills: ['T12', 'T13'],
@@ -1810,7 +1829,7 @@ export const worlds = [
 			['black', 625],
 			['xp', 20000],
 		],
-		transportPrice: 3500,
+		transportPrice: 4900,
 		size: 'medium',
 		shape: 'tall',
 		craters: {
@@ -1909,6 +1928,7 @@ export const worlds = [
 				gravity_charge: [3, 6],
 				void_implosion: [2, 4],
 				transport_insurance: 1,
+				pension_credit_buyup: [0, 1],
 			},
 			vehicles: ['T14'],
 			drills: ['T13'],

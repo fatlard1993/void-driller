@@ -379,6 +379,27 @@ export default data => {
 			gameContext.spaceco.dialog.options.view = 'upgrade';
 
 			gameContext.dismissedAlerts = {};
+		} else if (data.update === 'spacecoResupply') {
+			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+			// Update SpaceCo shop stock
+			if (data.spaceco?.shop) {
+				gameContext.serverState.world.spaceco.shop = data.spaceco.shop;
+				gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
+				gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+			}
+
+			// Play coin sounds
+			const cost = data.updates.credits ? Math.abs(data.updates.credits) : 100;
+			[...Array(randInt(2, Math.min(100, Math.max(3, cost))))].forEach((_, index) =>
+				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+			);
+
+			// Show success notification
+			new Notify({ type: 'success', content: 'Shop restocked!', timeout: 2000 });
+
+			// Stay on shop view - setting view triggers re-render
+			gameContext.spaceco.dialog.options.view = 'shop_SpaceCo';
 		}
 	}
 

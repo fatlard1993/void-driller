@@ -306,11 +306,13 @@ export default class MusicManager {
 		// Track which sounds have completed
 		let outroCompleted = false;
 		let transitionCompleted = false;
+		let callbackCalled = false;
 
 		const checkBothComplete = () => {
-			console.log('[MusicManager] Checking completion', { outroCompleted, transitionCompleted });
-			if (outroCompleted && transitionCompleted) {
+			console.log('[MusicManager] Checking completion', { outroCompleted, transitionCompleted, callbackCalled });
+			if (outroCompleted && transitionCompleted && !callbackCalled) {
 				console.log('[MusicManager] Both sounds completed, calling callback');
+				callbackCalled = true;
 				callback();
 			}
 		};
@@ -366,5 +368,17 @@ export default class MusicManager {
 		});
 
 		console.log('[MusicManager] Transport transition sound started, duration:', transitionSound.duration);
+
+		// Call callback 5 seconds before transition sound ends to start fade-in early
+		if (transitionSound.duration > 5) {
+			const earlyCallbackTime = (transitionSound.duration - 5) * 1000; // Convert to ms
+			setTimeout(() => {
+				console.log('[MusicManager] Early callback - starting fade-in 5s before music ends');
+				if (callback && !callbackCalled) {
+					callbackCalled = true;
+					callback();
+				}
+			}, earlyCallbackTime);
+		}
 	}
 }

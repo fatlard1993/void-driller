@@ -1,22 +1,33 @@
 // ./client/shared/gameContext.js
 import { gameContext } from '../../byod-web-game/client';
 
+const safeParseLocalStorage = (key, defaultValue = null) => {
+	try {
+		return JSON.parse(localStorage.getItem(key)) ?? defaultValue;
+	} catch (err) {
+		console.warn(key, err);
+
+		return defaultValue;
+	}
+};
+
 gameContext.achievementQueue = [];
 gameContext.sceneLayers = {};
 gameContext.sounds = {};
 gameContext.volume = {
 	music: 0.2,
-	briefings: 0.5,
+	briefings: 0.6,
 	alerts: 0.5,
 	interfaces: 0.06,
 	effects: 0.3,
-	...JSON.parse(localStorage.getItem('volume')),
+	...safeParseLocalStorage('volume', {}),
 };
-gameContext.alert = { fuel: 0.33, health: 0.33, cargo: 0.33, ...JSON.parse(localStorage.getItem('alert')) };
-gameContext.briefings = { ...JSON.parse(localStorage.getItem('briefings')) };
+gameContext.alert = { fuel: 0.33, health: 0.33, cargo: 0.33, ...safeParseLocalStorage('alert', {}) };
+gameContext.briefings = { ...safeParseLocalStorage('briefings', {}) };
 gameContext.dismissedAlerts = {};
-gameContext.scale = JSON.parse(localStorage.getItem('scale')) || 1.0;
-gameContext.debugVisible = JSON.parse(localStorage.getItem('debugVisible')) || false;
+gameContext.scale = safeParseLocalStorage('scale', 1.0);
+gameContext.debugVisible = safeParseLocalStorage('debugVisible', false);
+gameContext.notify = { autoDismissTimeout: 5000, ...safeParseLocalStorage('notify', {}) };
 
 gameContext.autoPath = {
 	enabled: true,
@@ -27,7 +38,7 @@ gameContext.autoPath = {
 	obstacleAvoidanceWeight: 2.0, // How much to penalize paths near obstacles
 	maxSearchIterations: 2000, // Maximum A* iterations
 	preferOpenSpaces: true, // Prefer routing through open areas when possible
-	...JSON.parse(localStorage.getItem('autoPath') || '{}'),
+	...safeParseLocalStorage('autoPath', {}),
 };
 
 gameContext.getNearbyPlayers = (position, range = 1) => {

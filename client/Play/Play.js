@@ -53,6 +53,14 @@ export default class Play extends View {
 												}
 											}
 
+											// Stop any playing audio and music before navigating away
+											if (gameContext.audioPlayer) {
+												gameContext.audioPlayer.stop();
+											}
+											if (gameContext.musicManager) {
+												gameContext.musicManager.stop();
+											}
+
 											window.location.href = `#/hub`;
 										}
 

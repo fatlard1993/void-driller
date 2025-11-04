@@ -2,7 +2,7 @@ export const drills = {
 	T1: {
 		name: 'Borebit L1',
 		strength: 1,
-		price: 60,
+		price: 112,
 		spriteIndex: 10,
 		maxHealth: 5,
 		requirements: [['torque', 150]],
@@ -12,7 +12,7 @@ export const drills = {
 	T2: {
 		name: 'Borebit L2',
 		strength: 2,
-		price: 90,
+		price: 168,
 		spriteIndex: 7,
 		maxHealth: 10,
 		requirements: [['torque', 200]],
@@ -22,7 +22,7 @@ export const drills = {
 	T3: {
 		name: 'Splitfang 225',
 		strength: 3,
-		price: 135,
+		price: 245,
 		spriteIndex: 11,
 		maxHealth: 15,
 		requirements: [['torque', 250]],
@@ -32,7 +32,7 @@ export const drills = {
 	T4: {
 		name: 'Edge-Crusher 2X',
 		strength: 4,
-		price: 200,
+		price: 364,
 		spriteIndex: 1,
 		maxHealth: 20,
 		requirements: [['torque', 300]],
@@ -42,7 +42,7 @@ export const drills = {
 	T5: {
 		name: 'Spiralcore S1',
 		strength: 5,
-		price: 280,
+		price: 511,
 		spriteIndex: 3,
 		maxHealth: 25,
 		requirements: [['torque', 375]],
@@ -52,7 +52,7 @@ export const drills = {
 	T6: {
 		name: 'Spiralcore S2',
 		strength: 6,
-		price: 380,
+		price: 693,
 		spriteIndex: 12,
 		maxHealth: 30,
 		requirements: [['torque', 450]],
@@ -62,7 +62,7 @@ export const drills = {
 	T7: {
 		name: 'Tecton Fang MK.I',
 		strength: 7,
-		price: 500,
+		price: 910,
 		spriteIndex: 4,
 		maxHealth: 35,
 		requirements: [['torque', 525]],
@@ -73,7 +73,7 @@ export const drills = {
 	T8: {
 		name: 'Tecton Fang MK.II',
 		strength: 8,
-		price: 650,
+		price: 1183,
 		spriteIndex: 5,
 		maxHealth: 40,
 		requirements: [['torque', 600]],
@@ -84,7 +84,7 @@ export const drills = {
 	T9: {
 		name: 'Voidpiercer V1',
 		strength: 9,
-		price: 820,
+		price: 1491,
 		spriteIndex: 6,
 		maxHealth: 45,
 		requirements: [['torque', 675]],
@@ -95,7 +95,7 @@ export const drills = {
 	T10: {
 		name: 'Voidpiercer V2',
 		strength: 10,
-		price: 1020,
+		price: 1855,
 		spriteIndex: 8,
 		maxHealth: 50,
 		requirements: [['torque', 750]],
@@ -108,7 +108,7 @@ export const drills = {
 	T11: {
 		name: 'Harmonic Resonator MK.I',
 		strength: 10,
-		price: 1280,
+		price: 2331,
 		spriteIndex: 9,
 		maxHealth: 60,
 		requirements: [['torque', 825]],
@@ -119,7 +119,7 @@ export const drills = {
 	T12: {
 		name: 'Phase Displacement Drill',
 		strength: 10,
-		price: 1580,
+		price: 2877,
 		spriteIndex: 2,
 		maxHealth: 70,
 		requirements: [['torque', 900]],
@@ -130,7 +130,7 @@ export const drills = {
 	T13: {
 		name: 'Void-Touched Auger',
 		strength: 10,
-		price: 1920,
+		price: 3493,
 		spriteIndex: 0,
 		maxHealth: 80,
 		requirements: [['torque', 900]], // Same as T12 - alien tech transcends limits

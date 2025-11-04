@@ -367,6 +367,31 @@ const _game = async (request, server) => {
 		}
 	}
 
+	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/resupply', request);
+	if (match) {
+		const { game, gameId, playerId, error } = validateGameMatch(match, server, request);
+
+		if (error) return error;
+
+		const player = game.players.get(playerId);
+		const resupplyCost = Math.floor(game.world.transportPrice * 0.9);
+
+		if (player.credits < resupplyCost) {
+			return Response.json(
+				{ message: `Insufficient credits for resupply. Required: ${resupplyCost}, Available: ${player.credits}` },
+				{ status: 400 },
+			);
+		}
+
+		try {
+			server.games[gameId].spacecoResupply(playerId);
+			return Response.json({}, { status: 200 });
+		} catch (resupplyError) {
+			gameLog.error('Resupply error', { playerId, gameId, error: resupplyError.message });
+			return Response.json({ message: 'Resupply system malfunction. Please try again.' }, { status: 500 });
+		}
+	}
+
 	match = requestMatch('POST', '/games/:gameId/:playerId/useItem', request);
 	if (match) {
 		const { gameId, playerId, error } = validateGameMatch(match, server, request);

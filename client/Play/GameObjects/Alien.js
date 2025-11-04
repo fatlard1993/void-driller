@@ -16,6 +16,7 @@ export class Alien extends Phaser.GameObjects.Sprite {
 
 		this.initialIndex = spriteIndex;
 		this.currentGridPosition = { x, y };
+		this.isAwake = false; // Track awake state to prevent rapid toggling
 
 		scene.add.existing(this);
 	}
@@ -28,11 +29,15 @@ export class Alien extends Phaser.GameObjects.Sprite {
 	}
 
 	sleep() {
+		if (!this.isAwake) return; // Already asleep, don't blink
+		this.isAwake = false;
 		this.anims.stop();
 		this.setTexture('aliens', this.initialIndex);
 	}
 
 	awake() {
+		if (this.isAwake) return; // Already awake, don't restart animation
+		this.isAwake = true;
 		// Default awake behavior - override in subclasses
 	}
 

@@ -87,7 +87,9 @@ export class Ground extends Phaser.GameObjects.Sprite {
 	dig() {
 		this.crack.visible = true;
 
-		this.scene.sound.play('dig', { volume: gameContext.volume.effects });
+		if (this.scene?.sound) {
+			this.scene.sound.play('dig', { volume: gameContext.volume.effects });
+		}
 
 		this.crack.anims.play('dig', false);
 	}

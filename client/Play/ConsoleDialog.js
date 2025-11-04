@@ -28,8 +28,10 @@ import { ConfigStat } from '../shared/ConfigStat';
 import { DescriptionText } from '../shared/DescriptionText';
 import { InfoButton } from '../shared/InfoButton';
 import Notify from '../shared/Notify';
+import PriceDisplay from '../shared/PriceDisplay';
 import { formatPlayerAchievementRewards } from '../../utils';
 import audioPlayer from '../shared/AudioPlayer';
+import BurgerTabs from '../shared/BurgerTabs';
 import {
 	toggleAutoPath,
 	setAutoPathRadius,
@@ -62,6 +64,34 @@ class AlertControl extends Component {
 					localStorage.setItem('alert', JSON.stringify(gameContext.alert));
 
 					gameContext.dismissedAlerts[this.options.key] = false;
+				},
+			}),
+		);
+	}
+}
+
+class NotifyControl extends Component {
+	render() {
+		new Label(
+			{
+				appendTo: this,
+				label: gameContext.subscriber(
+					'notify',
+					notify => {
+						const seconds = notify.autoDismissTimeout / 1000;
+						return `Auto-dismiss timeout (${seconds}s)`;
+					},
+				),
+			},
+			new Input({
+				type: 'range',
+				min: 0,
+				max: 30000,
+				step: 500,
+				value: gameContext.notify.autoDismissTimeout,
+				onChange: ({ value }) => {
+					gameContext.notify = { ...gameContext.notify, autoDismissTimeout: parseInt(value) };
+					localStorage.setItem('notify', JSON.stringify(gameContext.notify));
 				},
 			}),
 		);
@@ -462,20 +492,18 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	}
 
 	renderMenu() {
-		new Elem(
-			{ className: 'menu', appendTo: this._body },
-			['Cargo', 'Items', 'Status', 'Settings', 'Help'].map(
-				view =>
-					new Button({
-						content: view,
-						onPointerPress: () => {
-							InfoButton.closeAllPopovers();
-							this.options.view = view;
-						},
-						disabled: this.options.view.toLowerCase().startsWith(view.toLowerCase()),
-					}),
-			),
-		);
+		const menuViews = ['Cargo', 'Items', 'Status', 'Settings', 'Help'];
+		const currentView = menuViews.find(view => this.options.view.toLowerCase().startsWith(view.toLowerCase()));
+
+		this._burgerTabs = new BurgerTabs({
+			appendTo: this._body,
+			tabs: menuViews,
+			selectedTab: currentView,
+			onTabClick: (tab) => {
+				InfoButton.closeAllPopovers();
+				this.options.view = tab;
+			},
+		});
 
 		this._menuBody = new Elem({ className: 'menuBody', appendTo: this._body });
 	}
@@ -484,7 +512,11 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		const player = gameContext.players.currentPlayer;
 		let credits = 0;
 
-		const total = new Elem({ content: 'Total', appendTo: this._menuBody });
+		const total = new Elem({
+			appendTo: this._menuBody,
+			style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' },
+			append: [new Elem({ content: 'Total:' })],
+		});
 
 		new CardGrid({
 			appendTo: this._menuBody,
@@ -509,9 +541,18 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						body: new Elem({
 							append: [
 								new Elem({
-									tag: 'pre',
-									content: `Dirty: ${dirtyCount.toString()}t = $${dirtyPrice.toFixed(2)}\nPure: ${pureCount.toString()}kg = $${purePrice.toFixed(2)}`,
-									style: { margin: 0, whiteSpace: 'pre-wrap' },
+									style: { marginBottom: '4px' },
+									append: [
+										new Elem({ content: `Dirty: ${dirtyCount.toString()}t = `, tag: 'span' }),
+										new PriceDisplay({ amount: dirtyPrice, size: 14 }),
+									],
+								}),
+								new Elem({
+									style: { marginBottom: '8px' },
+									append: [
+										new Elem({ content: `Pure: ${pureCount.toString()}kg = `, tag: 'span' }),
+										new PriceDisplay({ amount: purePrice, size: 14 }),
+									],
 								}),
 								...[...Array(Math.min(dirtyCount, 50))].map(
 									() =>
@@ -534,23 +575,21 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			}),
 		});
 
-		total.content(`Total: $${credits.toFixed(2)}`);
+		total.append(new PriceDisplay({ amount: credits, size: 16, style: { fontWeight: 'bold' } }));
 	}
 
 	renderStatusMenu() {
-		new Elem(
-			{ className: 'menu', appendTo: this._menuBody },
-			['Current', 'Rig', 'Achievements', 'Minerals', 'Items'].map(
-				view =>
-					new Button({
-						content: view,
-						onPointerPress: () => {
-							this.options.view = `status_${view}`;
-						},
-						disabled: this.options.view === `status_${view}`,
-					}),
-			),
-		);
+		const menuViews = ['Current', 'Rig', 'Achievements', 'Minerals', 'Items'];
+		const currentView = menuViews.find(view => this.options.view === `status_${view}`);
+
+		this._statusBurgerTabs = new BurgerTabs({
+			appendTo: this._menuBody,
+			tabs: menuViews,
+			selectedTab: currentView,
+			onTabClick: (tab) => {
+				this.options.view = `status_${tab}`;
+			},
+		});
 
 		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
 	}
@@ -574,7 +613,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				'Current Stats',
 				new List({
 					items: [
-						`Credits: $${player.credits.toFixed(2)}`,
+						new Elem({
+						style: { display: 'flex', alignItems: 'center', gap: '6px' },
+						append: [new Elem({ content: 'Credits:' }), new PriceDisplay({ amount: player.credits, size: 14 })],
+					}),
 						`Health: ${player.health}hp / ${player.maxHealth}hp (${convertRange(player.health, [0, player.maxHealth], [0, 100]).toFixed(1)}%)`,
 						`Fuel: ${player.fuel.toFixed(1)}l / ${player.maxFuel}l (${convertRange(player.fuel, [0, player.maxFuel], [0, 100]).toFixed(1)}%)`,
 						`Cargo: ${player.cargo.toFixed(2)}t / ${player.maxCargo}t (${convertRange(player.cargo, [0, player.maxCargo], [0, 100]).toFixed(1)}%)`,
@@ -1022,15 +1064,15 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							},
 							append: [
 								new ItemImage(imageName, { displaySize: 96 }),
-								new Elem({
-									tag: 'p',
-									content: `Quantity: ${count}`,
-									style: { margin: '4px 0', fontSize: '14px' },
-								}),
 								new DescriptionText({
 									summary: items[key]?.summary || '',
 									description: items[key]?.description || 'No description available.',
 									title: items[key]?.name || capitalize(key.replaceAll('_', ' '), true),
+								}),
+								new Elem({
+									tag: 'p',
+									content: `Quantity: ${count}`,
+									style: { margin: '4px 0', fontSize: '14px', textAlign: 'center' },
 								}),
 								!canUse &&
 									disabledReason &&
@@ -1147,7 +1189,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				new AlertControl({ key: 'cargo' }),
 			),
 
-			new CollapsibleLabel({ label: 'Display Settings' }, new ScaleControl(), new DebugControl()),
+			new CollapsibleLabel({ label: 'Notifications' }, new NotifyControl()),
+
+			new CollapsibleLabel({ label: 'Display' }, new ScaleControl(), new DebugControl()),
 		];
 
 		// Show auto-path settings on devices with precise pointer input (mouse/touchpad)

@@ -1,26 +1,9 @@
 import { aliens } from './aliens';
-import { engines } from './engines';
 
 export const playerAchievements = [
 	// -------------------
 	// FIRST EXPERIENCES
 	// -------------------
-	{
-		id: 'first_insurance_purchase',
-		category: 'Operations',
-		name: 'Safety First',
-		summary: 'Purchase transport insurance for the first time.',
-		flavor: 'Risk mitigation protocols activated. SpaceCo appreciates responsible contractors.',
-		difficulty: 1, // Easy - requires buying an item
-		trigger: {
-			type: 'spacecoBuyItem',
-			check: ({ event }) => event.item === 'transport_insurance',
-		},
-		awards: [
-			['xp', 50],
-			['credits', 15],
-		],
-	},
 	{
 		id: 'first_peaceful_alien_encounter',
 		category: 'Encounters',
@@ -39,71 +22,6 @@ export const playerAchievements = [
 		awards: [
 			['xp', 100],
 			['credits', 30],
-		],
-	},
-	{
-		id: 'first_sale',
-		category: 'Commerce',
-		name: 'First Profit',
-		summary: 'Sell any mineral to SpaceCo for the first time.',
-		flavor: 'Revenue pipeline online. SpaceCo thanks you for your contribution.',
-		difficulty: 1, // Easy - automatic with normal gameplay
-		trigger: { type: 'spacecoSell', check: () => true },
-		awards: [
-			['xp', 75],
-			['credits', 25],
-		],
-	},
-	{
-		id: 'first_upgrade_purchase',
-		category: 'Upgrades',
-		name: 'Better, Faster, Stronger',
-		summary: 'Purchase any upgrade for the first time.',
-		flavor: 'Equipment enhancement protocols engaged. Your rig now hums with improved efficiency.',
-		difficulty: 1, // Easy - natural progression
-		trigger: { type: 'spacecoBuyUpgrade', check: () => true },
-		awards: [
-			['xp', 100],
-			['credits', 30],
-		],
-	},
-	{
-		id: 'first_transport',
-		category: 'Progression',
-		name: 'New Horizons',
-		summary: 'Travel to a different asteroid using SpaceCo transport.',
-		flavor: 'Inter-asteroid logistics engaged. Belt expansion in progress.',
-		difficulty: 2, // Easy-Medium - requires progression and credits
-		trigger: { type: 'spacecoBuyTransport', check: () => true },
-		awards: [
-			['xp', 150],
-			['credits', 40],
-		],
-	},
-	{
-		id: 'first_refuel',
-		category: 'Operations',
-		name: 'Topped Off',
-		summary: 'Refuel at a SpaceCo depot for the first time.',
-		flavor: 'Fuel reserves restored. Avoid zero next time, operator.',
-		difficulty: 1, // Easy - happens naturally
-		trigger: { type: 'spacecoRefuel', check: () => true },
-		awards: [
-			['xp', 35],
-			['credits', 0],
-		],
-	},
-	{
-		id: 'first_trade',
-		category: 'Commerce',
-		name: 'Deal Maker',
-		summary: 'Complete your first trade with another player.',
-		flavor: 'Negotiations complete. SpaceCo HR notified.',
-		difficulty: 2, // Easy-Medium - requires finding another player
-		trigger: { type: 'playerTrade', check: () => true },
-		awards: [
-			['xp', 40],
-			['credits', 20],
 		],
 	},
 	{
@@ -212,19 +130,6 @@ export const playerAchievements = [
 	// -------------------
 	// MOVEMENT & EXPLORATION
 	// -------------------
-	{
-		id: 'first_drive',
-		category: 'Exploration',
-		name: 'Wheels Down',
-		summary: 'Pilot your rig at least once.',
-		flavor: 'Rig locomotion successfully initialized. Navigation parameters logged.',
-		difficulty: 1, // Easy - automatic on first move
-		trigger: { type: 'playerMove', check: () => true },
-		awards: [
-			['xp', 25],
-			['credits', 10],
-		],
-	},
 	{
 		id: 'hundred_clicks',
 		category: 'Exploration',
@@ -337,25 +242,6 @@ export const playerAchievements = [
 	// UPGRADE PROGRESSION
 	// -------------------
 	{
-		id: 'battery_pioneer',
-		category: 'Upgrades',
-		name: 'Clean Energy Pioneer',
-		summary: 'Equip your first battery-powered engine.',
-		flavor: 'Clean propulsion technology installed. The future of drilling starts here.',
-		trigger: {
-			type: 'spacecoBuyUpgrade',
-			check: ({ player }) =>
-				player.configuration.engine?.includes('T5') ||
-				player.configuration.engine?.includes('T6') ||
-				player.configuration.engine?.includes('T7') ||
-				player.configuration.engine?.includes('T8'),
-		},
-		awards: [
-			['xp', 250],
-			['credits', 60],
-		],
-	},
-	{
 		id: 'soln_adopter',
 		category: 'Upgrades',
 		name: 'SOLN Technology Adopter',
@@ -395,68 +281,10 @@ export const playerAchievements = [
 			['credits', 150],
 		],
 	},
-	{
-		id: 'modular_specialist',
-		category: 'Upgrades',
-		name: 'Systems Integration',
-		summary: 'Equip your first support module.',
-		flavor: 'Modular enhancement online. Rig performance optimized.',
-		trigger: { type: 'spacecoBuyUpgrade', check: ({ player }) => !!player.configuration.part },
-		awards: [
-			['xp', 60],
-			['credits', 30],
-		],
-	},
-	{
-		id: 'full_spec_operator',
-		category: 'Upgrades',
-		name: 'Elite Specification',
-		summary: 'Equip a drill, engine, vehicle, and part all rated Tier 8 or higher.',
-		flavor: 'All installed systems exceed Tier 8 operational standards. Elite certification achieved.',
-		difficulty: 4, // Hard - requires significant progression and resources
-		hidden: true, // Spoils high-tier equipment existence
-		trigger: {
-			type: 'spacecoBuyUpgrade',
-			check: ({ player }) => {
-				const config = player.configuration;
-				return ['vehicle', 'drill', 'engine', 'part'].every(slot => {
-					const item = config[slot];
-					if (!item) return false;
-					const tier = parseInt(item.slice(1), 10);
-					return tier >= 8;
-				});
-			},
-		},
-		awards: [
-			['xp', 250],
-			['credits', 125],
-			['super_oxygen_liquid_nitrogen', 1],
-		],
-	},
 
 	// -------------------
 	// OPERATIONS & ECONOMY
 	// -------------------
-	{
-		id: 'first_item_use',
-		category: 'Operations',
-		name: 'Toolbelt Activated',
-		summary: 'Use any item at least once.',
-		flavor: 'First auxiliary device deployed. Operational efficiency improved.',
-		trigger: { type: 'useItem', check: () => true },
-		awards: [
-			['xp', 30],
-			['credits', 0],
-			player => ({
-				...player,
-				items: {
-					...player.items,
-					[engines[player.configuration.engine].fuelType]:
-						(player.items[engines[player.configuration.engine].fuelType] || 0) + 3,
-				},
-			}),
-		],
-	},
 	{
 		id: 'supply_hoarder',
 		category: 'Operations',
@@ -605,122 +433,6 @@ export const playerAchievements = [
 			['credits', 25],
 		],
 	},
-	{
-		id: 'deep_dweller_encounter',
-		category: 'Encounters',
-		name: 'Depth Guardian Contact',
-		summary: 'Encounter an ancient depth guardian.',
-		flavor: 'Deep guardian entity detected. Age: unknown. Intentions: protective.',
-		hidden: true, // Spoils deep-level content
-		trigger: { type: 'alien_wake', check: ({ event }) => event.alien === 'depth_guardian' },
-		awards: [
-			['xp', 120],
-			['credits', 30],
-		],
-	},
-	{
-		id: 'mimic_encounter',
-		category: 'Encounters',
-		name: "Fool's Gold",
-		summary: "Fall for a mimic ore's deception.",
-		flavor: 'Predatory mineral mimic encountered. Threat assessment: elevated.',
-		hidden: true, // Spoils ambush mechanic
-		trigger: { type: 'alien_wake', check: ({ event }) => event.alien === 'mimic_ore' },
-		awards: [
-			['xp', 90],
-			['credits', 20],
-		],
-	},
-	{
-		id: 'spawn_mother_encounter',
-		category: 'Encounters',
-		name: 'Matriarch Contact',
-		summary: "Disturb a spawn mother's nest.",
-		flavor: 'Breeding entity detected. Threat multiplier: exponential.',
-		hidden: true, // Spoils spawn mechanics
-		trigger: { type: 'alien_wake', check: ({ event }) => event.alien === 'spawn_mother' },
-		awards: [
-			['xp', 150],
-			['credits', 40],
-		],
-	},
-
-	// -------------------
-	// LEVEL PROGRESSION NOTIFICATIONS
-	// -------------------
-	{
-		id: 'belt_expansion_tier_1',
-		category: 'Progression',
-		name: 'Belt Expansion: Surface Operations',
-		summary: 'Unlock transport access to Levels 2-3.',
-		flavor:
-			'Surface extraction zones operational. Shallow belt exploitation authorized.\n\nSomething feels... routine about these early operations. Almost too routine.',
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => {
-				const level2 = (world.spaceco.hull.white || 0) >= 120;
-				const level3 = (world.spaceco.hull.orange || 0) >= 150;
-				return level2 && level3;
-			},
-		},
-		awards: [['xp', 200]],
-	},
-	{
-		id: 'belt_expansion_tier_2',
-		category: 'Progression',
-		name: 'Belt Expansion: Mid-Tier Operations',
-		summary: 'Unlock transport access to Levels 4-6.',
-		flavor:
-			'Mid-tier extraction zones authorized. Volatile substrate operations commence.\n\nWhy do the briefings keep mentioning "environmental complications" without explaining what they are?',
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => {
-				const level4 = (world.spaceco.hull.yellow || 0) >= 180;
-				const level5 = (world.spaceco.hull.green || 0) >= 220;
-				const level6 = (world.spaceco.hull.teal || 0) >= 260;
-				return level4 && level5 && level6;
-			},
-		},
-		awards: [['xp', 400]],
-	},
-	{
-		id: 'belt_expansion_tier_3',
-		category: 'Progression',
-		name: 'Belt Expansion: Deep Operations',
-		summary: 'Unlock transport access to Levels 7-9.',
-		flavor:
-			'Deep extraction zones cleared. Anomalous readings... expected.\n\nThose aren\'t "geological anomalies" down there. Someone at SpaceCo knows exactly what we\'re encountering.',
-		hidden: true, // Hints at corporate cover-up
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => {
-				const level7 = (world.spaceco.hull.blue || 0) >= 300;
-				const level8 = (world.spaceco.hull.purple || 0) >= 340;
-				const level9 = (world.spaceco.hull.pink || 0) >= 380;
-				return level7 && level8 && level9;
-			},
-		},
-		awards: [['xp', 600]],
-	},
-	{
-		id: 'belt_expansion_tier_4',
-		category: 'Progression',
-		name: 'Belt Expansion: Maximum Extraction',
-		summary: 'Unlock transport access to Levels 10-11.',
-		flavor:
-			"Maximum extraction zones accessible. All systems proceed as directed.\n\nThat's not how humans write memos. Something has changed in the corporate hierarchy.",
-		difficulty: 5, // Very Hard - endgame progression requiring massive effort
-		hidden: true, // Major story spoiler about alien takeover
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => {
-				const level10 = (world.spaceco.hull.red || 0) >= 420;
-				const level11 = (world.spaceco.hull.black || 0) >= 500;
-				return level10 && level11;
-			},
-		},
-		awards: [['xp', 800]],
-	},
 
 	// -------------------
 	// PROGRESSION MILESTONES
@@ -765,15 +477,6 @@ export const playerAchievements = [
 		trigger: { type: 'playerCantMove', check: ({ player }) => player.stats.outOfFuelEvents >= 1 },
 		awards: [
 			['xp', 30],
-			['credits', 0],
-			player => ({
-				...player,
-				items: {
-					...player.items,
-					[engines[player.configuration.engine].fuelType]:
-						(player.items[engines[player.configuration.engine].fuelType] || 0) + 3,
-				},
-			}),
 		],
 	},
 	{
@@ -854,92 +557,6 @@ export const playerAchievements = [
 			type: 'playerMove',
 			check: ({ event }) => event.ground.items.some(({ name }) => name === 'oil'),
 		},
-		awards: [['xp', 60]],
-	},
-	{
-		id: 'find_battery',
-		category: 'Discovery',
-		name: 'Power Cell Recovery',
-		summary: 'Find a battery in the field.',
-		flavor: 'Energy cell recovered. Charge level: adequate for operations.',
-		trigger: {
-			type: 'playerMove',
-			check: ({ event }) => event.ground.items.some(({ name }) => name === 'battery'),
-		},
-		awards: [['xp', 80]],
-	},
-	{
-		id: 'find_soln',
-		category: 'Discovery',
-		name: 'Cryogenic Discovery',
-		summary: 'Find a SOLN canister in the field.',
-		flavor: 'SOLN fuel canister located. Still cold. Still dangerous.',
-		hidden: true, // Spoils advanced fuel type existence
-		trigger: {
-			type: 'playerMove',
-			check: ({ event }) => event.ground.items.some(({ name }) => name === 'super_oxygen_liquid_nitrogen'),
-		},
-		awards: [['xp', 120]],
-	},
-	{
-		id: 'find_teleporter',
-		category: 'Discovery',
-		name: 'Emergency Beacon',
-		summary: 'Find a SpaceCo teleporter in the field.',
-		flavor: 'Emergency teleporter recovered. Previous emergency: resolved.',
-		trigger: {
-			type: 'playerMove',
-			check: ({ event }) => event.ground.items.some(({ name }) => name === 'spaceco_teleporter'),
-		},
-		awards: [['xp', 100]],
-	},
-	{
-		id: 'find_advanced_teleporter',
-		category: 'Discovery',
-		name: 'Navigation Beacon',
-		summary: 'Find an advanced teleporter in the field.',
-		flavor: 'Advanced teleporter beacon recovered. Previous destination: classified.',
-		hidden: true, // Spoils advanced item existence
-		trigger: {
-			type: 'playerMove',
-			check: ({ event }) => event.ground.items.some(({ name }) => name === 'advanced_teleporter'),
-		},
-		awards: [['xp', 120]],
-	},
-	{
-		id: 'find_nanites',
-		category: 'Discovery',
-		name: 'Nanite Recovery',
-		summary: 'Find repair nanites in the field.',
-		flavor: 'Repair nanite canister recovered. Self-replication protocols: active.',
-		trigger: {
-			type: 'playerMove',
-			check: ({ event }) => event.ground.items.some(({ name }) => name === 'repair_nanites'),
-		},
-		awards: [['xp', 100]],
-	},
-	{
-		id: 'find_timed_charge',
-		category: 'Discovery',
-		name: 'Explosive Discovery',
-		summary: 'Find a timed charge in the field.',
-		flavor: 'Explosive device recovered. Timer: inactive. Safety: questionable.',
-		trigger: {
-			type: 'playerMove',
-			check: ({ event }) => event.ground.items.some(({ name }) => name === 'timed_charge'),
-		},
-		awards: [['xp', 80]],
-	},
-	{
-		id: 'find_remote_charge',
-		category: 'Discovery',
-		name: 'Controlled Demolition',
-		summary: 'Find a remote charge in the field.',
-		flavor: 'Remote detonation device recovered. Control range: adequate.',
-		trigger: {
-			type: 'playerMove',
-			check: ({ event }) => event.ground.items.some(({ name }) => name === 'remote_charge'),
-		},
-		awards: [['xp', 100]],
+		awards: [['xp', 160]],
 	},
 ];

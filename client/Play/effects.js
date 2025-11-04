@@ -3,7 +3,25 @@ import gameContext from '../shared/gameContext';
 
 export const destroyGround = (position, radius = 0) => {
 	getSurroundingRadius(position, radius).forEach(({ x, y }) => {
-		gameContext.serverState.world.grid[x]?.[y]?.ground?.sprite?.dig();
+		const cell = gameContext.serverState.world.grid[x]?.[y];
+		if (!cell) return;
+
+		// Dig the ground sprite
+		cell.ground?.sprite?.dig();
+
+		// Destroy all item and mineral sprites in this cell
+		if (cell.items) {
+			cell.items.forEach(item => {
+				if (item.sprite?.scene) {
+					item.sprite.destroy();
+				}
+			});
+			cell.items = [];
+		}
+
+		// Clear ground and hazards from client state to match server
+		cell.ground = {};
+		cell.hazards = [];
 	});
 };
 

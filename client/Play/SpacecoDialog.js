@@ -28,12 +28,14 @@ import { CardGrid } from '../shared/CardGrid';
 import { DescriptionText } from '../shared/DescriptionText';
 import { InfoButton } from '../shared/InfoButton';
 import PriceDisplay from '../shared/PriceDisplay';
+import BurgerTabs from '../shared/BurgerTabs';
 import {
 	spacecoBuyItem,
 	spacecoBuyTransport,
 	spacecoBuyUpgrade,
 	spacecoRefuel,
 	spacecoRepair,
+	spacecoResupply,
 	spacecoSell,
 	spacecoSellItem,
 } from '../api';
@@ -464,6 +466,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				gameContext.serverState.world.spaceco.health > 0
 					? localStorage.getItem('console_defaultSpacecoMenu') || 'Sell'
 					: 'destroyed',
+			menuExpanded: false,
 			...options,
 		});
 	}
@@ -471,31 +474,19 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	renderMenu() {
 		if (this.options.view === 'destroyed') return;
 
-		new Elem(
-			{ className: 'menu', appendTo: this._body },
-			['Sell', 'Refuel', 'Repair', 'Upgrade', 'Shop', 'Transport', 'Status'].map(view => {
-				const isSelected = this.options.view.toLowerCase().startsWith(view.toLowerCase());
-				const isEmpty = this.isMenuEmpty(view);
-				const isDisabled = isSelected || isEmpty;
+		const menuViews = ['Sell', 'Refuel', 'Repair', 'Upgrade', 'Shop', 'Transport', 'Status'];
+		const currentView = menuViews.find(view => this.options.view.toLowerCase().startsWith(view.toLowerCase()));
 
-				let className = '';
-				if (isSelected) {
-					className = 'selected-menu';
-				} else if (isEmpty) {
-					className = 'empty-menu';
-				}
-
-				return new Button({
-					content: view,
-					onPointerPress: () => {
-						InfoButton.closeAllPopovers();
-						this.options.view = view;
-					},
-					disabled: isDisabled,
-					className,
-				});
-			}),
-		);
+		this._burgerTabs = new BurgerTabs({
+			appendTo: this._body,
+			tabs: menuViews,
+			selectedTab: currentView,
+			onTabClick: (tab) => {
+				InfoButton.closeAllPopovers();
+				this.options.view = tab;
+			},
+			isTabEmpty: (tab) => this.isMenuEmpty(tab),
+		});
 
 		this._menuBody = new Elem({ className: 'menuBody', appendTo: this._body });
 	}
@@ -673,9 +664,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			content: new Elem(
 				{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 				new Elem({ content: 'Full Repair' }),
-				new Elem({ content: '(' }),
-				new PriceDisplay({ amount: spacecoRepairCost, size: 14 }),
-				new Elem({ content: ')' }),
+				new PriceDisplay({ amount: spacecoRepairCost, size: 14, preText: '(', postText: ')' }),
 			),
 			appendTo: this._body,
 			onPointerPress: () => spacecoRepair({ type: 'outpost' }),
@@ -735,9 +724,18 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						body: new Elem({
 							append: [
 								new Elem({
-									tag: 'pre',
-									content: `Dirty: x${dirtyCount.toString()} = $${dirtyPrice.toFixed(2)}\nPure: x${pureCount.toString()} = $${purePrice.toFixed(2)}`,
-									style: { margin: 0, whiteSpace: 'pre-wrap' },
+									style: { marginBottom: '4px' },
+									append: [
+										new Elem({ content: `Dirty: x${dirtyCount.toString()} = `, tag: 'span' }),
+										new PriceDisplay({ amount: dirtyPrice, size: 14 }),
+									],
+								}),
+								new Elem({
+									style: { marginBottom: '8px' },
+									append: [
+										new Elem({ content: `Pure: x${pureCount.toString()} = `, tag: 'span' }),
+										new PriceDisplay({ amount: purePrice, size: 14 }),
+									],
 								}),
 								...[...Array(Math.min(dirtyCount, 50))].map(
 									() =>
@@ -763,9 +761,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		sellButton.options.content = new Elem(
 			{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 			new Elem({ content: 'Sell All' }),
-			new Elem({ content: '(' }),
-			new PriceDisplay({ amount: credits.toFixed(2), size: 14, variant: 'success' }),
-			new Elem({ content: ')' }),
+			new PriceDisplay({ amount: credits, size: 14, variant: 'success', preText: '(', postText: ')' }),
 		);
 	}
 
@@ -776,31 +772,19 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	renderUpgradeMenu() {
 		this.renderPlayerCredits();
 
-		new Elem(
-			{ className: 'menu', appendTo: this._menuBody },
-			['Current', 'Vehicles', 'Drills', 'Engines', 'Parts'].map(view => {
-				const isSelected = this.options.view === `upgrade_${view}`;
-				const isEmpty = this.isUpgradeSubmenuEmpty(view);
-				const isDisabled = isSelected || isEmpty;
+		const menuViews = ['Current', 'Vehicles', 'Drills', 'Engines', 'Parts'];
+		const currentView = menuViews.find(view => this.options.view === `upgrade_${view}`);
 
-				let className = '';
-				if (isSelected) {
-					className = 'selected-menu';
-				} else if (isEmpty) {
-					className = 'empty-menu';
-				}
-
-				return new Button({
-					content: view,
-					onPointerPress: () => {
-						InfoButton.closeAllPopovers();
-						this.options.view = `upgrade_${view}`;
-					},
-					disabled: isDisabled,
-					className,
-				});
-			}),
-		);
+		this._upgradeBurgerTabs = new BurgerTabs({
+			appendTo: this._menuBody,
+			tabs: menuViews,
+			selectedTab: currentView,
+			onTabClick: (tab) => {
+				InfoButton.closeAllPopovers();
+				this.options.view = `upgrade_${tab}`;
+			},
+			isTabEmpty: (tab) => this.isUpgradeSubmenuEmpty(tab),
+		});
 
 		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
 	}
@@ -1009,9 +993,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							content: new Elem(
 								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 								new Elem({ content: 'Buy' }),
-								new Elem({ content: '(' }),
-								new PriceDisplay({ amount: finalCost, size: 14 }),
-								new Elem({ content: ')' }),
+								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							style: {
 								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.red),
@@ -1098,9 +1080,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							content: new Elem(
 								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 								new Elem({ content: 'Buy' }),
-								new Elem({ content: '(' }),
-								new PriceDisplay({ amount: finalCost, size: 14 }),
-								new Elem({ content: ')' }),
+								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							style: {
 								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.red),
@@ -1205,9 +1185,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							content: new Elem(
 								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 								new Elem({ content: 'Buy' }),
-								new Elem({ content: '(' }),
-								new PriceDisplay({ amount: finalCost, size: 14 }),
-								new Elem({ content: ')' }),
+								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							style: {
 								backgroundColor: !missingRequirements && canAfford ? '' : theme.colors.darkest(theme.colors.red),
@@ -1319,9 +1297,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							content: new Elem(
 								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 								new Elem({ content: 'Buy' }),
-								new Elem({ content: '(' }),
-								new PriceDisplay({ amount: finalCost, size: 14 }),
-								new Elem({ content: ')' }),
+								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							onPointerPress: () => {
 								spacecoBuyUpgrade({ upgrade: id, type: 'parts' });
@@ -1421,9 +1397,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				content: new Elem(
 					{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 					new Elem({ content: 'Full Repair' }),
-					new Elem({ content: '(' }),
-					new PriceDisplay({ amount: cost.toFixed(2), size: 14 }),
-					new Elem({ content: ')' }),
+					new PriceDisplay({ amount: cost, size: 14, preText: '(', postText: ')' }),
 				),
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: playerRepairs,
@@ -1479,12 +1453,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				return new Button({
 					content: view,
 					onPointerPress: () => {
-						InfoButton.closeAllPopovers();
-						this.options.view = viewKey;
-					},
+				InfoButton.closeAllPopovers();
+				this.options.view = viewKey;
+			},
 					disabled: isDisabled,
 					className,
-				});
+		});
 			}),
 		);
 
@@ -1503,6 +1477,39 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			const numCount = typeof count === 'number' ? count : 0;
 			return sum + (numCount > 0 ? numCount : 0);
 		}, 0);
+
+		const resupplyCost = Math.floor((gameContext.serverState.world.transportPrice || 100) * 0.9);
+		const canAffordResupply = player.credits >= resupplyCost;
+
+		new Elem({
+			appendTo: this._subMenuBody,
+			style: {
+				display: 'flex',
+				flexWrap: 'wrap',
+				justifyContent: 'space-between',
+				alignItems: 'center',
+				gap: '8px',
+				marginBottom: '8px',
+				padding: '8px',
+				background: 'rgba(0, 0, 0, 0.3)',
+				borderRadius: '4px',
+			},
+			append: [
+				new Elem({
+					content: 'Resupply Shop Stock',
+					style: { fontSize: '14px', fontWeight: 'bold' },
+				}),
+				new Button({
+					content: new Elem(
+						{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+						new Elem({ content: 'Resupply' }),
+						new PriceDisplay({ amount: resupplyCost, size: 14, preText: '(', postText: ')' }),
+					),
+					disabled: !canAffordResupply,
+					onPointerPress: () => spacecoResupply(),
+				}),
+			],
+		});
 
 		new Label(
 			{ appendTo: this._subMenuBody, label: `Inventory: ${currentItemCount} / ${player.maxItemSlots} slots` },
@@ -1545,17 +1552,17 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							},
 							append: [
 								new ItemImage(key, { displaySize: 96 }),
+								new DescriptionText({
+									summary: summary,
+									description: items[key].description,
+									title: items[key].name || capitalize(key.replaceAll('_', ' ')),
+								}),
 								new Elem({
 									style: {
 										fontSize: '14px',
 										textAlign: 'center',
 									},
-									content: `Stock: ${stock}`,
-								}),
-								new DescriptionText({
-									summary: summary,
-									description: items[key].description,
-									title: items[key].name || capitalize(key.replaceAll('_', ' ')),
+									content: `Stock: ${Array.isArray(stock) ? stock.join('-') : stock}`,
 								}),
 								!canPurchase &&
 									disabledReason &&
@@ -1575,15 +1582,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								content: new Elem(
 									{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 									new Elem({ content: 'Buy' }),
-									new Elem({ content: '(' }),
-									new PriceDisplay({ amount: scaledPrice, size: 14 }),
-									new Elem({ content: ')' }),
+									new PriceDisplay({ amount: scaledPrice, size: 14, preText: '(', postText: ')' }),
 								),
 								style: {
 									backgroundColor: canPurchase ? '' : theme.colors.darkest(theme.colors.red),
 								},
 								onPointerPress: () => spacecoBuyItem({ item: key, count: 1 }),
-								disabled: !canPurchase,
 							}),
 						],
 					}),
@@ -1781,16 +1785,22 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										fontSize: '14px',
 										color: theme.colors.gray,
 										textAlign: 'center',
+										display: 'flex',
+										alignItems: 'center',
+										gap: '4px',
+										justifyContent: 'center',
 									},
-									content: `($${currentMarketPrice} - 30% restocking fee)`,
+									append: [
+										new Elem({ content: '(' }),
+										new PriceDisplay({ amount: currentMarketPrice, size: 14 }),
+										new Elem({ content: '- 30% restocking fee)' }),
+									],
 								}),
 								new Button({
 									content: new Elem(
 										{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 										new Elem({ content: count > 1 ? 'Sell 1' : 'Sell' }),
-										new Elem({ content: '(' }),
-										new PriceDisplay({ amount: sellPrice, size: 14, variant: 'success' }),
-										new Elem({ content: ')' }),
+										new PriceDisplay({ amount: sellPrice, size: 14, variant: 'success', preText: '(', postText: ')' }),
 									),
 									onPointerPress: async () => {
 										spacecoLog.info('Attempting to sell item:', key, 'count:', 1);
@@ -1809,9 +1819,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 												content: new Elem(
 													{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 													new Elem({ content: 'Sell All' }),
-													new Elem({ content: '(' }),
-													new PriceDisplay({ amount: sellPrice * count, size: 14, variant: 'success' }),
-													new Elem({ content: ')' }),
+													new PriceDisplay({ amount: sellPrice * count, size: 14, variant: 'success', preText: '(', postText: ')' }),
 												),
 												onPointerPress: async () => {
 													spacecoLog.info('Attempting to sell all items:', key, 'count:', count);
@@ -2016,12 +2024,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				return new Button({
 					content: view,
 					onPointerPress: () => {
-						InfoButton.closeAllPopovers();
+				InfoButton.closeAllPopovers();
 						this.options.view = `status_${view}`;
-					},
+			},
 					disabled: isDisabled,
 					className,
-				});
+		});
 			}),
 		);
 
