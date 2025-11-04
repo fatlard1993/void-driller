@@ -38,7 +38,8 @@ export class Player extends Drill {
 	}
 
 	showStatusBars(show = true) {
-		this.nameTag.visible = false;
+		if (this.nameTag) this.nameTag.visible = false;
+		if (this.nameTagShadow) this.nameTagShadow.visible = false;
 
 		this.healthBarFrame.visible = show;
 		this.healthBar.visible = show;

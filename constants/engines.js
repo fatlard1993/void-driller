@@ -2,7 +2,7 @@ export const engines = {
 	// OIL ENGINES (T1-T4)
 	T1: {
 		name: 'Gravolux M3',
-		price: 120,
+		price: 217,
 		spriteIndex: 1,
 		fuelType: 'oil',
 		maxHealth: 10,
@@ -13,7 +13,7 @@ export const engines = {
 	},
 	T2: {
 		name: 'Gravolux M5',
-		price: 180,
+		price: 329,
 		spriteIndex: 0,
 		fuelType: 'oil',
 		maxHealth: 15,
@@ -24,7 +24,7 @@ export const engines = {
 	},
 	T3: {
 		name: 'DrillCore V4',
-		price: 260,
+		price: 476,
 		spriteIndex: 2,
 		fuelType: 'oil',
 		maxHealth: 20,
@@ -35,7 +35,7 @@ export const engines = {
 	},
 	T4: {
 		name: 'Thermotek 9C',
-		price: 360,
+		price: 658,
 		spriteIndex: 3,
 		fuelType: 'oil',
 		maxHealth: 25,
@@ -48,7 +48,7 @@ export const engines = {
 	// BATTERY ENGINES (T5-T8)
 	T5: {
 		name: 'Voltra NX',
-		price: 480,
+		price: 875,
 		spriteIndex: 7,
 		fuelType: 'battery',
 		maxHealth: 30,
@@ -59,7 +59,7 @@ export const engines = {
 	},
 	T6: {
 		name: 'IonDelta R2',
-		price: 640,
+		price: 1162,
 		spriteIndex: 6,
 		fuelType: 'battery',
 		maxHealth: 35,
@@ -71,7 +71,7 @@ export const engines = {
 	},
 	T7: {
 		name: 'PlasmaDrive E5',
-		price: 840,
+		price: 1533,
 		spriteIndex: 4,
 		fuelType: 'battery',
 		maxHealth: 40,
@@ -83,7 +83,7 @@ export const engines = {
 	},
 	T8: {
 		name: 'TeslaNode Pro',
-		price: 1080,
+		price: 1967,
 		spriteIndex: 5,
 		fuelType: 'battery',
 		maxHealth: 45,
@@ -97,7 +97,7 @@ export const engines = {
 	// SOLN ENGINES (T9-T12)
 	T9: {
 		name: 'CryoFlux 7X',
-		price: 1400,
+		price: 2548,
 		spriteIndex: 11,
 		fuelType: 'super_oxygen_liquid_nitrogen',
 		maxHealth: 50,
@@ -109,7 +109,7 @@ export const engines = {
 	},
 	T10: {
 		name: 'CryoFlux 9M',
-		price: 1800,
+		price: 3276,
 		spriteIndex: 10,
 		fuelType: 'super_oxygen_liquid_nitrogen',
 		maxHealth: 55,
@@ -123,7 +123,7 @@ export const engines = {
 	// POST-TAKEOVER ALIEN-INFLUENCED TECH
 	T11: {
 		name: 'Resonance Drive Alpha',
-		price: 2300,
+		price: 4186,
 		spriteIndex: 9,
 		fuelType: 'super_oxygen_liquid_nitrogen',
 		maxHealth: 60,
@@ -135,7 +135,7 @@ export const engines = {
 	},
 	T12: {
 		name: 'Void-Core Engine',
-		price: 2900,
+		price: 5278,
 		spriteIndex: 8,
 		fuelType: 'super_oxygen_liquid_nitrogen',
 		maxHealth: 65,

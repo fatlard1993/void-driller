@@ -2,7 +2,7 @@ export const items = {
 	// FUEL TYPES
 	oil: {
 		spriteIndex: 6,
-		price: 20,
+		price: 21,
 		units: 15,
 		summary: 'Provides 15 units of oil fuel.',
 		description: 'Standard fuel canister. Fills basic rigs completely, provides substantial backup for larger systems.',
@@ -10,7 +10,7 @@ export const items = {
 
 	battery: {
 		spriteIndex: 10,
-		price: 80,
+		price: 310,
 		units: 35,
 		summary: 'Provides 35 units of battery power.',
 		description:
@@ -19,7 +19,7 @@ export const items = {
 
 	super_oxygen_liquid_nitrogen: {
 		spriteIndex: 9,
-		price: 175,
+		price: 680,
 		units: 55,
 		summary: 'Provides 55 units of SOLN fuel.',
 		description:
@@ -87,7 +87,7 @@ export const items = {
 	},
 
 	teleport_station: {
-		spriteIndex: 5,
+		spriteIndex: 3,
 		price: 0,
 		summary: 'Deployed teleportation station.',
 		description: 'Deployed teleportation beacon. Provides instantaneous transport when activated remotely.',
@@ -117,6 +117,14 @@ export const items = {
 		summary: 'Protects items during inter-asteroid transport.',
 		description:
 			'One-use insurance policy. SpaceCo guarantees your equipment survives the journey to new extraction sites.',
+	},
+
+	pension_credit_buyup: {
+		spriteIndex: 16,
+		price: 100,
+		summary: 'Convert credits to Pension Credits (XP).',
+		description:
+			'SpaceCo Retirement Services investment package. Converts operational credits directly into your pension fund. Current exchange rate: favorable.',
 	},
 
 	// ALIEN ERA ITEMS (Level 11+) - Post-takeover

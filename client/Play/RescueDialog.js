@@ -8,7 +8,9 @@ import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { ItemImage } from '../shared/SpriteSheetImage';
 import { DescriptionText } from '../shared/DescriptionText';
+import PriceDisplay from '../shared/PriceDisplay';
 import { items, engines } from '../../constants';
+import { getScaledServiceCosts } from '../../utils';
 
 export default class RescueDialog extends (styled(BaseDialog)`
 	button {
@@ -95,8 +97,13 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			}),
 
 			new Button({
-				content: 'Buy Remote Teleport ($50)',
-				disabled: player.credits < 50,
+				content: new Elem(
+					{ style: { display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' } },
+					new Elem({ content: 'Buy Remote Teleport (' }),
+					new PriceDisplay({ amount: getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost, size: 14 }),
+					new Elem({ content: ')' }),
+				),
+				disabled: player.credits < getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost,
 				onPointerPress: () => {
 					spacecoBuyRescue();
 

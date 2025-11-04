@@ -22,6 +22,7 @@ export default configured(Hub, {
 		linkText: 'Link',
 		infoText: 'Intel',
 		joinText: 'Deploy',
+		watchText: 'Overwatch',
 	},
 	containerComponent: ConsoleContainer,
 	noGamesText:

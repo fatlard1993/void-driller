@@ -502,10 +502,10 @@ export default class Game extends BaseGame {
 		spacecoLog.info('Updated SpaceCo stock', {
 			playerCount,
 			shop: this.world.spaceco.shop,
-			vehicles: this.world.spaceco.vehicles.length,
-			drills: this.world.spaceco.drills.length,
-			engines: this.world.spaceco.engines.length,
-			parts: this.world.spaceco.parts.length,
+			vehicles: this.world.spaceco.vehicles?.length || 0,
+			drills: this.world.spaceco.drills?.length || 0,
+			engines: this.world.spaceco.engines?.length || 0,
+			parts: this.world.spaceco.parts?.length || 0,
 		});
 	}
 
@@ -681,7 +681,7 @@ export default class Game extends BaseGame {
 		this.world.spaceco.stats.creditsEarned += totalGain;
 
 		const xpGained = getSpacecoXp(totalGain, 'mineral_sale');
-		this.world.spaceco.xp += xpGained;
+		this.addSpacecoXp(xpGained);
 
 		spacecoLog.info(`Mineral sale completed`, {
 			playerId,
@@ -804,7 +804,7 @@ export default class Game extends BaseGame {
 
 		// Update SpaceCo stats
 		this.world.spaceco.stats.creditsSpent += sellValue;
-		this.world.spaceco.xp += Math.floor(sellValue / 10); // Small XP gain for SpaceCo
+		this.addSpacecoXp(Math.floor(sellValue / 10)); // Small XP gain for SpaceCo
 
 		spacecoLog.info('Item sold', { playerId, item, count, totalValue: sellValue, unitPrice: unitSellPrice });
 
@@ -878,7 +878,7 @@ export default class Game extends BaseGame {
 
 		this.world.spaceco.stats.creditsEarned += cost;
 		this.world.spaceco.stats.fuelSold += fuelToPurchase; // Track fuel units, not cost
-		this.world.spaceco.xp += getSpacecoXp(cost, 'service_sale');
+		this.addSpacecoXp(getSpacecoXp(cost, 'service_sale'));
 
 		this.broadcastWithSpacecoState('spacecoRefuel', {
 			playerId,
@@ -921,7 +921,7 @@ export default class Game extends BaseGame {
 
 			this.world.spaceco.stats.creditsEarned += cost;
 			++this.world.spaceco.stats.repairsSold;
-			this.world.spaceco.xp += getSpacecoXp(cost, 'service_sale');
+			this.addSpacecoXp(getSpacecoXp(cost, 'service_sale'));
 
 			this.broadcastWithSpacecoState(
 				'spacecoRepair',
@@ -967,7 +967,7 @@ export default class Game extends BaseGame {
 
 			this.world.spaceco.stats.creditsEarned += cost;
 			++this.world.spaceco.stats.repairsSold;
-			this.world.spaceco.xp += getSpacecoXp(cost, 'service_sale');
+			this.addSpacecoXp(getSpacecoXp(cost, 'service_sale'));
 
 			this.broadcastWithSpacecoState(
 				'spacecoRepair',
@@ -1052,14 +1052,34 @@ export default class Game extends BaseGame {
 			},
 		};
 
-		updates.items[item] = (updates.items[item] || 0) + count;
+		// Special handling for pension_credit_buyup - convert to XP instead of adding to inventory
+		if (item === 'pension_credit_buyup') {
+			// Convert cost to player XP (50% conversion rate)
+			const xpGained = Math.floor(cost * 0.5);
+			updates.xp = (player.xp || 0) + xpGained;
+
+			spacecoLog.info('Pension credit buy-up', {
+				playerId,
+				creditsSpent: cost,
+				xpGained,
+				totalXp: updates.xp,
+			});
+		} else {
+			// Regular items go to inventory
+			updates.items[item] = (updates.items[item] || 0) + count;
+		}
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		// Broadcast xpGain event for achievements if XP was gained
+		if (item === 'pension_credit_buyup') {
+			this.broadcast('xpGain', { playerId, xpGained: Math.floor(cost * 0.5), totalXp: updates.xp });
+		}
 
 		this.world.spaceco.shop[item] -= count;
 		this.world.spaceco.stats.creditsEarned += cost;
 		this.world.spaceco.stats.itemsSold += count;
-		this.world.spaceco.xp += getSpacecoXp(cost, 'service_sale');
+		this.addSpacecoXp(getSpacecoXp(cost, 'service_sale'));
 
 		// Audit log for item purchase
 		spacecoLog.info('Item purchase completed', {
@@ -1284,7 +1304,7 @@ export default class Game extends BaseGame {
 		this.world.spaceco.stats.upgradesSoldByType[upgradeTypeKey] =
 			(this.world.spaceco.stats.upgradesSoldByType[upgradeTypeKey] || 0) + 1;
 
-		this.world.spaceco.xp += getSpacecoXp(finalCost, 'upgrade_sale');
+		this.addSpacecoXp(getSpacecoXp(finalCost, 'upgrade_sale'));
 
 		this.broadcastWithSpacecoState(
 			'spacecoBuyUpgrade',
@@ -1399,7 +1419,7 @@ export default class Game extends BaseGame {
 		this.world.spaceco.stats.creditsEarned += transportCost;
 		++this.world.spaceco.stats.transportsCompleted;
 		this.world.spaceco.stats.levelsVisited[newWorld.name] = true;
-		this.world.spaceco.xp += getSpacecoXp(transportCost, 'transport');
+		this.addSpacecoXp(getSpacecoXp(transportCost, 'transport'));
 
 		// Generate the new world FIRST so spaceco position is available for spawn position calculation
 		this.world = generateAsteroid({
@@ -1464,6 +1484,71 @@ export default class Game extends BaseGame {
 			},
 			['hull'],
 		);
+	}
+
+	spacecoResupply(playerId) {
+		const player = this.players.get(playerId);
+		const resupplyCost = Math.floor(this.world.transportPrice * 0.9);
+
+		if (player.credits < resupplyCost) {
+			spacecoLog.warn('Resupply denied - insufficient credits', {
+				playerId,
+				playerCredits: player.credits,
+				resupplyCost,
+			});
+			return;
+		}
+
+		// Deduct cost
+		const updates = {
+			credits: player.credits - resupplyCost,
+		};
+
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+		// Regenerate shop stock from world config
+		const { randInt } = require('../utils');
+		const worldConfig = this.world.config; // Store original config in world during generation
+
+		if (worldConfig?.spaceco?.shop) {
+			Object.entries(worldConfig.spaceco.shop).forEach(([itemName, stockValue]) => {
+				// If stock is an array [min, max], pick random value in range
+				if (Array.isArray(stockValue)) {
+					const newStock = randInt(stockValue[0], stockValue[1]);
+					// Add to existing stock (don't replace)
+					const currentStock = this.world.spaceco.shop[itemName] || 0;
+					const finalStock = Array.isArray(currentStock) ? newStock : currentStock + newStock;
+					this.world.spaceco.shop[itemName] = finalStock;
+				} else if (typeof stockValue === 'number') {
+					// If single number, add that amount
+					const currentStock = this.world.spaceco.shop[itemName] || 0;
+					const finalStock = Array.isArray(currentStock) ? stockValue : currentStock + stockValue;
+					this.world.spaceco.shop[itemName] = finalStock;
+				}
+			});
+		}
+
+		// Update SpaceCo stats
+		this.world.spaceco.stats.creditsEarned += resupplyCost;
+		this.addSpacecoXp(Math.floor(resupplyCost / 10));
+
+		spacecoLog.info('Resupply successful', {
+			playerId,
+			cost: resupplyCost,
+			newShopStock: this.world.spaceco.shop,
+		});
+
+		// Broadcast to all players
+		this.broadcast('spaceco', {
+			update: 'spacecoResupply',
+			playerId,
+			updates,
+			spaceco: {
+				shop: this.world.spaceco.shop,
+				xp: this.world.spaceco.xp,
+				stats: this.world.spaceco.stats,
+			},
+		});
 	}
 
 	validateItemUsage(playerId, item) {
@@ -1638,6 +1723,9 @@ export default class Game extends BaseGame {
 			const stationY = parseInt(y, 10);
 			updates.position = { x: stationX, y: stationY };
 
+			// Restore advanced_teleporter to inventory
+			updates.items = { ...updates.items, advanced_teleporter: (player.items.advanced_teleporter || 0) + 1 };
+
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 
 			// Clean up the teleport station from the world grid (use parsed integers, not string indices)
@@ -1645,6 +1733,16 @@ export default class Game extends BaseGame {
 				item => item.name !== 'teleport_station',
 			);
 
+			this.broadcast('useItem', { playerId, updates, item, stationPosition: { x: stationX, y: stationY } });
+		} else if (item === 'spaceco_teleport_station') {
+			// Teleport SpaceCo to the player's position
+			const newPosition = { ...player.position };
+			this.world.spaceco.position = newPosition;
+
+			this.players.update(playerId, _ => ({ ..._, ...updates }));
+
+			// Broadcast spaceco relocation to all players
+			this.broadcast('spaceco', { update: 'spacecoRelocate', playerId, newPosition });
 			this.broadcast('useItem', { playerId, updates, item });
 		} else {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
@@ -2483,6 +2581,7 @@ export default class Game extends BaseGame {
 			);
 
 			if (
+				consumedPositions.length < 13 &&
 				surroundKey !== 'top' &&
 				this.world.grid[x]?.[y] &&
 				!ground?.type &&
@@ -3071,13 +3170,13 @@ export default class Game extends BaseGame {
 
 			switch (spawnConfig.spawnType) {
 				case 'hazard':
-					return !cell.ground.type && cell.hazards.length === 0;
+					return !cell.ground?.type && cell.hazards.length === 0;
 				case 'item':
-					return !cell.ground.type;
+					return !cell.ground?.type;
 				case 'ground':
-					return !cell.ground.type;
+					return !cell.ground?.type;
 				case 'alien':
-					return !cell.ground.type && cell.hazards.length === 0;
+					return !cell.ground?.type && cell.hazards.length === 0;
 				default:
 					return false;
 			}
@@ -3997,8 +4096,8 @@ export default class Game extends BaseGame {
 			this.world.grid,
 		);
 
-		if (!bottomLeft.ground.type && !bottom.ground.type && !bottomRight.ground.type) {
-			const landingPosition = { x: bottom.x, y: bottom.y };
+		if (!bottomLeft?.ground?.type && !bottom?.ground?.type && !bottomRight?.ground?.type) {
+			const landingPosition = { x: bottom?.x ?? this.world.spaceco.position.x, y: bottom?.y ?? this.world.spaceco.position.y + 1 };
 
 			this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
 			this.world.spaceco.position = landingPosition;
@@ -4062,8 +4161,8 @@ export default class Game extends BaseGame {
 
 		// Green ground (byzanium) - can release gas when stressed
 		if (groundType === 'green') {
-			// 20% chance of releasing gas when mined
-			if (chance(20)) {
+			// 12% chance of releasing gas when mined
+			if (chance(12)) {
 				const cell = this.world.grid[position.x][position.y];
 
 				// Add gas hazard at this position
@@ -4151,12 +4250,28 @@ export default class Game extends BaseGame {
 	checkForPlayerFalls() {
 		// Check all players to see if they need to fall after ground destruction
 		this.players.forEach((player, playerId) => {
-			// Skip players who are already moving or dead
-			if (player.moving || player.health <= 0) return;
+			// Skip players who are dead
+			if (player.health <= 0) return;
+
+			console.log('[checkForPlayerFalls] Checking player:', {
+				playerId,
+				position: player.position,
+				moving: player.moving,
+			});
 
 			const hasSupport = hasWheelSupport(player.position, this.world.grid);
+			console.log('[checkForPlayerFalls] Support check result:', {
+				playerId,
+				hasSupport: hasSupport.hasSupport,
+				supportDetails: hasSupport,
+			});
+
 			if (!hasSupport.hasSupport) {
 				playerLog.info('Player lost wheel support, triggering fall', { playerId });
+				// Stop movement only if they're falling
+				if (player.moving) {
+					this.players.update(playerId, _ => ({ ..._, moving: false }));
+				}
 				this.playerFall(playerId);
 			}
 		});
@@ -4240,7 +4355,20 @@ export default class Game extends BaseGame {
 	playerFall(playerId, falling = false) {
 		const player = this.players.get(playerId);
 
-		const playerShouldFall = !hasWheelSupport(player.position, this.world.grid);
+		console.log('[playerFall] Called for player:', {
+			playerId,
+			position: player.position,
+			falling,
+		});
+
+		const supportCheck = hasWheelSupport(player.position, this.world.grid);
+		const playerShouldFall = !supportCheck.hasSupport;
+
+		console.log('[playerFall] Should fall?', {
+			playerId,
+			playerShouldFall,
+			supportCheck,
+		});
 
 		if (playerShouldFall) {
 			// Find the nearest supported position below the player
@@ -4263,6 +4391,12 @@ export default class Game extends BaseGame {
 
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('playerFall', { playerId, updates, fallDistance });
+
+			// Check if player landed near lava and trigger spilling
+			const landingCell = this.world.grid[landingPosition.x]?.[landingPosition.y];
+			if (landingCell?.hazards?.some(h => h.type === 'lava')) {
+				this.spillLava(landingPosition);
+			}
 		} else if (falling) {
 			this.broadcast('playerFall', { playerId, updates: { position: player.position, health: player.health } });
 		}
@@ -4423,9 +4557,9 @@ export default class Game extends BaseGame {
 			cell.items = [];
 
 			cell.hazards.forEach(hazard => {
-				if (hazard.type === 'lava') damage += 5;
-				else if (hazard.type === 'gas') damage += 3;
-				else if (hazard.type === 'alien') damage += 1;
+				if (hazard.type === 'lava') damage += 10;
+				else if (hazard.type === 'gas') damage += 5;
+				else if (hazard.type === 'alien') damage += 3;
 			});
 		}
 
@@ -4755,6 +4889,12 @@ export default class Game extends BaseGame {
 	 * @param {object} data - The event data
 	 * @param {Array<string>} spacecoFields - Additional SpaceCo fields to include
 	 */
+	addSpacecoXp(amount) {
+		this.world.spaceco.xp += amount;
+		// Broadcast spacecoXp event for achievements
+		this.broadcast('spacecoXp', { xpGained: amount, totalXp: this.world.spaceco.xp });
+	}
+
 	broadcastWithSpacecoState(event, data, spacecoFields = []) {
 		this.broadcastWithGameState(event, data, spacecoFields, 'spaceco');
 	}

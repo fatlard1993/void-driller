@@ -226,4 +226,28 @@ export class Drill extends Phaser.GameObjects.Sprite {
 			this.drill.setOrigin(orientation === 'left' ? 2 : -1, 0.2);
 		}
 	}
+
+	hideNameTag() {
+		if (this.nameTag) {
+			this.nameTag.visible = false;
+		}
+		if (this.nameTagShadow) {
+			this.nameTagShadow.visible = false;
+		}
+	}
+
+	destroy() {
+		// Clean up name tags before destroying sprite
+		if (this.nameTag) {
+			this.nameTag.destroy();
+		}
+		if (this.nameTagShadow) {
+			this.nameTagShadow.destroy();
+		}
+		if (this.drill) {
+			this.drill.destroy();
+		}
+		// Call parent destroy
+		super.destroy();
+	}
 }

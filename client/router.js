@@ -5,12 +5,14 @@ import DevTools from './DevTools';
 import Hub from './Hub';
 import Join from './Join';
 import Play from './Play';
+import Watch from './Watch/Watch';
 
 const paths = {
 	create: '/create',
 	hub: '/hub',
 	join: '/join/:gameId',
 	play: '/play/:gameId',
+	watch: '/watch/:gameId',
 	dev: '/dev',
 };
 
@@ -19,6 +21,7 @@ const views = {
 	[paths.hub]: Hub,
 	[paths.join]: Join,
 	[paths.play]: Play,
+	[paths.watch]: Watch,
 };
 
 // Add dev tools route only in development mode

@@ -3,7 +3,7 @@ export const parts = {
 	T1: {
 		name: 'Auxiliary Fuel Cell',
 		spriteIndex: 15,
-		price: 75,
+		price: 140,
 		summary: 'Adds extra fuel capacity.',
 		description: 'Compact secondary fuel reservoir that bolts onto existing systems. More range, same footprint.',
 		maxFuel: 15,
@@ -11,7 +11,7 @@ export const parts = {
 	T2: {
 		name: 'Fuel Optimizer Module',
 		spriteIndex: 5,
-		price: 120,
+		price: 217,
 		summary: 'Improves fuel efficiency.',
 		description: 'Precision flow regulators and micro-valves ensure optimal fuel consumption across all operations.',
 		fuelEfficiency: 1,
@@ -19,7 +19,7 @@ export const parts = {
 	T3: {
 		name: 'Extended Range Tank',
 		spriteIndex: 24,
-		price: 180,
+		price: 329,
 		summary: 'Significant fuel capacity boost.',
 		description: 'High-pressure storage system doubles as structural reinforcement. More fuel, tougher rig.',
 		maxFuel: 25,
@@ -30,7 +30,7 @@ export const parts = {
 	T4: {
 		name: 'Cargo Compactor',
 		spriteIndex: 28,
-		price: 140,
+		price: 252,
 		summary: 'Increases cargo capacity.',
 		description: 'Hydraulic compression systems pack more minerals into the same space. Physics meets profit.',
 		maxCargo: 30,
@@ -38,7 +38,7 @@ export const parts = {
 	T5: {
 		name: 'Magnetic Storage Array',
 		spriteIndex: 27,
-		price: 220,
+		price: 399,
 		summary: 'Advanced cargo management.',
 		description: 'Magnetic field generators organize and compress cargo loads. Maximizes space without adding weight.',
 		maxCargo: 45,
@@ -46,7 +46,7 @@ export const parts = {
 	T6: {
 		name: 'Dimensional Storage Bay',
 		spriteIndex: 30,
-		price: 320,
+		price: 581,
 		summary: 'Exotic cargo expansion.',
 		description:
 			"Uses spatial compression technology to store significantly more cargo. Engineering insists it's perfectly safe.",
@@ -57,19 +57,19 @@ export const parts = {
 	T7: {
 		name: 'Equipment Locker',
 		spriteIndex: 16,
-		price: 200,
+		price: 364,
 		summary: 'Expands equipment storage capacity.',
 		description: 'Secure modular storage compartments for additional equipment and supplies.',
-		maxItemSlots: 6,
+		maxItemSlots: 4,
 	},
 	T8: {
 		name: 'Specimen Vault',
 		spriteIndex: 31,
-		price: 800,
+		price: 1456,
 		summary: 'Advanced multi-dimensional storage.',
 		description:
 			'Specialized storage for delicate equipment and highly unusual specimens. Temperature and pressure controlled.',
-		maxItemSlots: 12,
+		maxItemSlots: 8,
 		maxCargo: 20,
 	},
 
@@ -77,7 +77,7 @@ export const parts = {
 	T9: {
 		name: 'Power Amplifier',
 		spriteIndex: 42,
-		price: 250,
+		price: 455,
 		summary: 'Boosts torque output.',
 		description: 'Capacitor banks store and release power bursts when drilling demands exceed base engine output.',
 		torque: 75,
@@ -85,7 +85,7 @@ export const parts = {
 	T10: {
 		name: 'Performance Enhancer',
 		spriteIndex: 40,
-		price: 360,
+		price: 658,
 		summary: 'Multi-system power boost.',
 		description: 'Advanced power conditioning improves engine performance and fuel utilization simultaneously.',
 		torque: 60,
@@ -96,7 +96,7 @@ export const parts = {
 	T11: {
 		name: 'Reinforced Hull Plating',
 		spriteIndex: 18,
-		price: 200,
+		price: 364,
 		summary: 'Enhanced structural integrity.',
 		description: 'Nanoforged armor plating distributes impact forces. Tested against meteor strikes and angry aliens.',
 		maxHealth: 20,
@@ -104,7 +104,7 @@ export const parts = {
 	T12: {
 		name: 'Adaptive Defense Grid',
 		spriteIndex: 34,
-		price: 450,
+		price: 819,
 		summary: 'Comprehensive protection system.',
 		description:
 			'Smart armor that adapts to threats in real-time. Protects against impacts, heat, and unknown hazards.',
@@ -116,7 +116,7 @@ export const parts = {
 	T13: {
 		name: 'Efficiency Core',
 		spriteIndex: 19,
-		price: 520,
+		price: 945,
 		summary: 'Balanced performance upgrade.',
 		description: 'Integrates power conditioning, fuel optimization, and cargo management in one compact unit.',
 		fuelEfficiency: 2,
@@ -126,7 +126,7 @@ export const parts = {
 	T14: {
 		name: 'Harmonic Synchronizer',
 		spriteIndex: 41,
-		price: 680,
+		price: 1239,
 		summary: 'Multi-system resonance optimizer.',
 		description:
 			"Synchronizes all rig systems using harmonic frequencies. The improvement patterns don't match our models, but the results are undeniable.",
@@ -138,7 +138,7 @@ export const parts = {
 	T15: {
 		name: 'Quantum Efficiency Matrix',
 		spriteIndex: 17,
-		price: 820,
+		price: 1491,
 		summary: 'Advanced multi-system enhancement.',
 		description:
 			'Quantum field interactions somehow improve every aspect of rig performance. Our scientists have stopped trying to explain it.',
@@ -150,7 +150,7 @@ export const parts = {
 	T16: {
 		name: 'Void-Resonance Matrix',
 		spriteIndex: 12,
-		price: 1000,
+		price: 1820,
 		summary: 'Ultimate performance enhancement.',
 		description:
 			'Peak rig optimization technology. Our engineers describe it as "impossibly efficient" and refuse to explain further.',

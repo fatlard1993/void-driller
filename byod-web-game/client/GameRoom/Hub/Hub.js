@@ -140,6 +140,11 @@ export default class Hub extends View {
 						href: `#/join/${id}`,
 						variant: 'button',
 					}),
+					new Link({
+						content: this.buttonOptions?.watchText || 'Watch',
+						href: `#/watch/${id}`,
+						variant: 'button',
+					}),
 					new GameListText({ content: `${players.length}` }),
 				],
 			})),
