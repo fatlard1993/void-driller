@@ -8,7 +8,6 @@ import {
 	weightedChance,
 	getSurroundingRadius,
 	getImmediateSurrounds,
-	shuffleArray,
 	positionIsOccupied,
 	validateMovementPath,
 	calculateDrillOrientation,
@@ -643,7 +642,7 @@ export default class Game extends BaseGame {
 			const demandDrop = (this.world.spaceco.hull?.[key] || 0) / 1000;
 			const baseValue = minerals[mineralColor].value / (isPure ? 1 : 2);
 
-			const unitPrice = Math.max(0, baseValue - demandDrop);
+			const unitPrice = Math.floor(Math.max(0, baseValue - demandDrop));
 			const totalPrice = unitPrice * count;
 
 			if (totalPrice > 0) {
@@ -843,10 +842,10 @@ export default class Game extends BaseGame {
 		if (amount && amount > 0) {
 			const requestedFuel = amount / pricePerUnit;
 			fuelToPurchase = Math.min(requestedFuel, maxNeededFuel, maxAffordableFuel);
-			cost = fuelToPurchase * pricePerUnit;
+			cost = Math.floor(fuelToPurchase * pricePerUnit);
 		} else {
 			fuelToPurchase = Math.min(maxNeededFuel, maxAffordableFuel);
-			cost = fuelToPurchase * pricePerUnit;
+			cost = Math.floor(fuelToPurchase * pricePerUnit);
 		}
 
 		if (fuelToPurchase <= 0) {
@@ -901,7 +900,7 @@ export default class Game extends BaseGame {
 			const pricePerHealth = getScaledServiceCosts(this.world.spaceco.xp).repairCostPerHealthPoint;
 			const neededHealth = player.maxHealth - player.health;
 			const purchasedRepairs = amount ? Math.min(amount / pricePerHealth, neededHealth) : neededHealth;
-			const cost = purchasedRepairs * pricePerHealth;
+			const cost = Math.floor(purchasedRepairs * pricePerHealth);
 
 			if (player.credits < cost) {
 				spacecoLog.debug('Cannot afford player repair');
@@ -946,7 +945,7 @@ export default class Game extends BaseGame {
 			const pricePerHealth = getScaledServiceCosts(this.world.spaceco.xp).spacecoRepairCostPerHealthPoint;
 			const neededHealth = 9 - this.world.spaceco.health;
 			const purchasedRepairs = neededHealth;
-			const cost = purchasedRepairs * pricePerHealth;
+			const cost = Math.floor(purchasedRepairs * pricePerHealth);
 
 			if (player.credits < cost) {
 				spacecoLog.debug('Cannot afford outpost repair');
@@ -4888,6 +4887,7 @@ export default class Game extends BaseGame {
 	 * @param {string} event - The event name
 	 * @param {object} data - The event data
 	 * @param {Array<string>} spacecoFields - Additional SpaceCo fields to include
+	 * @param amount
 	 */
 	addSpacecoXp(amount) {
 		this.world.spaceco.xp += amount;

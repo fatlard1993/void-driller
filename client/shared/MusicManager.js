@@ -252,6 +252,7 @@ export default class MusicManager {
 
 	/**
 	 * Fade out current music over duration (ms)
+	 * @param duration
 	 */
 	fadeOut(duration = 1000) {
 		if (!this.currentSound || !this.currentSound.isPlaying) return;
@@ -268,6 +269,8 @@ export default class MusicManager {
 
 	/**
 	 * Fade in current music over duration (ms)
+	 * @param duration
+	 * @param targetVolume
 	 */
 	fadeIn(duration = 1000, targetVolume = null) {
 		if (!this.currentSound || !this.currentSound.isPlaying) return;
@@ -287,6 +290,7 @@ export default class MusicManager {
 	 * - Queue outro for current music
 	 * - Play transport transition sound
 	 * - Wait for both to finish before callback
+	 * @param callback
 	 */
 	async playTransportTransition(callback) {
 		console.log('[MusicManager] playTransportTransition called', {

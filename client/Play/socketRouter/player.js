@@ -7,6 +7,10 @@ import Notify from '../../shared/Notify';
 import { vehicles, drills } from '../../../constants';
 
 // Check player resource levels against alert thresholds
+/**
+ *
+ * @param player
+ */
 export function checkResourceAlerts(player) {
 	if (!player || player.id !== gameContext.playerId) return;
 

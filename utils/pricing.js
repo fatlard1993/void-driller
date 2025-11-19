@@ -31,13 +31,13 @@ export function getScaledItemPrice(basePrice, spacecoXp) {
  */
 export function getScaledServiceCosts(spacecoXp) {
 	return {
-		repairCostPerHealthPoint: 1.87 + spacecoXp / 10000, // 1.87 → 6.87 at 50k XP (+20% from 1.56)
-		spacecoRepairCostPerHealthPoint: 14.4 + spacecoXp / 5000, // 14.4 → 24.4 at 50k XP (+20% from 12)
-		rescueCost: 84.5 + spacecoXp / 1000, // 84.5 → 134.5 at 50k XP (+30% from 65)
+		repairCostPerHealthPoint: Math.ceil(1.87 + spacecoXp / 10000), // 2 → 7 at 50k XP
+		spacecoRepairCostPerHealthPoint: Math.ceil(14.4 + spacecoXp / 5000), // 15 → 25 at 50k XP
+		rescueCost: Math.ceil(84.5 + spacecoXp / 1000), // 85 → 135 at 50k XP
 		fuelPricePerUnit: {
-			oil: 2.1 + spacecoXp / 25000, // 2.1 → 4.1 at 50k XP
-			battery: 12.4 + spacecoXp / 15625, // 12.4 → 15.6 at 50k XP
-			super_oxygen_liquid_nitrogen: 19.5 + spacecoXp / 10000, // 19.5 → 24.5 at 50k XP
+			oil: Math.ceil(2.1 + spacecoXp / 25000), // 3 → 5 at 50k XP
+			battery: Math.ceil(12.4 + spacecoXp / 15625), // 13 → 16 at 50k XP
+			super_oxygen_liquid_nitrogen: Math.ceil(19.5 + spacecoXp / 10000), // 20 → 25 at 50k XP
 		},
 	};
 }

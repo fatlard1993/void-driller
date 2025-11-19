@@ -1,5 +1,6 @@
 import requestMatch from '../../byod-web-game/server/requestMatch';
 import { serverLog, gameLog, playerLog } from '../../utils/logger.js';
+import { getScaledServiceCosts } from '../../utils/pricing.js';
 
 const parseRequestBody = async request => {
 	try {
@@ -281,7 +282,7 @@ const _game = async (request, server) => {
 
 		const player = game.players.get(playerId);
 
-		const rescueCost = 50 + game.world.spaceco.xp / 1000;
+		const rescueCost = getScaledServiceCosts(game.world.spaceco.xp).rescueCost;
 
 		// Log the rescue operation for audit purposes
 		playerLog.info('Player rescued by SpaceCo', {

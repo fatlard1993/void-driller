@@ -529,8 +529,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				const demandDrop = (gameContext.serverState.world.spaceco.hull?.[name] || 0) / 1000;
 				const baseValue = minerals[name].value;
 
-				const dirtyPrice = dirtyCount ? Math.max(0.01, (baseValue / 2 - demandDrop) * dirtyCount) : 0;
-				const purePrice = pureCount ? Math.max(0.01, (baseValue - demandDrop) * pureCount) : 0;
+				const dirtyUnitPrice = Math.floor(Math.max(0, baseValue / 2 - demandDrop));
+				const pureUnitPrice = Math.floor(Math.max(0, baseValue - demandDrop));
+				const dirtyPrice = dirtyCount ? dirtyUnitPrice * dirtyCount : 0;
+				const purePrice = pureCount ? pureUnitPrice * pureCount : 0;
 
 				credits += dirtyPrice + purePrice;
 

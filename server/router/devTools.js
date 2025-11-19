@@ -5,6 +5,7 @@ import { serverLog } from '../../utils/logger.js';
 /**
  * Development tools API endpoints
  * Only accessible when NODE_ENV === 'development'
+ * @param request
  */
 export default async (request) => {
 	if (process.env.NODE_ENV !== 'development') {

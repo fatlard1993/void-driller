@@ -113,14 +113,6 @@ export default data => {
 		'explodeImplosion',
 		'groundEffect',
 	];
-	const tradeUpdates = [
-		'tradeSessionStarted',
-		'tradeUpdated',
-		'tradeAcceptanceChanged',
-		'tradeCompleted',
-		'tradeFailed',
-		'tradeCancelled',
-	];
 
 	if (playerUpdates.includes(data.update) && !validatePlayerMessage(data)) return;
 	if (worldUpdates.includes(data.update) && !validateWorldMessage(data)) return;

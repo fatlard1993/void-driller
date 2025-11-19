@@ -272,7 +272,7 @@ class AudioPlayer extends styled.Component(
 		}
 
 		// If autoQueue and playing briefing, queue bulletin with bookends
-		let delayBeforePlay = 0;
+		const delayBeforePlay = 0;
 		if (options.autoQueue && type === 'briefing') {
 			const hasBulletin = await this.hasAudio(worldName, 'bulletin');
 			if (hasBulletin) {
@@ -344,6 +344,7 @@ class AudioPlayer extends styled.Component(
 
 	/**
 	 * Concatenate audio buffers into a single buffer
+	 * @param audioContext
 	 * @param {Array<{buffer: AudioBuffer, start?: number, end?: number}>} segments
 	 * @returns {AudioBuffer} Combined audio buffer
 	 */

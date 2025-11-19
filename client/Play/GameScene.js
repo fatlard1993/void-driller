@@ -875,7 +875,6 @@ export default class GameScene extends Phaser.Scene {
 			const musicKey = worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_');
 			console.log('[GameScene] Post-transport: Starting music for:', musicKey);
 
-			const musicConfig = require('../shared/musicConfig').default;
 			const config = musicConfig[musicKey];
 
 			if (config && gameContext.musicManager) {
