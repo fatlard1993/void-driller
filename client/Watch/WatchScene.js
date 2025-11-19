@@ -46,7 +46,7 @@ export default class WatchScene extends Phaser.Scene {
 		};
 
 		// Access world data from serverState.world
-		const { world, players } = gameContext.serverState;
+		const { world } = gameContext.serverState;
 		const { grid, width, depth, spaceco } = world;
 
 		console.log('[WatchScene] World dimensions:', { width, depth });
@@ -108,7 +108,7 @@ export default class WatchScene extends Phaser.Scene {
 						if (item.name.startsWith('mineral_')) return;
 
 						try {
-							let sprite = new Item(this, x, y, item.name);
+							const sprite = new Item(this, x, y, item.name);
 
 							if (sprite) {
 								grid[x][y].items[z].sprite = sprite;
@@ -349,7 +349,7 @@ export default class WatchScene extends Phaser.Scene {
 		gameContext.players.clear();
 
 		// Rebuild the world (same logic as create())
-		const { world, players } = gameContext.serverState;
+		const { world } = gameContext.serverState;
 
 		if (!world) {
 			console.error('[WatchScene] No world data after processing newWorldState');
@@ -407,7 +407,7 @@ export default class WatchScene extends Phaser.Scene {
 						if (item.name.startsWith('mineral_')) return;
 
 						try {
-							let sprite = new Item(this, x, y, item.name);
+							const sprite = new Item(this, x, y, item.name);
 							if (sprite) {
 								grid[x][y].items[z].sprite = sprite;
 								gameContext.sceneLayers.items.add(sprite);

@@ -22,7 +22,7 @@ const createSocket = () => {
 		if (reconnectAttempts > 0) {
 			new Notify({
 				type: 'success',
-				content: '[COMM] Signal restored. Mission Control is back online.',
+				content: 'Connection restored.',
 				timeout: 2000,
 				x: window.innerWidth / 2,
 				y: 100,
@@ -36,7 +36,7 @@ const createSocket = () => {
 		console.error('WS Error:', error);
 		new Notify({
 			type: 'error',
-			content: '[COMM] Transmission error. Attempting to reestablish contact...',
+			content: 'Transmission error. Attempting to reestablish contact...',
 			timeout: 3000,
 			x: window.innerWidth / 2,
 			y: 100,
@@ -52,7 +52,7 @@ const createSocket = () => {
 
 			new Notify({
 				type: 'warning',
-				content: `[COMM] Signal lost. Rerouting through backup relay in ${Math.round(delay / 1000)}s... (${reconnectAttempts}/${maxReconnectAttempts})`,
+				content: `Signal lost. Rerouting through backup relay in ${Math.round(delay / 1000)}s... (${reconnectAttempts}/${maxReconnectAttempts})`,
 				timeout: delay - 500,
 				x: window.innerWidth / 2,
 				y: 100,
@@ -65,7 +65,7 @@ const createSocket = () => {
 		} else {
 			new Notify({
 				type: 'error',
-				content: '[COMM] All communication relays down. Restarting drilling rig in 5 seconds...',
+				content: 'All communications down. Reconnecting in 5 seconds...',
 				timeout: 4500,
 				x: window.innerWidth / 2,
 				y: 100,

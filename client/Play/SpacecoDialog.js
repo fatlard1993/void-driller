@@ -604,7 +604,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			new Label(
 				'Credits',
 				new PriceDisplay({
-					amount: player.credits.toFixed(2),
+					amount: Math.floor(player.credits),
 					size: 20,
 				}),
 			),
@@ -712,8 +712,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const demandDrop = (gameContext.serverState.world.spaceco.hull?.[name] || 0) / 1000;
 				const baseValue = minerals[name].value;
 
-				const dirtyPrice = dirtyCount ? Math.max(0.01, (baseValue / 2 - demandDrop) * dirtyCount) : 0;
-				const purePrice = pureCount ? Math.max(0.01, (baseValue - demandDrop) * pureCount) : 0;
+				const dirtyUnitPrice = Math.floor(Math.max(0, baseValue / 2 - demandDrop));
+				const pureUnitPrice = Math.floor(Math.max(0, baseValue - demandDrop));
+				const dirtyPrice = dirtyCount ? dirtyUnitPrice * dirtyCount : 0;
+				const purePrice = pureCount ? pureUnitPrice * pureCount : 0;
 
 				credits += dirtyPrice + purePrice;
 
@@ -1352,10 +1354,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				player.credits &&
 					cost > player.credits &&
 					new Button({
-						content: new PriceDisplay({ amount: player.credits.toFixed(2), size: 14 }),
+						content: new PriceDisplay({ amount: Math.floor(player.credits), size: 14 }),
 						onPointerPress: () =>
 							spacecoRefuel({
-								amount: player.credits,
+								amount: Math.floor(player.credits),
 							}),
 					}),
 				new Button({

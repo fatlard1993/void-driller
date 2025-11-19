@@ -514,7 +514,7 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 			} else {
 				console.log('✅ Main server running on port 3000');
 			}
-		} catch (error) {
+		} catch {
 			console.log('⚠️  Could not check port 3000 status');
 		}
 		

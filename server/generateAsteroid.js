@@ -13,6 +13,8 @@ import { worlds } from '../constants/index.js';
 
 /**
  * Calculate asteroid dimensions based on size and shape
+ * @param size
+ * @param shape
  */
 function calculateDimensions(size, shape) {
 	// Base dimensions for different sizes
@@ -47,9 +49,9 @@ function calculateDimensions(size, shape) {
 
 /**
  * Generate a complete asteroid world using layered generation
- * @param {Object} worldConfig - World configuration from constants/worlds.js
- * @param {Object} gameData - Game data (items, aliens, etc.)
- * @returns {Object} Generated world
+ * @param {object} worldConfig - World configuration from constants/worlds.js
+ * @param {object} gameData - Game data (items, aliens, etc.)
+ * @returns {object} Generated world
  */
 export function generateAsteroid(worldConfig, gameData = {}) {
 	// Resolve dimensions using size & shape system
@@ -288,6 +290,9 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 
 /**
  * Generate solid asteroid shape with clean edges (no feathering)
+ * @param width
+ * @param depth
+ * @param shape
  */
 function generateAsteroidShape(width, depth, shape) {
 	// Shape ratios that fill most of the grid (85-90% utilization)
@@ -330,6 +335,13 @@ function generateAsteroidShape(width, depth, shape) {
 /**
  * Evaluate how much of a cave area would be placed in solid ground
  * Higher scores indicate better cave placement (mostly in solid areas)
+ * @param centerX
+ * @param centerY
+ * @param radiusX
+ * @param radiusY
+ * @param width
+ * @param depth
+ * @param asteroidShape
  */
 function evaluateSolidAreaForCave(centerX, centerY, radiusX, radiusY, width, depth, asteroidShape) {
 	let solidCells = 0;
@@ -359,6 +371,13 @@ function evaluateSolidAreaForCave(centerX, centerY, radiusX, radiusY, width, dep
 	return totalCells > 0 ? solidCells / totalCells : 0;
 }
 
+/**
+ *
+ * @param width
+ * @param depth
+ * @param worldConfig
+ * @param asteroidShape
+ */
 function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 	// Generate varied hole systems for hazards and items
 	const holes = [];
@@ -654,6 +673,9 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 
 /**
  * Generate tunnel systems
+ * @param width
+ * @param depth
+ * @param tunnelConfig
  */
 function generateTunnelSystems(width, depth, tunnelConfig) {
 	if (!tunnelConfig) return [];
@@ -729,6 +751,11 @@ function generateTunnelSystems(width, depth, tunnelConfig) {
 
 /**
  * Generate ground using new vein-based format: { base: 'white', veins: [{ density, yield, size, color }] }
+ * @param world
+ * @param worldConfig
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelPositions
  */
 function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern, tunnelPositions) {
 	console.log('🎯 Generating vein-based ground patterns');
@@ -809,6 +836,15 @@ function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern,
 	});
 }
 
+/**
+ *
+ * @param world
+ * @param vein
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	try {
 		console.log(`🔄 ENTRY: generateVeinPaths called for ${vein.color}`);
@@ -890,6 +926,18 @@ function generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, v
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param startX
+ * @param startY
+ * @param color
+ * @param sizeMultiplier
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateSingleVeinPath(
 	world,
 	startX,
@@ -963,6 +1011,15 @@ function generateSingleVeinPath(
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param x
+ * @param y
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ */
 function isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) {
 	if (x < 0 || x >= world.width || y < 0 || y >= world.depth) return false;
 	if (!asteroidShape(x, y) || holePattern(x, y) || y <= world.airGap) return false;
@@ -972,6 +1029,17 @@ function isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) {
 
 // Vein Pattern Generation Functions
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateOrganicVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex = 0) {
 	// Original organic winding vein pattern (default behavior)
 	for (let i = 0; i < numVeins; i++) {
@@ -989,6 +1057,16 @@ function generateOrganicVeins(world, color, size, numVeins, asteroidShape, holeP
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ */
 function generateFractalVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
 	// Branching fractal pattern - fewer starting points but with branches
 	const mainVeins = Math.max(1, Math.round(numVeins / 3));
@@ -1010,6 +1088,18 @@ function generateFractalVeins(world, color, size, numVeins, asteroidShape, holeP
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param startX
+ * @param startY
+ * @param color
+ * @param size
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param depth
+ */
 function generateBranchingVein(world, startX, startY, color, size, asteroidShape, holePattern, tunnelSet, depth) {
 	if (depth > 3) return; // Limit recursion depth
 
@@ -1053,6 +1143,17 @@ function generateBranchingVein(world, startX, startY, color, size, asteroidShape
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateLayeredVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Horizontal layered pattern
 	const numLayers = Math.max(1, Math.round(numVeins / 2));
@@ -1073,6 +1174,17 @@ function generateLayeredVeins(world, color, size, numVeins, asteroidShape, holeP
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateRadialVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Radial pattern from center outward
 	const centerX = Math.floor(world.width / 2);
@@ -1115,6 +1227,17 @@ function generateRadialVeins(world, color, size, numVeins, asteroidShape, holePa
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateScatteredVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	console.log(`🔍 SCATTERED DEBUG: Generating scattered veins for ${color} (${numVeins} veins, size ${size})`);
 
@@ -1166,6 +1289,17 @@ function generateScatteredVeins(world, color, size, numVeins, asteroidShape, hol
 	console.log(`🔍 SCATTERED RESULT: ${color} recorded ${world.veinPathCoords[color].length} cluster paths`);
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateConcentricVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Concentric rings around random centers
 	const numCenters = Math.max(1, Math.round(numVeins / 3));
@@ -1205,6 +1339,16 @@ function generateConcentricVeins(world, color, size, numVeins, asteroidShape, ho
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ */
 function generateGridVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
 	// Crystalline grid pattern
 	const gridSpacing = Math.max(8, Math.round(12 / size));
@@ -1241,6 +1385,17 @@ function generateGridVeins(world, color, size, numVeins, asteroidShape, holePatt
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Spiral arms from center
 	const centerX = Math.floor(world.width / 2);
@@ -1276,6 +1431,16 @@ function generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePa
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ */
 function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
 	// Fault pattern - ultra-subtle traces, mostly empty at low density
 
@@ -1337,6 +1502,16 @@ function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePat
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ */
 function generateLightningVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
 	// Jagged lightning-like branching patterns
 	for (let i = 0; i < numVeins; i++) {
@@ -1366,6 +1541,19 @@ function generateLightningVeins(world, color, size, numVeins, asteroidShape, hol
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param startX
+ * @param startY
+ * @param color
+ * @param size
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param depth
+ * @param direction
+ */
 function generateLightningBranch(
 	world,
 	startX,
@@ -1422,6 +1610,17 @@ function generateLightningBranch(
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateCellularVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Honeycomb/cellular pattern
 	const cellSize = Math.max(6, Math.round(8 / size));
@@ -1450,6 +1649,17 @@ function generateCellularVeins(world, color, size, numVeins, asteroidShape, hole
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateFlowVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Curved parallel flowing lines
 	const numFlows = Math.max(1, Math.round(numVeins / 2));
@@ -1475,6 +1685,17 @@ function generateFlowVeins(world, color, size, numVeins, asteroidShape, holePatt
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generatePercolationVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Random walk connected paths like water seepage
 	const numPaths = Math.max(1, Math.round(numVeins));
@@ -1530,6 +1751,17 @@ function generatePercolationVeins(world, color, size, numVeins, asteroidShape, h
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateMazeVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Connected pathways forming maze-like networks
 	const cellSize = Math.max(4, Math.round(6 / size));
@@ -1600,6 +1832,17 @@ function generateMazeVeins(world, color, size, numVeins, asteroidShape, holePatt
 	}
 }
 
+/**
+ *
+ * @param world
+ * @param color
+ * @param size
+ * @param numVeins
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelSet
+ * @param veinIndex
+ */
 function generateNoiseBandVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	// Wavy horizontal stripes with organic variation
 	const numBands = Math.max(1, Math.round(numVeins));
@@ -1632,6 +1875,10 @@ function generateNoiseBandVeins(world, color, size, numVeins, asteroidShape, hol
 	}
 }
 
+/**
+ *
+ * @param world
+ */
 function generatePureMineralCrystals(world) {
 	const crystals = [];
 
@@ -1745,6 +1992,11 @@ function generatePureMineralCrystals(world) {
  * Generate geological formations (unified ground colors + mineral veins)
  * This combines the ground color generation with vein pattern generation
  * for a more cohesive geological system
+ * @param world
+ * @param worldConfig
+ * @param asteroidShape
+ * @param holePattern
+ * @param tunnelPositions
  */
 function generateGeologicalFormations(world, worldConfig, asteroidShape, holePattern, tunnelPositions) {
 	console.log('🏔️  Generating unified geological formations...');
@@ -1797,6 +2049,8 @@ function generateGeologicalFormations(world, worldConfig, asteroidShape, holePat
 
 /**
  * Place aliens using budget system
+ * @param world
+ * @param worldConfig
  */
 function placeAliens(world, worldConfig) {
 	const alienConfig = worldConfig.aliens;
@@ -1960,6 +2214,8 @@ function placeAliens(world, worldConfig) {
 
 /**
  * Place items using budget system
+ * @param world
+ * @param worldConfig
  */
 function placeItems(world, worldConfig) {
 	const itemConfig = worldConfig.items;
@@ -2078,6 +2334,10 @@ function placeItems(world, worldConfig) {
 /**
  * Check if a cave space is enclosed (deep inside the asteroid) rather than exposed to surface
  * This helps avoid placing hazards in surface craters or open areas
+ * @param world
+ * @param x
+ * @param y
+ * @param asteroidShape
  */
 function isEnclosedCave(world, x, y, asteroidShape) {
 	// Check minimum depth below surface - avoid only the shallowest areas
@@ -2144,6 +2404,10 @@ function isEnclosedCave(world, x, y, asteroidShape) {
 /**
  * Apply hazards by picking spots in cave spaces and filling directionally
  * This completely bypasses the cave data transfer issue by directly finding cave spaces
+ * @param world
+ * @param worldConfig
+ * @param asteroidShape
+ * @param holePattern
  */
 function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePattern) {
 	console.log('🌋 Starting spot-based hazard placement');
@@ -2306,6 +2570,10 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 
 /**
  * Place bubble hazards (single cells) in solid ground
+ * @param world
+ * @param hazardType
+ * @param count
+ * @param asteroidShape
  */
 function placeBubbles(world, hazardType, count, asteroidShape) {
 	// Find all solid ground cells that are fully enclosed (ground on all 4 cardinal directions)
@@ -2361,6 +2629,7 @@ function placeBubbles(world, hazardType, count, asteroidShape) {
 /**
  * Apply physics-based layering to ensure gas floats above lava
  * This post-processes the hazard placement to fix physics violations globally
+ * @param world
  */
 function applyPhysicsLayering(world) {
 	console.log('🌡️ Applying physics-based layering (gas floats above lava)');
@@ -2434,6 +2703,14 @@ function applyPhysicsLayering(world) {
  * Fill using proper settling physics - find bottom/top then fill layer by layer
  * direction: 'down' for lava (settles from bottom up), 'up' for gas (settles from top down)
  * filledSpaces: Set of already filled coordinates to avoid overlap
+ * @param world
+ * @param startX
+ * @param startY
+ * @param hazardType
+ * @param direction
+ * @param filledSpaces
+ * @param asteroidShape
+ * @param holePattern
  */
 function fillDirectional(world, startX, startY, hazardType, direction, filledSpaces, asteroidShape, holePattern) {
 	const filled = [];
