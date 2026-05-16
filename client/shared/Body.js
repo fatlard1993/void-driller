@@ -5,10 +5,12 @@ export default class Body extends Component {
 		super(
 			{
 				...options,
-				styles: () => `
-					overflow: hidden auto;
-					flex: 1;
+				styles: (theme, Component) => `
+					overflow-y: scroll;
+					overflow-x: hidden;
 					position: relative;
+					height: calc(100% - 57px);
+					width: 100%;
 					background-image: none;
 
 					&::before {
@@ -59,6 +61,8 @@ export default class Body extends Component {
 							transform: translate(0, 0) scale(1) rotate(0deg);
 						}
 					}
+
+					${options.styles?.(theme, Component) || ''}
 				`,
 			},
 			...children,

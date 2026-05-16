@@ -1,4 +1,4 @@
-import requestMatch from '../../byod-web-game/server/requestMatch';
+import { requestMatch } from '@fatlard1993/web-game-framework/utils';
 import { serverLog, gameLog, playerLog } from '../../utils/logger.js';
 import { getScaledServiceCosts } from '../../utils/pricing.js';
 

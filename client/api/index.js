@@ -1,3 +1,3 @@
 export * from './game';
-export * from '../../byod-web-game/client/api';
+export * from '@fatlard1993/web-game-framework/client';
 export * from './trade';

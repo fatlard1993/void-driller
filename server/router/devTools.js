@@ -1,5 +1,5 @@
 import { generateAsteroid } from '../generateAsteroid.js';
-import requestMatch from '../../byod-web-game/server/requestMatch';
+import { requestMatch } from '@fatlard1993/web-game-framework/utils';
 import { serverLog } from '../../utils/logger.js';
 
 /**

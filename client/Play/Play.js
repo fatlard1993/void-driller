@@ -1,7 +1,7 @@
 import { Button, Dialog, Label, Input } from 'vanilla-bean-components';
 
 import Notify from '../shared/Notify';
-import { View } from '../../byod-web-game/client/layout';
+import View from '../shared/View.js';
 import { exitGame, getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import Game from './Game';

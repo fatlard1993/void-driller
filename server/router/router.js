@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 
-import requestMatch from '../../byod-web-game/server/requestMatch';
-import byodWebGameRoutes from '../../byod-web-game/server/router';
+import { requestMatch } from '@fatlard1993/web-game-framework/utils';
+import { basicGameRoutes } from '@fatlard1993/web-game-framework';
 import { serverLog } from '../../utils/logger.js';
 
 import devToolsRoutes from './devTools';
@@ -105,7 +105,7 @@ const router = server => async request => {
 					);
 		}
 
-		response = await byodWebGameRoutes(request, server);
+		response = await basicGameRoutes({ logger: serverLog })(request, server);
 		if (response) return response;
 
 		response = await devToolsRoutes(request, server);

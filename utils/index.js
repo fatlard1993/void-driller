@@ -1,5 +1,5 @@
 export * from 'vanilla-bean-components/utils';
-export * from '../byod-web-game/utils';
+export * from '@fatlard1993/web-game-framework/utils';
 
 export * from './grid';
 export * from './movement';

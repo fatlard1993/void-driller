@@ -2,11 +2,10 @@ import { styled, throttle, debounce } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
 import gameContext from '../shared/gameContext';
-import { onMessage } from '../../byod-web-game/client/socket';
 import DebugLog from '../shared/DebugLog';
 import { onKeyDown, onKeyUp, onPointerDown, onPointerMove, onPointerOut, onPointerUp } from './inputs';
 import GameScene from './GameScene';
-import socketRouter from './socketRouter';
+import setupEventRouter from './eventRouter';
 
 export default class Game extends (styled.Component`
 	height: 100%;
@@ -101,9 +100,9 @@ export default class Game extends (styled.Component`
 			window.debugLog(`Phaser game: ${gameContext.game ? 'exists' : 'missing'}`);
 		}
 
-		const socketCleanup = onMessage(socketRouter);
-
-		this.addCleanup('socketCleanup', () => socketCleanup());
+		// Setup EventRouter for all game events
+		const eventRouter = setupEventRouter();
+		this.addCleanup('eventRouter', () => eventRouter.destroy());
 
 		window.addEventListener(
 			'resize',

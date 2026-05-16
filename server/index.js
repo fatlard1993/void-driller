@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import '../byod-web-game/server/exit';
+import '@fatlard1993/web-game-framework/utils/exit';
 
 import './server';
 
