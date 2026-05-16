@@ -1,5 +1,5 @@
 import { Link } from 'vanilla-bean-components';
-import { View } from '../../byod-web-game/client/layout';
+import View from '../shared/View.js';
 import Notify from '../shared/Notify';
 import { getGame } from '../api';
 import gameContext from '../shared/gameContext';

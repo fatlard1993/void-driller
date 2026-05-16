@@ -2,7 +2,7 @@ import { Page, appendStyles, theme } from 'vanilla-bean-components';
 
 import router from './router';
 
-import '../byod-web-game/client/socket';
+import '@fatlard1993/web-game-framework/client/socket';
 
 appendStyles(`
 	@font-palette-values --void-driller-console-theme {

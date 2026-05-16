@@ -5,7 +5,7 @@ import path from 'path';
 
 import Argi from 'argi';
 
-import Server from '../byod-web-game/server/Server';
+import { Server } from '@fatlard1993/web-game-framework';
 import { serverLog, setVerbosity } from '../utils/logger.js';
 
 import Game from './Game';

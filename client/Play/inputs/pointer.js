@@ -9,7 +9,7 @@ import {
 	validateMovementPath,
 } from '../../../utils';
 import gameContext from '../../shared/gameContext';
-import socket from '../../../byod-web-game/client/socket';
+import socket from '@fatlard1993/web-game-framework/client/socket';
 import { playerMove } from '../../api';
 import { minerals, drills, engines } from '../../../constants';
 import TradeDialog from '../TradeDialog';

@@ -1,6 +1,6 @@
 import { Component, Dialog, List, Label } from 'vanilla-bean-components';
 
-import { deleteGame } from '../../api';
+import { deleteGame } from '../api';
 
 export default class GameInfoDialog extends Dialog {
 	constructor(options = {}) {

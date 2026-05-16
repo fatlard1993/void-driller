@@ -37,6 +37,7 @@
 	},
 	"homepage": "https://github.com/fatlard1993/void-driller#readme",
 	"dependencies": {
+		"@fatlard1993/web-game-framework": "file:../web-game-framework",
 		"argi": "github:fatlard1993/argi#785979e",
 		"emoji-js": "^3.8.1",
 		"log": "github:fatlard1993/log#e0d55f6",

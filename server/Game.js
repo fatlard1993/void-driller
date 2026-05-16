@@ -1,4 +1,4 @@
-import BaseGame from '../byod-web-game/server/Game.js';
+import { Game as BaseGame } from '@fatlard1993/web-game-framework';
 
 import {
 	simpleId,
@@ -100,6 +100,100 @@ export default class Game extends BaseGame {
 		// Initialize game-specific properties
 		this.world = saveState.world || generateAsteroid(WORLDS[options.worldName] || options);
 		this.url = server.url;
+
+		// Setup EventRouter event handlers
+		this._setupEventHandlers();
+	}
+
+	/**
+	 * Setup EventRouter event handlers
+	 * This provides a cleaner alternative to REST routes for game actions
+	 */
+	_setupEventHandlers() {
+		// Define player movement event with validation and throttling
+		this.events.defineEvent('player:move', {
+			validate: (data) => {
+				if (!data.playerId || !data.path) return false;
+				if (!Array.isArray(data.path)) return false;
+				if (!this.players.has(data.playerId)) return false;
+
+				const player = this.players.get(data.playerId);
+				if (player.moving) return false; // Already moving
+
+				return true;
+			},
+			throttle: 100, // Prevent spam
+		});
+
+		this.events.on('player:move', (data) => {
+			try {
+				// Set moving state to prevent concurrent movements
+				this.players.update(data.playerId, (current) => ({ ...current, moving: true }));
+
+				this.movePlayer(data.playerId, data.path);
+			} catch (error) {
+				// Reset moving state on error
+				this.players.update(data.playerId, (current) => ({ ...current, moving: false }));
+				gameLog.error('Movement error via EventRouter', {
+					playerId: data.playerId,
+					gameId: this.id,
+					error: error.message,
+				});
+			}
+		});
+
+		// Define item usage event
+		this.events.defineEvent('player:useItem', {
+			validate: (data) => {
+				return data.playerId && data.item && this.players.has(data.playerId);
+			},
+		});
+
+		this.events.on('player:useItem', (data) => {
+			this.useItem(data.playerId, data.item, data.targetPosition);
+		});
+
+		// SpaceCo events
+		this.events.defineEvent('spaceco:sell', {
+			validate: (data) => {
+				return data.playerId && data.mineral && typeof data.count === 'number';
+			},
+		});
+
+		this.events.on('spaceco:sell', (data) => {
+			this.spacecoSell(data.playerId, data.mineral, data.count);
+		});
+
+		this.events.defineEvent('spaceco:sellItem', {
+			validate: (data) => {
+				return data.playerId && data.item && typeof data.count === 'number';
+			},
+		});
+
+		this.events.on('spaceco:sellItem', (data) => {
+			this.spacecoSellItem(data.playerId, data.item, data.count);
+		});
+
+		// Wildcard listener for all player events (logging)
+		this.events.on('player:*', (data, context) => {
+			playerLog.debug(`Player event: ${context.eventName}`, {
+				playerId: data.playerId,
+				gameId: this.id,
+			});
+		});
+
+		// Wildcard listener for all SpaceCo events (logging)
+		this.events.on('spaceco:*', (data, context) => {
+			spacecoLog.debug(`SpaceCo event: ${context.eventName}`, {
+				playerId: data.playerId,
+				gameId: this.id,
+			});
+		});
+
+		gameLog.info('EventRouter event handlers configured', {
+			gameId: this.id,
+			eventCount: this.events.listEvents().length,
+		});
 	}
 
 	toClient() {

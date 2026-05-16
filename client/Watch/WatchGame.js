@@ -2,7 +2,7 @@ import { styled } from 'vanilla-bean-components';
 import Phaser from 'phaser';
 
 import gameContext from '../shared/gameContext';
-import { onMessage } from '../../byod-web-game/client/socket';
+import { onMessage } from '@fatlard1993/web-game-framework/client/socket';
 import WatchScene from './WatchScene';
 import watchSocketRouter from './watchSocketRouter';
 

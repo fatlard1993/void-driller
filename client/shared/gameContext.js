@@ -1,5 +1,5 @@
 // ./client/shared/gameContext.js
-import { gameContext } from '../../byod-web-game/client';
+import { gameContext } from '@fatlard1993/web-game-framework/client';
 
 const safeParseLocalStorage = (key, defaultValue = null) => {
 	try {

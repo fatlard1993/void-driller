@@ -1,6 +1,6 @@
 import { Link, styled, theme } from 'vanilla-bean-components';
 
-import { View } from '../byod-web-game/client/layout';
+import View from './shared/View.js';
 import { LevelEditor } from './DevTools/LevelEditor';
 
 // Container styled to match other page containers (like ConsoleContainer)
