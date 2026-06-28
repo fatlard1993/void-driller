@@ -1,4 +1,4 @@
-import { Elem, styled, Button } from 'vanilla-bean-components';
+import { Elem, styled, Button } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 import bookendConfig from './bookendConfig.js';
 
@@ -33,20 +33,20 @@ class AudioPlayer extends styled.Component(
 			}
 		}
 
-		.audio-title {
+		& .audio-title {
 			color: ${colors.lighter(colors.gray)};
 			font-size: 14px;
 			font-weight: bold;
 			margin: 0;
 		}
 
-		.audio-controls {
+		& .audio-controls {
 			display: flex;
 			align-items: center;
 			gap: 9px;
 		}
 
-		.audio-button {
+		& .audio-button {
 			width: 32px;
 			height: 32px;
 			padding: 0;
@@ -97,7 +97,7 @@ class AudioPlayer extends styled.Component(
 			}
 		}
 
-		.audio-visualizer {
+		& .audio-visualizer {
 			display: flex;
 			align-items: center;
 			gap: 3px;
@@ -105,7 +105,7 @@ class AudioPlayer extends styled.Component(
 			margin: 0 6px;
 		}
 
-		.audio-bar {
+		& .audio-bar {
 			width: 3px;
 			height: 100%;
 			background: ${colors.green};
@@ -137,8 +137,7 @@ class AudioPlayer extends styled.Component(
 		this.queuedType = null; // Type to play after current audio ends
 	}
 
-	render() {
-		super.render();
+	build() {
 
 		// Title text
 		this.titleElem = new Elem({

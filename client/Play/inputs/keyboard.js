@@ -32,7 +32,7 @@ export const onKeyUp = event => {
 		}
 
 		// No dialog open - open console
-		if (!gameContext.openDialog?.elem?.open && !gameContext.openDialog?.elem?.getAnimations?.()?.length) {
+		if (!gameContext.openDialog) {
 			gameContext.openDialog = new ConsoleDialog();
 		}
 	}

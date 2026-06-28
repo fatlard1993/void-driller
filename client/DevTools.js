@@ -1,4 +1,4 @@
-import { Link, styled, theme } from 'vanilla-bean-components';
+import { Link, styled, theme } from '@vanilla-bean/components';
 
 import View from './shared/View.js';
 import { LevelEditor } from './DevTools/LevelEditor';
@@ -36,8 +36,7 @@ export default class DevTools extends View {
 		});
 	}
 
-	render() {
-		super.render();
+	build() {
 
 		this.container = new DevToolsContainer({ appendTo: this._body });
 

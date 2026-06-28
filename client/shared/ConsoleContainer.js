@@ -1,4 +1,4 @@
-import { theme, styled, delay, Button, Elem } from 'vanilla-bean-components';
+import { theme, styled, delay, Button, Elem } from '@vanilla-bean/components';
 
 const defaultCharacterDelay = 12;
 
@@ -46,9 +46,11 @@ export class ConsoleContainer extends (styled.Component`
 		}
 	}
 
-	async render() {
-		super.render();
+	build() {
+		this._init();
+	}
 
+	async _init() {
 		this.initialized = true;
 		this.skipped = false;
 
@@ -96,9 +98,8 @@ export class ConsoleContainer extends (styled.Component`
 		this.skip.elem.remove();
 	}
 
-	_setOption(key, value) {
-		if (!this.initialized && ['textContent', 'append'].includes(key)) return;
-
-		super._setOption(key, value);
-	}
+	static handlers = {
+		textContent() {},
+		append() {},
+	};
 }

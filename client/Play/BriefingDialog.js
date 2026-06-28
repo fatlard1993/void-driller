@@ -1,4 +1,5 @@
-import { Elem, GET } from 'vanilla-bean-components';
+import { Elem } from '@vanilla-bean/components';
+import { GET } from '@vanilla-bean/hypertether';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
@@ -18,9 +19,12 @@ export default class BriefingDialog extends BaseDialog {
 		});
 	}
 
-	async render() {
-		super.render();
+	build() {
+		super.build();
+		this._init();
+	}
 
+	async _init() {
 		const helpFile = await GET(`docs/briefings/${encodeURIComponent(gameContext.serverState.world.name.replace(/:\s+/g, '_').replace(/\s+/g, '_'))}.md`);
 
 		if (!helpFile.response.ok) {

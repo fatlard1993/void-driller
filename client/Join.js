@@ -1,4 +1,4 @@
-import { Link, Button, Notify, Form, randInt } from 'vanilla-bean-components';
+import { Link, Button, Notify, Form, randInt } from '@vanilla-bean/components';
 
 import View from './shared/View.js';
 import { getGame, joinGame } from './api';
@@ -22,16 +22,16 @@ export default class Join extends View {
 						new Button({
 							content: 'Deploy',
 							onPointerPress: async () => {
-								if (this.form.validate()) return;
+								if (this.form.hasErrors()) return;
 
 								const join = await joinGame(this.options.gameId, {
 									body: { ...this.form.options.data, playerId: localStorage.getItem(this.options.gameId) },
 								});
 
-								if (!join.success) {
+								if (join.status !== 'success') {
 									return new Notify({
 										type: 'error',
-										content: join.body,
+										content: join.body?.message || join.body?.error || String(join.body),
 										x: randInt(12, window.innerWidth - 12),
 										y: randInt(72, window.innerHeight / 3),
 									});
@@ -55,9 +55,12 @@ export default class Join extends View {
 		);
 	}
 
-	async render() {
-		super.render();
+	build() {
+		super.build();
+		this._init();
+	}
 
+	async _init() {
 		const playerId = localStorage.getItem(this.options.gameId);
 
 		const game = await getGame(this.options.gameId);

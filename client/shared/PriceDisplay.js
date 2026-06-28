@@ -1,4 +1,4 @@
-import { Elem, styled } from 'vanilla-bean-components';
+import { Elem, styled } from '@vanilla-bean/components';
 import { ItemImage } from './SpriteSheetImage';
 
 /**
@@ -14,16 +14,16 @@ export default class PriceDisplay extends (styled.Component`
 	align-items: center;
 	gap: 4px;
 
-	.credits-icon {
+	& .credits-icon {
 		flex-shrink: 0;
 	}
 
-	.amount {
+	& .amount {
 		font-weight: bold;
 		white-space: nowrap;
 	}
 
-	.prefix, .suffix {
+	& .prefix, & .suffix {
 		white-space: nowrap;
 	}
 
@@ -35,8 +35,7 @@ export default class PriceDisplay extends (styled.Component`
 		filter: hue-rotate(-30deg) saturate(1.5);
 	}
 `) {
-	render() {
-		super.render();
+	build() {
 
 		const { amount, variant = 'default', size = 16, preText, postText } = this.options;
 

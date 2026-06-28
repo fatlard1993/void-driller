@@ -1,4 +1,4 @@
-import { Link, Button, Form, Select } from 'vanilla-bean-components';
+import { Link, Button, Form, Select } from '@vanilla-bean/components';
 
 import View from './shared/View.js';
 import { createGame } from './api';
@@ -23,7 +23,7 @@ export default class Create extends View {
 						new Button({
 							textContent: 'Authorize Contract',
 							onPointerPress: async () => {
-								if (this.form.validate()) return;
+								if (this.form.hasErrors()) return;
 
 								const game = (await createGame({ body: { ...this.form.options.data } })).body;
 
@@ -55,8 +55,8 @@ export default class Create extends View {
 		);
 	}
 
-	async render() {
-		super.render();
+	build() {
+		super.build();
 
 		this.form = new Form({
 			style: {

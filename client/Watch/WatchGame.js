@@ -1,4 +1,4 @@
-import { styled } from 'vanilla-bean-components';
+import { styled } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
 import gameContext from '../shared/gameContext';
@@ -10,7 +10,7 @@ export default class WatchGame extends (styled.Component`
 	height: 100%;
 	width: 100%;
 
-	canvas {
+	& canvas {
 		display: block !important;
 		width: 100% !important;
 		height: 100% !important;
@@ -45,8 +45,7 @@ export default class WatchGame extends (styled.Component`
 		});
 	}
 
-	render() {
-		super.render();
+	build() {
 
 		// Setup socket router for watch mode
 		const socketCleanup = onMessage(watchSocketRouter);

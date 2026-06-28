@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { theme } from 'vanilla-bean-components';
+import { theme } from '@vanilla-bean/components';
 import { engines } from '../../../constants';
 
 export default class StatusBarHUD {

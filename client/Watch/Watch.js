@@ -1,4 +1,4 @@
-import { Link } from 'vanilla-bean-components';
+import { Link } from '@vanilla-bean/components';
 import View from '../shared/View.js';
 import Notify from '../shared/Notify';
 import { getGame } from '../api';
@@ -32,9 +32,12 @@ export default class Watch extends View {
 		);
 	}
 
-	async render() {
-		super.render();
+	build() {
+		super.build();
+		this._init();
+	}
 
+	async _init() {
 		gameContext.gameId = this.options.gameId;
 		// Watch mode doesn't need a playerId - it's spectator only
 		gameContext.playerId = null;

@@ -1,4 +1,4 @@
-import { Elem, randInt } from 'vanilla-bean-components';
+import { Elem, randInt } from '@vanilla-bean/components';
 import { items, minerals } from '../../constants';
 
 export default class SpriteSheetImage extends Elem {

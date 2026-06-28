@@ -1,4 +1,4 @@
-import { styled, throttle, debounce } from 'vanilla-bean-components';
+import { styled, throttle, debounce } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
 import gameContext from '../shared/gameContext';
@@ -12,7 +12,7 @@ export default class Game extends (styled.Component`
 	width: 100%;
 
 	/* Ensure proper mobile display */
-	canvas {
+	& canvas {
 		display: block !important;
 		width: 100% !important;
 		height: 100% !important;
@@ -89,8 +89,7 @@ export default class Game extends (styled.Component`
 		}
 	}
 
-	render() {
-		super.render();
+	build() {
 
 		// Debug log initial system state
 		if (window.debugLog) {

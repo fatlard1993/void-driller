@@ -1,4 +1,4 @@
-import { Component } from 'vanilla-bean-components';
+import { Component } from '@vanilla-bean/components';
 
 export default class Body extends Component {
 	constructor(options = {}, ...children) {

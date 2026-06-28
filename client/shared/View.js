@@ -1,10 +1,9 @@
-import { View as BaseView } from 'vanilla-bean-components';
+import { View as BaseView } from '@vanilla-bean/components';
 import Toolbar from './Toolbar.js';
 import Body from './Body.js';
 
 export default class View extends BaseView {
-	render() {
-		super.render();
+	build() {
 
 		this._toolbar = new Toolbar({ appendTo: this, ...this.options.toolbar });
 

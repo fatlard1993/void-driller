@@ -1,4 +1,4 @@
-import { Component, Button, styled } from 'vanilla-bean-components';
+import { Component, Button, styled } from '@vanilla-bean/components';
 
 import { getGame } from '../api';
 import GameInfoDialog from './GameInfoDialog.js';
@@ -6,9 +6,11 @@ import GameInfoDialog from './GameInfoDialog.js';
 export default class GameInfoPopover extends (styled.Popover`
 	flex-direction: column;
 `) {
-	async render() {
-		super.render();
+	build() {
+		this._init();
+	}
 
+	async _init() {
 		const game = (await getGame(this.options.gameId)).body;
 
 		if (game.world?.name) {

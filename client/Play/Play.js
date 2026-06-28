@@ -1,4 +1,4 @@
-import { Button, Dialog, Label, Input } from 'vanilla-bean-components';
+import { Button, Dialog, Label, Input } from '@vanilla-bean/components';
 
 import Notify from '../shared/Notify';
 import View from '../shared/View.js';
@@ -84,9 +84,12 @@ export default class Play extends View {
 		);
 	}
 
-	async render() {
-		super.render();
+	build() {
+		super.build();
+		this._init();
+	}
 
+	async _init() {
 		gameContext.gameId = this.options.gameId;
 		gameContext.playerId = localStorage.getItem(gameContext.gameId);
 

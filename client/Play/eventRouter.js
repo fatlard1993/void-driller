@@ -5,7 +5,7 @@
  * All game events handled through EventRouter pattern
  */
 import { createClientEventRouter, createValidationMiddleware, createLoggingMiddleware } from '@fatlard1993/web-game-framework/client';
-import { randInt } from 'vanilla-bean-components';
+import { randInt } from '@vanilla-bean/components';
 
 import gameContext from '../shared/gameContext';
 import { destroyGround, explode, implode } from './effects';
