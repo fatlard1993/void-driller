@@ -1,4 +1,4 @@
-import { Page, appendStyles, theme } from 'vanilla-bean-components';
+import { Page, appendStyles, theme } from '@vanilla-bean/components';
 
 import router from './router';
 
@@ -20,4 +20,4 @@ appendStyles(`
 	}
 `);
 
-new Page({ appendTo: document.body, append: router });
+new Page({ appendTo: document.body, append: router, styleSheets: ['augmented-ui/augmented-ui.min.css'] });

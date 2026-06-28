@@ -1,4 +1,4 @@
-import { Elem, Button, Icon, theme } from 'vanilla-bean-components';
+import { Elem, Button, Icon, theme } from '@vanilla-bean/components';
 
 /**
  * Collapsible hamburger menu tabs component

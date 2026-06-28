@@ -12,10 +12,10 @@ import {
 	randInt,
 	theme,
 	configured,
-	GET,
 	styled,
 	orderBy,
-} from 'vanilla-bean-components';
+} from '@vanilla-bean/components';
+import { GET } from '@vanilla-bean/hypertether';
 
 import { DrillImage, EngineImage, ItemImage, MineralImage, PartImage, VehicleImage } from '../shared/SpriteSheetImage';
 import { Card } from '../shared/Card';
@@ -43,7 +43,7 @@ import {
 const CollapsibleLabel = configured(Label, { variant: 'collapsible' });
 
 class AlertControl extends Component {
-	render() {
+	build() {
 		new Label(
 			{
 				appendTo: this,
@@ -71,7 +71,7 @@ class AlertControl extends Component {
 }
 
 class NotifyControl extends Component {
-	render() {
+	build() {
 		new Label(
 			{
 				appendTo: this,
@@ -88,10 +88,10 @@ class NotifyControl extends Component {
 				min: 0,
 				max: 30000,
 				step: 500,
-				value: gameContext.notify.autoDismissTimeout,
+				value: gameContext.notifySettings.autoDismissTimeout,
 				onChange: ({ value }) => {
-					gameContext.notify = { ...gameContext.notify, autoDismissTimeout: parseInt(value) };
-					localStorage.setItem('notify', JSON.stringify(gameContext.notify));
+					gameContext.notifySettings = { ...gameContext.notifySettings, autoDismissTimeout: parseInt(value) };
+					localStorage.setItem('notify', JSON.stringify(gameContext.notifySettings));
 				},
 			}),
 		);
@@ -99,7 +99,7 @@ class NotifyControl extends Component {
 }
 
 class VolumeControl extends Component {
-	render() {
+	build() {
 		new Label(
 			{
 				appendTo: this,
@@ -125,7 +125,7 @@ class VolumeControl extends Component {
 }
 
 class ScaleControl extends Component {
-	render() {
+	build() {
 		new Label(
 			{
 				appendTo: this,
@@ -154,7 +154,7 @@ class ScaleControl extends Component {
 }
 
 class DebugControl extends Component {
-	render() {
+	build() {
 		new Label(
 			{
 				appendTo: this,
@@ -178,8 +178,7 @@ class DebugControl extends Component {
 }
 
 class AutoPathControl extends Component {
-	render() {
-		super.render();
+	build() {
 
 		new Label(
 			{
@@ -354,26 +353,26 @@ class AutoPathControl extends Component {
 
 	refresh() {
 		this.empty();
-		this.render();
+		this.build();
 	}
 }
 
 export default class ConsoleDialog extends (styled(BaseDialog)`
-	button {
+	& button {
 		white-space: initial;
 	}
 
-	.menu {
+	& .menu {
 		display: flex;
 		flex-wrap: wrap-reverse;
 		gap: 6px;
 		margin: 6px;
 
-		button {
+		& button {
 			flex: 1;
 		}
 
-		button:disabled {
+		& button:disabled {
 			background: transparent;
 			color: ${({ colors }) => colors.green} !important;
 			font-weight: bold;
@@ -381,7 +380,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 			&:before {
 				content: '';
-				background-color: ${({ colors }) => colors.white.setAlpha(0.02)};
+				background-color: ${({ colors }) => colors.alpha(colors.white, 0.02)};
 				width: calc(100% - 3px);
 				height: calc(100% + 17px);
 				position: absolute;
@@ -395,19 +394,19 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		}
 	}
 
-	.menuBody {
-		background-color: ${({ colors }) => colors.white.setAlpha(0.04)};
+	& .menuBody {
+		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
 		padding: 9px 18px;
 	}
 
-	p.description {
+	& p.description {
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 		border-left: 3px solid;
 		padding-left: 6px;
 		word-wrap: break-word;
 	}
 
-	p.quote {
+	& p.quote {
 		color: ${({ colors }) => colors.light(colors.gray)};
 		word-wrap: break-word;
 		font-size: 0.9em;
@@ -419,10 +418,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		}
 	}
 
-	.achievement {
+	& .achievement {
 		width: clamp(130px, 27%, 300px);
 
-		label {
+		& label {
 			display: inline-block;
 			margin-left: 3px;
 		}
@@ -434,7 +433,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		}
 	}
 
-	.rescueButton {
+	& .rescueButton {
 		background-color: ${({ colors }) => colors.darkest(colors.red)} !important;
 		border: 2px solid ${({ colors }) => colors.red} !important;
 		color: ${({ colors }) => colors.red} !important;
@@ -1368,13 +1367,13 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile.body, appendTo: this._subMenuBody });
 	}
 
-	_setOption(key, value) {
-		if (key === 'view') {
+	static handlers = {
+		view(value) {
 			this._body.empty();
 
 			this.renderMenu();
 
 			this[`render_${value.toLowerCase()}`]();
-		} else super._setOption(key, value);
-	}
+		},
+	};
 }

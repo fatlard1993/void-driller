@@ -1,4 +1,4 @@
-import { styled } from 'vanilla-bean-components';
+import { styled } from '@vanilla-bean/components';
 
 /**
  * Standardized grid layout component for displaying cards with consistent max-width constraints.
@@ -19,8 +19,7 @@ export class CardGrid extends (styled.Component`
 		});
 	}
 
-	render() {
-		super.render();
+	build() {
 
 		// Update grid styles based on options
 		this.elem.style.gridTemplateColumns = `repeat(auto-fit, minmax(${this.options.minCardWidth}px, ${this.options.maxCardWidth}px))`;

@@ -1,4 +1,4 @@
-import { theme } from 'vanilla-bean-components';
+import { theme } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
 import {

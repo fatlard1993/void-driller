@@ -1,4 +1,4 @@
-import { POST, DELETE } from 'vanilla-bean-components';
+import { POST, DELETE } from '@vanilla-bean/hypertether';
 import gameContext from '../shared/gameContext';
 
 const apiContext = {

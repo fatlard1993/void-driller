@@ -1,4 +1,4 @@
-import { styled } from 'vanilla-bean-components';
+import { styled } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 
 export default class DebugLog extends (styled.Component`
@@ -146,8 +146,7 @@ export default class DebugLog extends (styled.Component`
 		this.updateContent();
 	}
 
-	render() {
-		super.render();
+	build() {
 
 		// Create header with controls
 		const header = document.createElement('div');

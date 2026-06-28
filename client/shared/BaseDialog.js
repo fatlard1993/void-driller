@@ -1,4 +1,4 @@
-import { Dialog, styled } from 'vanilla-bean-components';
+import { Dialog, styled } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 import { InfoButton } from './InfoButton';
 
@@ -14,7 +14,7 @@ const StyledDialog = styled(Dialog)`
 			background: none;
 		}
 
-		.content {
+		& .content {
 			padding: 0 3px;
 
 			&:before {
@@ -22,7 +22,7 @@ const StyledDialog = styled(Dialog)`
 			}
 		}
 
-		.menuBody {
+		& .menuBody {
 			padding: 3px 6px;
 		}
 	}
@@ -36,6 +36,7 @@ export default class BaseDialog extends StyledDialog {
 				width: 'clamp(420px, 90vw, 1700px)',
 				height: 'clamp(420px, 72vh, 1200px)',
 			},
+			'data-augmented-ui': 'tl-clip tr-2-clip-x br-clip bl-2-clip-y border',
 			buttons: ['Close'],
 			onButtonPress: () => {
 				this.handleClose();

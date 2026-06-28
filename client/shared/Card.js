@@ -1,4 +1,4 @@
-import { Component, Elem, theme } from 'vanilla-bean-components';
+import { Component, Elem, theme } from '@vanilla-bean/components';
 
 /**
  * Standardized card container component with optional header, body, and footer sections
@@ -27,7 +27,7 @@ export class Card extends Component {
 		});
 	}
 
-	render() {
+	build() {
 		// Use vanilla-bean-components append pattern for cleaner organization
 		const sections = [];
 
@@ -101,6 +101,5 @@ export class Card extends Component {
 
 		// Append all sections at once using vanilla-bean-components pattern
 		this.append(sections);
-		super.render();
 	}
 }

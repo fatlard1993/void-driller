@@ -1,4 +1,4 @@
-import { Elem, Button, capitalize, theme, styled } from 'vanilla-bean-components';
+import { Elem, Button, capitalize, theme, styled } from '@vanilla-bean/components';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
@@ -13,28 +13,28 @@ import { items, engines } from '../../constants';
 import { getScaledServiceCosts } from '../../utils';
 
 export default class RescueDialog extends (styled(BaseDialog)`
-	button {
+	& button {
 		white-space: initial;
 	}
 
-	.menu {
+	& .menu {
 		display: flex;
 		flex-wrap: wrap-reverse;
 		gap: 6px;
 		margin: 6px;
 
-		button {
+		& button {
 			flex: 1;
 		}
 
-		button:disabled {
+		& button:disabled {
 			background: transparent;
 			color: ${({ colors }) => colors.green} !important;
 			font-weight: bold;
 
 			&:before {
 				content: '';
-				background-color: ${({ colors }) => colors.white.setAlpha(0.02)};
+				background-color: ${({ colors }) => colors.alpha(colors.white, 0.02)};
 				width: calc(100% - 3px);
 				height: calc(100% + 17px);
 				position: absolute;
@@ -48,12 +48,12 @@ export default class RescueDialog extends (styled(BaseDialog)`
 		}
 	}
 
-	.menuBody {
-		background-color: ${({ colors }) => colors.white.setAlpha(0.04)};
+	& .menuBody {
+		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
 		padding: 9px 18px;
 	}
 
-	p.description {
+	& p.description {
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 		border-left: 3px solid;
 		padding-left: 6px;
@@ -260,13 +260,13 @@ export default class RescueDialog extends (styled(BaseDialog)`
 		return null;
 	}
 
-	_setOption(key, value) {
-		if (key === 'view') {
+	static handlers = {
+		view(value) {
 			this._body.empty();
 
 			this.renderMenu();
 
 			this[`render_${value.toLowerCase()}`]();
-		} else super._setOption(key, value);
-	}
+		},
+	};
 }

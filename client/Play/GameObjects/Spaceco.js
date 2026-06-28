@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { theme } from 'vanilla-bean-components';
+import { theme } from '@vanilla-bean/components';
 
 import { convertRange, getSurroundingRadius, gridToPxPosition, pxToGridPosition } from '../../../utils';
 import SpacecoDialog from '../SpacecoDialog';
@@ -40,7 +40,7 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 			this.tradeButton.y = this.tradeButton.y + 1;
 		});
 		this.tradeButton.on('pointerdown', () => {
-			if (!gameContext.openDialog?.elem?.open && !gameContext.openDialog?.elem?.getAnimations?.()?.length) {
+			if (!gameContext.openDialog) {
 				gameContext.openDialog = this.dialog = new SpacecoDialog();
 			}
 		});

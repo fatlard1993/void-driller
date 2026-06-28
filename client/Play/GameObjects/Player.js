@@ -1,5 +1,5 @@
 // ./client/Play/GameObjects/Player.js
-import { convertRange, theme } from 'vanilla-bean-components';
+import { convertRange, theme } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
 import { gridToPxPosition, getSurroundingRadius } from '../../../utils';
@@ -147,7 +147,7 @@ export class Player extends Drill {
 		});
 
 		this.tradeButton.on('pointerdown', async () => {
-			if (!gameContext.openDialog?.elem?.open) {
+			if (!gameContext.openDialog) {
 				// Check if there's a pending trade invitation with this player
 				const pendingTrade = gameContext.pendingTradeInvitation;
 				if (

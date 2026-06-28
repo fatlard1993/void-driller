@@ -1,6 +1,6 @@
 const globals = require('globals');
-const vanillaBeanEslint = require('vanilla-bean-components/eslint.config.cjs');
-const vanillaBeanSpellcheck = require('vanilla-bean-components/spellcheck.config.cjs');
+const vanillaBeanEslint = require('@vanilla-bean/components/eslint.config.cjs');
+const vanillaBeanSpellcheck = require('@vanilla-bean/components/spellcheck.config.cjs');
 const localSpellcheck = require('./spellcheck.config.cjs');
 
 module.exports = [

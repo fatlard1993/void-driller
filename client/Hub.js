@@ -1,4 +1,4 @@
-import { Link, Button, Notify, copyToClipboard, randInt } from 'vanilla-bean-components';
+import { Link, Button, Notify, copyToClipboard, randInt } from '@vanilla-bean/components';
 
 import View from './shared/View.js';
 import { getGames, onMessage } from './api';
@@ -50,8 +50,14 @@ export default class Hub extends View {
 		};
 	}
 
-	async render() {
-		super.render();
+	build() {
+		super.build();
+		this._init();
+	}
+
+	async _init() {
+		this._body.empty();
+		this._socketCleanup?.();
 
 		const games = await getGames();
 
@@ -73,11 +79,12 @@ export default class Hub extends View {
 				data.update === 'removePlayer'
 			) {
 				games.invalidateCache();
-				this.render();
+				this._init();
 			}
 		});
 
-		this.addCleanup('socketCleanup', () => socketCleanup());
+		this._socketCleanup = socketCleanup;
+		this.addCleanup('socketCleanup', () => this._socketCleanup?.());
 
 		if (!games.body?.length) {
 			this.container = new ConsoleContainer({

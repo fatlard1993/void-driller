@@ -12,7 +12,7 @@ import {
 	convertRange,
 	orderBy,
 	theme,
-} from 'vanilla-bean-components';
+} from '@vanilla-bean/components';
 
 import {
 	DrillImage,
@@ -242,8 +242,7 @@ class UpgradeStat extends (styled.Component`
 	width: 100%;
 	margin: 2px 0;
 `) {
-	render() {
-		super.render();
+	build() {
 
 		const isNumber = typeof this.options.value === 'number';
 		const diff = isNumber && this.options.value - (this.options.current ?? 0);
@@ -288,8 +287,7 @@ class StatChange extends (styled.Component`
 	align-items: center;
 	width: 100%;
 `) {
-	render() {
-		super.render();
+	build() {
 
 		const { label, value } = this.options;
 
@@ -312,8 +310,7 @@ class UpgradePricing extends (styled.Component`
 	gap: 3px;
 	margin: 6px 0;
 `) {
-	render() {
-		super.render();
+	build() {
 
 		const { basePrice, tradeInDiscount } = this.options;
 
@@ -360,26 +357,26 @@ class UpgradePricing extends (styled.Component`
 }
 
 export default class SpacecoDialog extends (styled(BaseDialog)`
-	button {
+	& button {
 		white-space: initial;
 	}
 
-	.menu {
+	& .menu {
 		display: flex;
 		flex-wrap: wrap-reverse;
 		gap: 6px;
 		margin: 6px;
 
-		button {
+		& button {
 			flex: 1;
 		}
 
-		button:disabled {
+		& button:disabled {
 			background: transparent;
 
 			&:before {
 				content: '';
-				background-color: ${({ colors }) => colors.white.setAlpha(0.02)};
+				background-color: ${({ colors }) => colors.alpha(colors.white, 0.02)};
 				width: calc(100% - 3px);
 				height: calc(100% + 17px);
 				position: absolute;
@@ -393,7 +390,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		}
 
 		/* Style for empty/unavailable menus */
-		button.empty-menu {
+		& button.empty-menu {
 			opacity: 0.7;
 			color: ${({ colors }) => colors.gray};
 
@@ -402,37 +399,37 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					45deg,
 					transparent,
 					transparent 2px,
-					${({ colors }) => colors.gray.setAlpha(0.1)} 2px,
-					${({ colors }) => colors.gray.setAlpha(0.1)} 4px
+					${({ colors }) => colors.alpha(colors.gray, 0.1)} 2px,
+					${({ colors }) => colors.alpha(colors.gray, 0.1)} 4px
 				);
 			}
 		}
 
 		/* Style for currently selected menu - matches content background for continuity */
-		button.selected-menu {
+		& button.selected-menu {
 			color: ${({ colors }) => colors.green} !important;
 			font-weight: bold !important;
 			opacity: 1 !important;
 
 			&:before {
-				background-color: ${({ colors }) => colors.white.setAlpha(0.04)} !important;
+				background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)} !important;
 			}
 		}
 	}
 
-	.menuBody {
-		background-color: ${({ colors }) => colors.white.setAlpha(0.04)};
+	& .menuBody {
+		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
 		padding: 9px 18px;
 	}
 
-	p.description {
+	& p.description {
 		color: ${theme => theme.colors.lighter(theme.colors.gray)};
 		border-left: 3px solid;
 		padding-left: 6px;
 		word-wrap: break-word;
 	}
 
-	p.quote {
+	& p.quote {
 		color: ${({ colors }) => colors.light(colors.gray)};
 		word-wrap: break-word;
 		font-size: 0.9em;
@@ -444,10 +441,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		}
 	}
 
-	.achievement {
+	& .achievement {
 		width: clamp(130px, 27%, 300px);
 
-		label {
+		& label {
 			display: inline-block;
 			margin-left: 3px;
 		}
@@ -2233,13 +2230,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	_setOption(key, value) {
-		if (key === 'view') {
+	static handlers = {
+		view(value) {
 			this._body.empty();
 
 			this.renderMenu();
 
 			this[`render_${value.toLowerCase()}`]();
-		} else super._setOption(key, value);
-	}
+		},
+	};
 }

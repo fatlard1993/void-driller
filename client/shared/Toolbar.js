@@ -1,4 +1,4 @@
-import { Component, styled } from 'vanilla-bean-components';
+import { Component, styled } from '@vanilla-bean/components';
 
 const Heading = styled(
 	Component,
@@ -47,7 +47,7 @@ const FlexContainer = styled(
 
 		/* Make buttons smaller on mobile */
 		@media (max-width: 768px) {
-			button {
+			& button {
 				font-size: 0.9em !important;
 				padding: 6px 10px !important;
 				min-height: 32px !important;
@@ -82,7 +82,7 @@ export default class Toolbar extends Component {
 		);
 	}
 
-	render() {
+	build() {
 		if (this.options.heading?.elem) {
 			this.options.heading.appendTo(this);
 			this._heading = this.options.heading;
@@ -97,17 +97,11 @@ export default class Toolbar extends Component {
 
 		new FlexContainer({ appendTo: this }, this._left, this._right);
 
-		super.render();
 	}
 
-	setOption(key, value) {
-		if (key === 'heading') this._heading.elem.textContent = value;
-		else if (key === 'left') {
-			this._left.empty();
-			this._left.append(value);
-		} else if (key === 'right') {
-			this._right.empty();
-			this._right.append(value);
-		} else super.setOption(key, value);
-	}
+	static handlers = {
+		heading(value) { this._heading.elem.textContent = value; },
+		left(value) { this._left.empty(); this._left.append(value); },
+		right(value) { this._right.empty(); this._right.append(value); },
+	};
 }

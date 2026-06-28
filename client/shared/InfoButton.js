@@ -1,4 +1,4 @@
-import { Button, Elem, Popover, styled } from 'vanilla-bean-components';
+import { Button, Elem, Popover, styled } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 
 export class InfoButton extends (styled.Component`
@@ -6,17 +6,17 @@ export class InfoButton extends (styled.Component`
 	align-items: center;
 	gap: 4px;
 
-	.info-button {
+	& .info-button {
 		font-size: 12px;
 		padding: 4px;
 		min-width: auto;
 	}
 
-	.popover-content {
+	& .popover-content {
 		max-width: 300px;
 	}
 
-	.popover-title {
+	& .popover-title {
 		font-weight: bold;
 		margin-bottom: 8px;
 		color: ${({ colors }) => colors.lighter(colors.gray)};
@@ -24,7 +24,7 @@ export class InfoButton extends (styled.Component`
 		padding-bottom: 4px;
 	}
 
-	.popover-description {
+	& .popover-description {
 		font-size: 13px;
 		line-height: 1.4;
 	}
@@ -37,8 +37,7 @@ export class InfoButton extends (styled.Component`
 		});
 	}
 
-	render() {
-		super.render();
+	build() {
 
 		// Create the info button using default Button styling
 		this._infoButton = new Button({

@@ -27,7 +27,7 @@ gameContext.briefings = { ...safeParseLocalStorage('briefings', {}) };
 gameContext.dismissedAlerts = {};
 gameContext.scale = safeParseLocalStorage('scale', 1.0);
 gameContext.debugVisible = safeParseLocalStorage('debugVisible', false);
-gameContext.notify = { autoDismissTimeout: 5000, ...safeParseLocalStorage('notify', {}) };
+gameContext.notifySettings = { autoDismissTimeout: 5000, ...safeParseLocalStorage('notify', {}) };
 
 gameContext.autoPath = {
 	enabled: true,

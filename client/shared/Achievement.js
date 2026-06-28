@@ -1,4 +1,4 @@
-import { Elem, styled } from 'vanilla-bean-components';
+import { Elem, styled } from '@vanilla-bean/components';
 
 import gameContext from './gameContext';
 import PriceDisplay from './PriceDisplay';
@@ -36,39 +36,39 @@ export class Achievement extends styled.Popover(
 			max-width: calc(100vw - 20px);
 			width: auto;
 
-			.heading {
+			& .heading {
 				margin: -6px 6px 6px -3px;
 			}
 
-			.badge {
+			& .badge {
 				width: 48px;
 				height: 48px;
 				margin-bottom: -12px;
 			}
 
-			.title {
+			& .title {
 				font-size: 16px;
 				margin-left: 8px;
 				margin-top: 6px;
 			}
 
-			.summary {
+			& .summary {
 				margin: 6px 0;
 				font-size: 0.85em;
 				padding-left: 4px;
 			}
 
-			.flavor {
+			& .flavor {
 				font-size: 0.85em;
 			}
 
-			.rewards {
+			& .rewards {
 				padding: 4px 6px;
 				margin: 6px 0 4px 0;
 				font-size: 0.85em;
 			}
 
-			.signature {
+			& .signature {
 				margin-top: 4px;
 				font-size: 9px;
 			}
@@ -103,7 +103,7 @@ export class Achievement extends styled.Popover(
 			}
 		}
 
-		.count {
+		& .count {
 			position: absolute;
 			top: 0;
 			right: 0;
@@ -116,7 +116,7 @@ export class Achievement extends styled.Popover(
 			}
 		}
 
-		.rewards-section {
+		& .rewards-section {
 			position: absolute;
 			top: 12px;
 			right: 30px;
@@ -126,7 +126,7 @@ export class Achievement extends styled.Popover(
 			align-items: flex-end;
 		}
 
-		.reward-item {
+		& .reward-item {
 			background: ${colors.green};
 			color: ${colors.white};
 			padding: 4px 10px;
@@ -136,13 +136,13 @@ export class Achievement extends styled.Popover(
 			white-space: nowrap;
 		}
 
-		.heading {
+		& .heading {
 			margin: -12px 9px 9px -6px;
 			display: flex;
 			align-items: flex-start;
 		}
 
-		.badge {
+		& .badge {
 			display: inline-block;
 			background-image: url(img/spaceco_logo.png);
 			width: 64px;
@@ -151,7 +151,7 @@ export class Achievement extends styled.Popover(
 			flex-shrink: 0;
 		}
 
-		.title {
+		& .title {
 			display: inline-block;
 			font-weight: bold;
 			font-size: 18px;
@@ -161,7 +161,7 @@ export class Achievement extends styled.Popover(
 			flex: 1;
 		}
 
-		.summary {
+		& .summary {
 			color: ${colors.lighter(colors.green)};
 			border-left: 3px solid ${colors.green};
 			padding-left: 6px;
@@ -170,7 +170,7 @@ export class Achievement extends styled.Popover(
 			font-size: 0.9em;
 		}
 
-		.flavor {
+		& .flavor {
 			font-style: italic;
 			word-wrap: break-word;
 
@@ -180,14 +180,14 @@ export class Achievement extends styled.Popover(
 			}
 		}
 
-		.signature {
+		& .signature {
 			margin-top: 6px;
 			text-indent: 6px;
 			font-size: 10px;
 		}
 	`,
 ) {
-	render() {
+	build() {
 		if (gameContext.visibleAchievement) {
 			gameContext.achievementQueue.push(this.options.achievement);
 
@@ -217,7 +217,6 @@ export class Achievement extends styled.Popover(
 			return;
 		}
 
-		super.render();
 
 		gameContext.sounds.achievement.play({ volume: gameContext.volume.alerts });
 

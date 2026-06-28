@@ -1,4 +1,4 @@
-import { Elem, styled } from 'vanilla-bean-components';
+import { Elem, styled } from '@vanilla-bean/components';
 
 export class ConfigStat extends (styled.Component`
 	display: flex;
@@ -6,8 +6,7 @@ export class ConfigStat extends (styled.Component`
 	align-items: center;
 	width: 100%;
 `) {
-	render() {
-		super.render();
+	build() {
 
 		if (this.options.value === 0 || this.options.value === undefined) return;
 

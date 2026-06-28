@@ -1,4 +1,4 @@
-import { styled, theme, Elem, Button, Component } from 'vanilla-bean-components';
+import { styled, theme, Elem, Button, Component } from '@vanilla-bean/components';
 
 import { minerals } from '../../constants/minerals';
 
@@ -2259,7 +2259,7 @@ export class LevelEditor extends Component {
 			});
 
 			const result = await response.json();
-			if (result.success) {
+			if (result.status === 'success') {
 				alert('World saved successfully!');
 			} else {
 				alert('Save failed: ' + result.message);

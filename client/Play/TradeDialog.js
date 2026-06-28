@@ -1,4 +1,4 @@
-import { Button, Elem, Input, Label, Select, capitalize, styled, theme, Context } from 'vanilla-bean-components';
+import { Button, Elem, Input, Label, Select, capitalize, styled, theme, Oxject as Context } from '@vanilla-bean/components';
 
 import { MineralImage, ItemImage } from '../shared/SpriteSheetImage';
 import { updateTradeOffer, acceptTrade, cancelTrade } from '../api';
@@ -12,45 +12,45 @@ const TradeItemRow = styled.Component`
 	align-items: center;
 	gap: 12px;
 	padding: 6px;
-	background: ${({ colors }) => colors.white.setAlpha(0.02)};
+	background: ${({ colors }) => colors.alpha(colors.white, 0.02)};
 	border-radius: 3px;
 	margin-bottom: 6px;
 
-	.item-image {
+	& .item-image {
 		width: 32px;
 		height: 32px;
 		flex-shrink: 0;
 	}
 
-	.item-info {
+	& .item-info {
 		flex: 1;
 		min-width: 0;
 	}
 
-	.item-name {
+	& .item-name {
 		font-weight: bold;
 		font-size: 0.9em;
 	}
 
-	.item-available {
+	& .item-available {
 		font-size: 0.8em;
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 		margin-top: 2px;
 	}
 
-	.quantity-controls {
+	& .quantity-controls {
 		display: flex;
 		align-items: center;
 		gap: 6px;
 		flex-shrink: 0;
 	}
 
-	.quantity-input {
+	& .quantity-input {
 		width: 60px;
 		text-align: center;
 	}
 
-	.quantity-button {
+	& .quantity-button {
 		width: 24px;
 		height: 24px;
 		font-size: 14px;
@@ -67,33 +67,28 @@ class TradeItemsList extends (styled.Component`
 	overflow-y: auto;
 	margin-bottom: 12px;
 
-	.empty-trade {
+	& .empty-trade {
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 		text-align: center;
 		font-style: italic;
 		padding: 24px 12px;
 	}
 `) {
-	render() {
-		super.render();
+	build() {
 
 		const { offer, editable, tradeDialog } = this.options;
 		this.renderContent(offer, editable, tradeDialog);
 	}
 
-	_setOption(key, value) {
-		if (key === 'offer') {
-			// Don't call super._setOption to avoid recursion
-			// Just clear and re-render the content
+	static handlers = {
+		offer(value) {
 			if (this.elem) {
 				this.elem.innerHTML = '';
 				const { editable, tradeDialog } = this.options;
 				this.renderContent(value, editable, tradeDialog);
 			}
-		} else {
-			super._setOption(key, value);
-		}
-	}
+		},
+	};
 
 	renderContent(offer, editable, tradeDialog) {
 		console.log(`🎨 TradeItemsList renderContent:`, offer);
@@ -210,7 +205,7 @@ class TradeItemsList extends (styled.Component`
 }
 
 export default class TradeDialog extends (styled(BaseDialog)`
-	.trade-container {
+	& .trade-container {
 		display: flex;
 		gap: 12px;
 		min-height: 400px;
@@ -220,92 +215,92 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		}
 	}
 
-	.trade-side {
+	& .trade-side {
 		flex: 1;
-		border: 2px solid ${({ colors }) => colors.white.setAlpha(0.1)};
+		border: 2px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
 		border-radius: 6px;
 		padding: 12px;
-		background: ${({ colors }) => colors.white.setAlpha(0.02)};
+		background: ${({ colors }) => colors.alpha(colors.white, 0.02)};
 		display: flex;
 		flex-direction: column;
 	}
 
-	.trade-side.your-offer {
-		border-color: ${({ colors }) => colors.blue.setAlpha(0.3)};
+	& .trade-side.your-offer {
+		border-color: ${({ colors }) => colors.alpha(colors.blue, 0.3)};
 	}
 
-	.trade-side.their-offer {
-		border-color: ${({ colors }) => colors.green.setAlpha(0.3)};
+	& .trade-side.their-offer {
+		border-color: ${({ colors }) => colors.alpha(colors.green, 0.3)};
 	}
 
-	.trade-header {
+	& .trade-header {
 		font-weight: bold;
 		margin-bottom: 12px;
 		padding-bottom: 6px;
-		border-bottom: 1px solid ${({ colors }) => colors.white.setAlpha(0.1)};
+		border-bottom: 1px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
 	}
 
-	.trade-items {
+	& .trade-items {
 		flex: 1;
 		max-height: 280px;
 		overflow-y: auto;
 		margin-bottom: 12px;
 	}
 
-	.add-item-section {
-		border-top: 1px solid ${({ colors }) => colors.white.setAlpha(0.1)};
+	& .add-item-section {
+		border-top: 1px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
 		padding-top: 12px;
 		margin-top: auto;
 	}
 
-	.credits-section {
+	& .credits-section {
 		display: flex;
 		align-items: center;
 		gap: 6px;
 		margin-bottom: 12px;
 	}
 
-	.credits-input {
+	& .credits-input {
 		flex: 1;
 		min-width: 80px;
 	}
 
-	.menu {
+	& .menu {
 		display: flex;
 		gap: 6px;
 		margin: 6px;
 		justify-content: space-between;
 		align-items: center;
 
-		.left-buttons {
+		& .left-buttons {
 			display: flex;
 			gap: 6px;
 		}
 
-		.right-buttons {
+		& .right-buttons {
 			display: flex;
 			gap: 6px;
 		}
 	}
 
-	.menuBody {
-		background-color: ${({ colors }) => colors.white.setAlpha(0.04)};
+	& .menuBody {
+		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
 		padding: 9px 18px;
 	}
 
-	.empty-trade {
+	& .empty-trade {
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 		text-align: center;
 		font-style: italic;
 		padding: 24px 12px;
 	}
 
-	.acceptance-bar {
+	& .acceptance-bar {
 		display: flex;
 		gap: 12px;
 		padding: 12px;
-		background: ${({ colors }) => colors.white.setAlpha(0.05)};
-		border-bottom: 2px solid ${({ colors }) => colors.white.setAlpha(0.1)};
+		background: ${({ colors }) => colors.alpha(colors.white, 0.05)};
+		border-bottom: 2px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
 		margin: -12px -18px 12px -18px;
 		align-items: center;
 		justify-content: space-between;
@@ -315,42 +310,42 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		}
 	}
 
-	.acceptance-player {
+	& .acceptance-player {
 		flex: 1;
 		display: flex;
 		align-items: center;
 		gap: 8px;
 	}
 
-	.player-name {
+	& .player-name {
 		font-weight: bold;
 		font-size: 0.9em;
 	}
 
-	.accept-indicator {
+	& .accept-indicator {
 		padding: 4px 12px;
 		border-radius: 4px;
 		font-size: 0.85em;
 		font-weight: bold;
 	}
 
-	.accept-indicator.accepted {
+	& .accept-indicator.accepted {
 		background: ${({ colors }) => colors.green};
 		color: ${({ colors }) => colors.black};
 	}
 
-	.accept-indicator.waiting {
-		background: ${({ colors }) => colors.gray.setAlpha(0.3)};
+	& .accept-indicator.waiting {
+		background: ${({ colors }) => colors.alpha(colors.gray, 0.3)};
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 	}
 
-	.accept-button {
+	& .accept-button {
 		padding: 6px 16px;
 
 		@media (max-width: 768px) {
 			/* Improve button rendering on mobile by using simpler styles */
 			box-shadow: none;
-			border: 1px solid ${({ colors }) => colors.white.setAlpha(0.2)};
+			border: 1px solid ${({ colors }) => colors.alpha(colors.white, 0.2)};
 		}
 	}
 `) {
@@ -734,12 +729,10 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		return Object.keys(this.currentPlayer.hull).filter(mineral => (this.currentPlayer.hull[mineral] || 0) > 0);
 	}
 
-	_setOption(key, value) {
-		if (key === 'view') {
+	static handlers = {
+		view(value) {
 			this._body.empty();
 			this[`render_${value.toLowerCase()}`]();
-		} else {
-			super._setOption(key, value);
-		}
-	}
+		},
+	};
 }
