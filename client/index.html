@@ -29,6 +29,20 @@
 
 		<link rel="icon" type="image/png" href="./favicon.ico" />
 
+		<!-- crypto.randomUUID exists only in secure contexts (https or
+		localhost) - served over plain http on the LAN (*.home) the
+		@vanilla-bean framework (hypertether/oxject) crashes without it.
+		Inline and before the bundle on purpose: it has to exist before any
+		module code runs. getRandomValues has no secure-context restriction. -->
+		<script>
+			if (!crypto.randomUUID) {
+				crypto.randomUUID = () =>
+					([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+						(c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16),
+					);
+			}
+		</script>
+
 		<script type="module" src="./index.js"></script>
 	</head>
 	<body></body>
