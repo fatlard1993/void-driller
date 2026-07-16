@@ -1,4 +1,4 @@
-import { randFromArray, randInt } from 'vanilla-bean-components/utils';
+import { randFromArray, randInt } from '@vanilla-bean/components/utils';
 
 const greek = ['Alpha', 'Beta', 'Gamma', 'Sigma', 'Zeta', 'Theta', 'Omega', 'Delta'];
 const roman = ['I', 'II', 'III', 'IV', 'V', 'A', 'B', 'X'];

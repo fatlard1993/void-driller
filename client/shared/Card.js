@@ -28,7 +28,7 @@ export class Card extends Component {
 	}
 
 	build() {
-		// Use vanilla-bean-components append pattern for cleaner organization
+		// Use @vanilla-bean/components append pattern for cleaner organization
 		const sections = [];
 
 		// Header section
@@ -99,7 +99,7 @@ export class Card extends Component {
 			);
 		}
 
-		// Append all sections at once using vanilla-bean-components pattern
+		// Append all sections at once using @vanilla-bean/components pattern
 		this.append(sections);
 	}
 }

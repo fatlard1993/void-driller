@@ -17,7 +17,7 @@ const staticRouter = async request => {
 		`client${path}`,
 		path.startsWith('/') ? path.slice(1) : path,
 		`../node_modules${path}`,
-		`../node_modules/vanilla-bean-components/node_modules/${path}`,
+		`../node_modules/@vanilla-bean/components/node_modules/${path}`,
 	];
 
 	let file = null;
