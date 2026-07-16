@@ -112,7 +112,7 @@ export default class Game extends BaseGame {
 	_setupEventHandlers() {
 		// Define player movement event with validation and throttling
 		this.events.defineEvent('player:move', {
-			validate: (data) => {
+			validate: data => {
 				if (!data.playerId || !data.path) return false;
 				if (!Array.isArray(data.path)) return false;
 				if (!this.players.has(data.playerId)) return false;
@@ -125,15 +125,15 @@ export default class Game extends BaseGame {
 			throttle: 100, // Prevent spam
 		});
 
-		this.events.on('player:move', (data) => {
+		this.events.on('player:move', data => {
 			try {
 				// Set moving state to prevent concurrent movements
-				this.players.update(data.playerId, (current) => ({ ...current, moving: true }));
+				this.players.update(data.playerId, current => ({ ...current, moving: true }));
 
 				this.movePlayer(data.playerId, data.path);
 			} catch (error) {
 				// Reset moving state on error
-				this.players.update(data.playerId, (current) => ({ ...current, moving: false }));
+				this.players.update(data.playerId, current => ({ ...current, moving: false }));
 				gameLog.error('Movement error via EventRouter', {
 					playerId: data.playerId,
 					gameId: this.id,
@@ -144,33 +144,33 @@ export default class Game extends BaseGame {
 
 		// Define item usage event
 		this.events.defineEvent('player:useItem', {
-			validate: (data) => {
+			validate: data => {
 				return data.playerId && data.item && this.players.has(data.playerId);
 			},
 		});
 
-		this.events.on('player:useItem', (data) => {
+		this.events.on('player:useItem', data => {
 			this.useItem(data.playerId, data.item, data.targetPosition);
 		});
 
 		// SpaceCo events
 		this.events.defineEvent('spaceco:sell', {
-			validate: (data) => {
+			validate: data => {
 				return data.playerId && data.mineral && typeof data.count === 'number';
 			},
 		});
 
-		this.events.on('spaceco:sell', (data) => {
+		this.events.on('spaceco:sell', data => {
 			this.spacecoSell(data.playerId, data.mineral, data.count);
 		});
 
 		this.events.defineEvent('spaceco:sellItem', {
-			validate: (data) => {
+			validate: data => {
 				return data.playerId && data.item && typeof data.count === 'number';
 			},
 		});
 
-		this.events.on('spaceco:sellItem', (data) => {
+		this.events.on('spaceco:sellItem', data => {
 			this.spacecoSellItem(data.playerId, data.item, data.count);
 		});
 
@@ -306,7 +306,8 @@ export default class Game extends BaseGame {
 							if (items[key]) {
 								updatedPlayer.items = { ...updatedPlayer.items, [key]: (updatedPlayer.items[key] ?? 0) + 1 };
 							} else {
-								const awardAmount = key === 'credits' ? getScaledAchievementReward(value, 'credits', this.world.spaceco.xp) : value;
+								const awardAmount =
+									key === 'credits' ? getScaledAchievementReward(value, 'credits', this.world.spaceco.xp) : value;
 								playerLog.info(`Awarding achievement reward`, {
 									playerId,
 									key,
@@ -4190,7 +4191,10 @@ export default class Game extends BaseGame {
 		);
 
 		if (!bottomLeft?.ground?.type && !bottom?.ground?.type && !bottomRight?.ground?.type) {
-			const landingPosition = { x: bottom?.x ?? this.world.spaceco.position.x, y: bottom?.y ?? this.world.spaceco.position.y + 1 };
+			const landingPosition = {
+				x: bottom?.x ?? this.world.spaceco.position.x,
+				y: bottom?.y ?? this.world.spaceco.position.y + 1,
+			};
 
 			this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
 			this.world.spaceco.position = landingPosition;
@@ -4977,11 +4981,8 @@ export default class Game extends BaseGame {
 	}
 
 	/**
-	 * SpaceCo-specific broadcast helper that uses framework method
-	 * @param {string} event - The event name
-	 * @param {object} data - The event data
-	 * @param {Array<string>} spacecoFields - Additional SpaceCo fields to include
-	 * @param amount
+	 * Add SpaceCo experience and broadcast the change for achievements
+	 * @param {number} amount - XP to add
 	 */
 	addSpacecoXp(amount) {
 		this.world.spaceco.xp += amount;
@@ -5008,9 +5009,7 @@ export default class Game extends BaseGame {
 		}
 
 		// Find and remove bomb from cell (support both remote_charge and void_implosion)
-		const bombIndex = cell.items.findIndex(item =>
-			item.name === 'remote_charge' || item.name === 'void_implosion'
-		);
+		const bombIndex = cell.items.findIndex(item => item.name === 'remote_charge' || item.name === 'void_implosion');
 		if (bombIndex === -1) {
 			playerLog.warning('No bomb found at position', { playerId, position });
 			return;
@@ -5022,9 +5021,7 @@ export default class Game extends BaseGame {
 		cell.items.splice(bombIndex, 1);
 
 		// Remove appropriate detonator from ALL players who have it
-		const detonatorKey = bombType === 'void_implosion'
-			? `void_detonator_${x}_${y}`
-			: `detonator_${x}_${y}`;
+		const detonatorKey = bombType === 'void_implosion' ? `void_detonator_${x}_${y}` : `detonator_${x}_${y}`;
 		this.players.forEach((playerData, playerIdIter) => {
 			if (playerData.items[detonatorKey]) {
 				const updates = { items: { ...playerData.items, [detonatorKey]: playerData.items[detonatorKey] - 1 } };
@@ -5037,7 +5034,7 @@ export default class Game extends BaseGame {
 				this.broadcast('useItem', {
 					playerId: playerIdIter,
 					updates: updates,
-					item: 'remove_detonator'
+					item: 'remove_detonator',
 				});
 			}
 		});
@@ -5049,7 +5046,7 @@ export default class Game extends BaseGame {
 			playerId,
 			updates: { items: player.items },
 			item: 'disarm_bomb',
-			bombPosition: position
+			bombPosition: position,
 		});
 	}
 
@@ -5091,7 +5088,7 @@ export default class Game extends BaseGame {
 				this.broadcast('useItem', {
 					playerId: playerIdIter,
 					updates: updates,
-					item: 'remove_teleporter'
+					item: 'remove_teleporter',
 				});
 			}
 		});
@@ -5103,7 +5100,7 @@ export default class Game extends BaseGame {
 			playerId,
 			updates: { items: player.items },
 			item: 'deactivate_teleporter',
-			stationPosition: position
+			stationPosition: position,
 		});
 	}
 }

@@ -45,7 +45,7 @@ serverLog.info('Server starting', {
 
 export default new Server({
 	port: options.port,
-	databasePath: options.database,
+	database: options.database,
 	verbosity: options.verbosity,
 	Game,
 	router,
