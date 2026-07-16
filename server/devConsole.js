@@ -78,7 +78,9 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 		Object.entries(server.games).forEach(([gameId, game]) => {
 			console.log(`Game ${gameId}: ${game.players.size} players`);
 			game.players.forEach((player, playerId) => {
-				console.log(`  ${playerId}: ${player.health}/${player.maxHealth} HP, pos: (${player.position.x}, ${player.position.y})`);
+				console.log(
+					`  ${playerId}: ${player.health}/${player.maxHealth} HP, pos: (${player.position.x}, ${player.position.y})`,
+				);
 			});
 		});
 		console.log();
@@ -166,11 +168,15 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 
 				// Items
 				const items = Object.entries(player.items || {}).filter(([, count]) => count > 0);
-				console.log(`    Items (${items.length}): ${items.map(([name, count]) => `${name}:${count}`).join(', ') || 'none'}`);
+				console.log(
+					`    Items (${items.length}): ${items.map(([name, count]) => `${name}:${count}`).join(', ') || 'none'}`,
+				);
 
 				// Minerals in hull
 				const minerals = Object.entries(player.hull || {}).filter(([, count]) => count > 0);
-				console.log(`    Minerals (${minerals.length}): ${minerals.map(([name, count]) => `${name}:${count}`).join(', ') || 'none'}`);
+				console.log(
+					`    Minerals (${minerals.length}): ${minerals.map(([name, count]) => `${name}:${count}`).join(', ') || 'none'}`,
+				);
 			});
 		});
 		console.log();
@@ -220,7 +226,9 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 			} else {
 				console.log(`Ground: ${cell.ground?.type || 'none'}`);
 				console.log(`Items (${cell.items?.length || 0}): ${cell.items?.map(item => item.name).join(', ') || 'none'}`);
-				console.log(`Hazards (${cell.hazards?.length || 0}): ${cell.hazards?.map(h => `${h.type}(${h.id || 'no-id'})`).join(', ') || 'none'}`);
+				console.log(
+					`Hazards (${cell.hazards?.length || 0}): ${cell.hazards?.map(h => `${h.type}(${h.id || 'no-id'})`).join(', ') || 'none'}`,
+				);
 
 				// Check if any players are here
 				const playersHere = [];
@@ -333,18 +341,20 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 					if (searchType === 'aliens' && cell.hazards?.some(h => h.type === 'alien')) {
 						const alien = cell.hazards.find(h => h.type === 'alien');
 						results.push(`Alien ${alien.id || 'unknown'} at (${x}, ${y})`);
-					}
-					else if (searchType === 'bombs' && cell.items?.some(i => i.name.includes('charge') || i.name.includes('implosion'))) {
+					} else if (
+						searchType === 'bombs' &&
+						cell.items?.some(i => i.name.includes('charge') || i.name.includes('implosion'))
+					) {
 						const bombs = cell.items.filter(i => i.name.includes('charge') || i.name.includes('implosion'));
 						bombs.forEach(bomb => results.push(`${bomb.name} at (${x}, ${y})`));
-					}
-					else if (searchType === 'items' && cell.items?.length > 0) {
+					} else if (searchType === 'items' && cell.items?.length > 0) {
 						cell.items.forEach(item => results.push(`${item.name} at (${x}, ${y})`));
-					}
-					else if (searchType === 'hazards' && cell.hazards?.length > 0) {
+					} else if (searchType === 'hazards' && cell.hazards?.length > 0) {
 						cell.hazards.forEach(hazard => results.push(`${hazard.type} at (${x}, ${y})`));
-					}
-					else if (searchType.includes('mineral') && cell.ground?.type?.includes(searchType.replace('mineral_', ''))) {
+					} else if (
+						searchType.includes('mineral') &&
+						cell.ground?.type?.includes(searchType.replace('mineral_', ''))
+					) {
 						results.push(`${cell.ground.type} ground at (${x}, ${y})`);
 					}
 				});
@@ -371,8 +381,8 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 			let count = 0;
 			const breakdown = {};
 
-			firstGame.world.grid.forEach((column) => {
-				column.forEach((cell) => {
+			firstGame.world.grid.forEach(column => {
+				column.forEach(cell => {
 					if (countType === 'all') {
 						if (cell.ground?.type) {
 							breakdown['ground'] = (breakdown['ground'] || 0) + 1;
@@ -386,23 +396,19 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 							breakdown['hazards'] = (breakdown['hazards'] || 0) + cell.hazards.length;
 							count += cell.hazards.length;
 						}
-					}
-					else if (countType === 'aliens' && cell.hazards?.some(h => h.type === 'alien')) {
+					} else if (countType === 'aliens' && cell.hazards?.some(h => h.type === 'alien')) {
 						count += cell.hazards.filter(h => h.type === 'alien').length;
-					}
-					else if (countType === 'items' && cell.items?.length > 0) {
+					} else if (countType === 'items' && cell.items?.length > 0) {
 						count += cell.items.length;
 						cell.items.forEach(item => {
 							breakdown[item.name] = (breakdown[item.name] || 0) + 1;
 						});
-					}
-					else if (countType === 'hazards' && cell.hazards?.length > 0) {
+					} else if (countType === 'hazards' && cell.hazards?.length > 0) {
 						count += cell.hazards.length;
 						cell.hazards.forEach(hazard => {
 							breakdown[hazard.type] = (breakdown[hazard.type] || 0) + 1;
 						});
-					}
-					else if (countType === 'ground' && cell.ground?.type) {
+					} else if (countType === 'ground' && cell.ground?.type) {
 						count++;
 						breakdown[cell.ground.type] = (breakdown[cell.ground.type] || 0) + 1;
 					}
@@ -412,9 +418,11 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 			console.log(`Total ${countType}: ${count}`);
 			if (Object.keys(breakdown).length > 0) {
 				console.log('Breakdown:');
-				Object.entries(breakdown).sort(([,a], [,b]) => b - a).forEach(([type, total]) => {
-					console.log(`  ${type}: ${total}`);
-				});
+				Object.entries(breakdown)
+					.sort(([, a], [, b]) => b - a)
+					.forEach(([type, total]) => {
+						console.log(`  ${type}: ${total}`);
+					});
 			}
 			console.log();
 		} else {
@@ -444,27 +452,27 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 	// Emergency failure detection and recovery command
 	if (command === 'fuck' || command === '/fuck') {
 		console.log('\n=== EMERGENCY FAILURE DETECTION & RECOVERY ===');
-		
+
 		// 1. Check for zombie build processes
 		const zombieProcesses = [];
 		try {
 			const psOutput = Bun.spawn(['ps', 'aux']).stdout;
 			const processes = new TextDecoder().decode(await psOutput).split('\n');
-			
+
 			processes.forEach(line => {
 				if (line.includes('bun run client/build.js') && !line.includes('grep')) {
 					const pid = line.trim().split(/\s+/)[1];
 					zombieProcesses.push({ pid, line: line.trim() });
 				}
 			});
-			
+
 			if (zombieProcesses.length > 1) {
 				console.log(`🚨 PROBLEM DETECTED: ${zombieProcesses.length} zombie build processes found!`);
 				console.log('Killing excess build processes...');
-				
+
 				// Keep only the most recent build process, kill the rest
 				const sortedProcesses = zombieProcesses.sort((a, b) => parseInt(b.pid) - parseInt(a.pid));
-				
+
 				for (let i = 1; i < sortedProcesses.length; i++) {
 					try {
 						process.kill(parseInt(sortedProcesses[i].pid), 'SIGTERM');
@@ -479,19 +487,19 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 		} catch (error) {
 			console.log(`❌ Failed to check for zombie processes: ${error.message}`);
 		}
-		
+
 		// 2. Check git status for uncommitted changes
 		try {
 			const gitStatusOutput = Bun.spawn(['git', 'status', '--porcelain']).stdout;
 			const gitStatus = new TextDecoder().decode(await gitStatusOutput).trim();
-			
+
 			if (gitStatus) {
 				console.log('🚨 PROBLEM DETECTED: Uncommitted changes found');
 				console.log('Modified/untracked files:');
 				gitStatus.split('\n').forEach(line => {
 					if (line.trim()) console.log(`  ${line}`);
 				});
-				
+
 				// Check for common problematic files
 				if (gitStatus.includes('package.json') || gitStatus.includes('bun.lock')) {
 					console.log('⚠️  Package files modified - you may need to run: bun install');
@@ -502,12 +510,12 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 		} catch (error) {
 			console.log(`❌ Failed to check git status: ${error.message}`);
 		}
-		
+
 		// 3. Check if main server is running
 		try {
 			const lsofOutput = Bun.spawn(['lsof', '-i', ':3000']).stdout;
 			const lsofResult = new TextDecoder().decode(await lsofOutput).trim();
-			
+
 			if (!lsofResult) {
 				console.log('🚨 PROBLEM DETECTED: Main server not running on port 3000');
 				console.log('💡 FIX: Run "bun run dev" to start the main server');
@@ -517,18 +525,18 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 		} catch {
 			console.log('⚠️  Could not check port 3000 status');
 		}
-		
+
 		// 4. Check disk space
 		try {
 			const dfOutput = Bun.spawn(['df', '-h', '.']).stdout;
 			const dfResult = new TextDecoder().decode(await dfOutput).trim();
 			const lines = dfResult.split('\n');
-			
+
 			if (lines.length > 1) {
 				const diskLine = lines[1];
 				const usage = diskLine.split(/\s+/)[4]; // Usage percentage
 				const usagePercent = parseInt(usage.replace('%', ''));
-				
+
 				if (usagePercent > 90) {
 					console.log('🚨 PROBLEM DETECTED: Low disk space');
 					console.log(`Disk usage: ${usage}`);
@@ -540,14 +548,14 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 		} catch (error) {
 			console.log(`❌ Failed to check disk space: ${error.message}`);
 		}
-		
+
 		// 5. Check for common Node.js/Bun issues
 		console.log('\n=== QUICK HEALTH CHECK ===');
 		console.log(`Node.js version: ${process.version}`);
 		console.log(`Memory usage: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`);
 		console.log(`Uptime: ${Math.round(process.uptime())}s`);
 		console.log(`Active games: ${Object.keys(server.games).length}`);
-		
+
 		// 6. Provide recovery suggestions
 		console.log('\n=== SUGGESTED RECOVERY ACTIONS ===');
 		console.log('1. If build issues: ctrl+c, then run "bun run dev"');
@@ -556,7 +564,7 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 		console.log('4. If port conflicts: "lsof -ti:3000 | xargs kill -9"');
 		console.log('5. If memory issues: restart terminal and try again');
 		console.log('6. Nuclear option: "git stash && bun run dev:clean"\n');
-		
+
 		return;
 	}
 

@@ -426,7 +426,7 @@ const _game = async (request, server) => {
 
 		if (error) return error;
 
-		const { body, error: parseError} = await parseRequestBody(request);
+		const { body, error: parseError } = await parseRequestBody(request);
 		if (parseError) return parseError;
 
 		const { offer } = body;
@@ -701,7 +701,12 @@ const _game = async (request, server) => {
 			server.games[gameId].deactivateTeleporter(playerId, { x, y });
 			return Response.json({}, { status: 200 });
 		} catch (deactivateError) {
-			gameLog.error('Teleporter deactivate error', { playerId, gameId, position: { x, y }, error: deactivateError.message });
+			gameLog.error('Teleporter deactivate error', {
+				playerId,
+				gameId,
+				position: { x, y },
+				error: deactivateError.message,
+			});
 			return Response.json({ message: 'Teleporter deactivate system error. Please try again.' }, { status: 500 });
 		}
 	}
