@@ -118,19 +118,17 @@ const inputStyles = {
 	fontSize: '12px',
 };
 
-const defaultOptions = {
-	tag: 'div',
-};
-
 /**
  * Asteroid Level Editor Component - Full Feature Parity
  * Complete rebuild with working reactivity and all configuration controls
  */
 export class LevelEditor extends Component {
-	defaultOptions = { ...super.defaultOptions, ...defaultOptions };
+	static schema = {
+		tag: { default: 'div' },
+	};
 
 	constructor(options = {}) {
-		super({ ...defaultOptions, ...options });
+		super(options);
 
 		// Simple state object - no Context reactivity issues
 		this.state = {
@@ -175,7 +173,6 @@ export class LevelEditor extends Component {
 			}
 			this.refresh();
 		} catch (error) {
-			// eslint-disable-next-line no-console
 			console.error('Failed to load worlds:', error);
 		}
 	}
@@ -557,11 +554,23 @@ export class LevelEditor extends Component {
 			title: '// TUNNEL SYSTEM',
 			color: 'teal',
 			onClear: () => {
-				worldConfig.tunnels = { count: [0, 0], branchProbability: 0, maxBranches: 0, segmentLength: [1, 1], wanderStrength: 0 };
+				worldConfig.tunnels = {
+					count: [0, 0],
+					branchProbability: 0,
+					maxBranches: 0,
+					segmentLength: [1, 1],
+					wanderStrength: 0,
+				};
 				this.refresh();
 			},
 			onReset: () => {
-				worldConfig.tunnels = { count: [2, 4], branchProbability: 0.3, maxBranches: 3, segmentLength: [4, 8], wanderStrength: 0.4 };
+				worldConfig.tunnels = {
+					count: [2, 4],
+					branchProbability: 0.3,
+					maxBranches: 3,
+					segmentLength: [4, 8],
+					wanderStrength: 0.4,
+				};
 				this.refresh();
 			},
 			controls: [
@@ -1123,7 +1132,7 @@ export class LevelEditor extends Component {
 
 				const veinHeader = new SectionHeader({
 					appendTo: veinBox,
-					style: { marginBottom: '8px' }
+					style: { marginBottom: '8px' },
 				});
 
 				new Elem({
@@ -1755,8 +1764,8 @@ export class LevelEditor extends Component {
 		}
 
 		// Pure Mineral Crystals breakdown
-		const pureMineralItems = Object.entries(stats.itemBreakdown).filter(([type]) =>
-			type.startsWith('pure_') || type.includes('mineral_pure_'),
+		const pureMineralItems = Object.entries(stats.itemBreakdown).filter(
+			([type]) => type.startsWith('pure_') || type.includes('mineral_pure_'),
 		);
 		if (pureMineralItems.length > 0) {
 			const totalPureMinerals = pureMineralItems.reduce((sum, [, count]) => sum + count, 0);
@@ -1773,63 +1782,65 @@ export class LevelEditor extends Component {
 				},
 			});
 
-			pureMineralItems.sort(([, a], [, b]) => b - a).forEach(([itemType, count]) => {
-				// Extract mineral color from item type (e.g., "pure_white" or "mineral_pure_white")
-				let mineralType = itemType;
-				if (mineralType.includes('mineral_pure_')) {
-					mineralType = mineralType.replace('mineral_pure_', '');
-				} else if (mineralType.startsWith('pure_')) {
-					mineralType = mineralType.replace('pure_', '');
-				}
+			pureMineralItems
+				.sort(([, a], [, b]) => b - a)
+				.forEach(([itemType, count]) => {
+					// Extract mineral color from item type (e.g., "pure_white" or "mineral_pure_white")
+					let mineralType = itemType;
+					if (mineralType.includes('mineral_pure_')) {
+						mineralType = mineralType.replace('mineral_pure_', '');
+					} else if (mineralType.startsWith('pure_')) {
+						mineralType = mineralType.replace('pure_', '');
+					}
 
-				const mineral = minerals[mineralType];
+					const mineral = minerals[mineralType];
 
-				if (!mineral) {
-					console.warn('No mineral found for type:', itemType, '-> extracted:', mineralType);
-					return;
-				}
+					if (!mineral) {
+						console.warn('No mineral found for type:', itemType, '-> extracted:', mineralType);
+						return;
+					}
 
-				const percentage = Math.round((count / totalPureMinerals) * 100);
-				const row = new StatsRow({ appendTo: statsPanel });
+					const percentage = Math.round((count / totalPureMinerals) * 100);
+					const row = new StatsRow({ appendTo: statsPanel });
 
-				const MineralInfo = styled.Elem`
-					display: flex;
-					align-items: center;
-					gap: 6px;
-				`;
+					const MineralInfo = styled.Elem`
+						display: flex;
+						align-items: center;
+						gap: 6px;
+					`;
 
-				const left = new MineralInfo({ appendTo: row });
+					const left = new MineralInfo({ appendTo: row });
 
-				new ColorSwatch({
-					appendTo: left,
-					textContent: ' ',
-					style: {
-						width: '10px',
-						height: '10px',
-						backgroundColor: mineral.tint,
-						borderRadius: '2px',
-					},
+					new ColorSwatch({
+						appendTo: left,
+						textContent: ' ',
+						style: {
+							width: '10px',
+							height: '10px',
+							backgroundColor: mineral.tint,
+							borderRadius: '2px',
+						},
+					});
+
+					new Elem({
+						appendTo: left,
+						textContent: getMineralLabel(mineralType, mineral),
+						style: {
+							color: theme.colors.gray,
+							fontSize: '11px',
+						},
+					});
+
+					new Elem({
+						appendTo: row,
+						textContent: `${count} (${percentage}%)`,
+						style: {
+							color: theme.colors.white,
+							fontSize: '11px',
+							fontWeight: 'bold',
+						},
+					});
 				});
-
-				new Elem({
-					appendTo: left,
-					textContent: getMineralLabel(mineralType, mineral),
-					style: {
-						color: theme.colors.gray,
-						fontSize: '11px',
-					},
-				});
-
-				new Elem({
-					appendTo: row,
-					textContent: `${count} (${percentage}%)`,
-					style: {
-						color: theme.colors.white,
-						fontSize: '11px',
-						fontWeight: 'bold',
-					},
-				});
-			});
 		}
 
 		// Mineral Items breakdown - processed minerals, ores, etc.
@@ -1858,29 +1869,31 @@ export class LevelEditor extends Component {
 				},
 			});
 
-			mineralItems.sort(([, a], [, b]) => b - a).forEach(([itemType, count]) => {
-				const row = new StatsRow({ appendTo: statsPanel });
+			mineralItems
+				.sort(([, a], [, b]) => b - a)
+				.forEach(([itemType, count]) => {
+					const row = new StatsRow({ appendTo: statsPanel });
 
-				new Elem({
-					appendTo: row,
-					textContent: itemType.replace(/_/g, ' '),
-					styles: {
-						color: theme.colors.gray,
-						fontSize: '11px',
-						textTransform: 'capitalize',
-					},
-				});
+					new Elem({
+						appendTo: row,
+						textContent: itemType.replace(/_/g, ' '),
+						styles: {
+							color: theme.colors.gray,
+							fontSize: '11px',
+							textTransform: 'capitalize',
+						},
+					});
 
-				new Elem({
-					appendTo: row,
-					textContent: String(count),
-					styles: {
-						color: theme.colors.white,
-						fontSize: '11px',
-						fontWeight: 'bold',
-					},
+					new Elem({
+						appendTo: row,
+						textContent: String(count),
+						styles: {
+							color: theme.colors.white,
+							fontSize: '11px',
+							fontWeight: 'bold',
+						},
+					});
 				});
-			});
 		}
 
 		// Other Items breakdown - oil, repair_nanites, etc.
@@ -1911,29 +1924,31 @@ export class LevelEditor extends Component {
 				},
 			});
 
-			otherItems.sort(([, a], [, b]) => b - a).forEach(([itemType, count]) => {
-				const row = new StatsRow({ appendTo: statsPanel });
+			otherItems
+				.sort(([, a], [, b]) => b - a)
+				.forEach(([itemType, count]) => {
+					const row = new StatsRow({ appendTo: statsPanel });
 
-				new Elem({
-					appendTo: row,
-					textContent: itemType.replace(/_/g, ' '),
-					style: {
-						color: theme.colors.gray,
-						fontSize: '11px',
-						textTransform: 'capitalize',
-					},
-				});
+					new Elem({
+						appendTo: row,
+						textContent: itemType.replace(/_/g, ' '),
+						style: {
+							color: theme.colors.gray,
+							fontSize: '11px',
+							textTransform: 'capitalize',
+						},
+					});
 
-				new Elem({
-					appendTo: row,
-					textContent: String(count),
-					style: {
-						color: theme.colors.white,
-						fontSize: '11px',
-						fontWeight: 'bold',
-					},
+					new Elem({
+						appendTo: row,
+						textContent: String(count),
+						style: {
+							color: theme.colors.white,
+							fontSize: '11px',
+							fontWeight: 'bold',
+						},
+					});
 				});
-			});
 		}
 
 		// Alien breakdown
@@ -2090,24 +2105,14 @@ export class LevelEditor extends Component {
 						if (totalCount === 1) {
 							// Draw centered dot for single crystal
 							ctx.beginPath();
-							ctx.arc(
-								pixelX + cellSize * 0.5,
-								pixelY + cellSize * 0.5,
-								cellSize * 0.2,
-								0,
-								Math.PI * 2
-							);
+							ctx.arc(pixelX + cellSize * 0.5, pixelY + cellSize * 0.5, cellSize * 0.2, 0, Math.PI * 2);
 							ctx.fill();
 						} else {
 							// Draw the count as text for multiple crystals
 							ctx.font = `bold ${Math.max(10, cellSize * 0.5)}px monospace`;
 							ctx.textAlign = 'center';
 							ctx.textBaseline = 'middle';
-							ctx.fillText(
-								totalCount.toString(),
-								pixelX + cellSize * 0.5,
-								pixelY + cellSize * 0.5,
-							);
+							ctx.fillText(totalCount.toString(), pixelX + cellSize * 0.5, pixelY + cellSize * 0.5);
 						}
 					}
 
@@ -2237,7 +2242,6 @@ export class LevelEditor extends Component {
 			const asteroid = await response.json();
 			this.state.asteroid = asteroid;
 		} catch (error) {
-			// eslint-disable-next-line no-console
 			console.error('Generation failed:', error);
 			alert('Failed to generate asteroid: ' + error.message);
 		} finally {
@@ -2265,7 +2269,6 @@ export class LevelEditor extends Component {
 				alert('Save failed: ' + result.message);
 			}
 		} catch (error) {
-			// eslint-disable-next-line no-console
 			console.error('Save failed:', error);
 			alert('Save failed: ' + error.message);
 		} finally {
@@ -2293,5 +2296,4 @@ export class LevelEditor extends Component {
 			console.log('✅ Asteroid JSON copied to clipboard (fallback)');
 		}
 	}
-
 }

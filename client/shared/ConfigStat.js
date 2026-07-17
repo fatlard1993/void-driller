@@ -6,8 +6,12 @@ export class ConfigStat extends (styled.Component`
 	align-items: center;
 	width: 100%;
 `) {
-	build() {
+	static schema = {
+		label: {},
+		value: {},
+	};
 
+	build() {
 		if (this.options.value === 0 || this.options.value === undefined) return;
 
 		const isNumber = typeof this.options.value === 'number';

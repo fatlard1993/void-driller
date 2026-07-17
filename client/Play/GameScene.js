@@ -100,7 +100,7 @@ export default class GameScene extends Phaser.Scene {
 				resolve();
 			});
 
-			this.load.once('loaderror', (file) => {
+			this.load.once('loaderror', file => {
 				console.error(`[GameScene] Failed to load music: ${musicKey}`, file);
 				reject(new Error(`Failed to load music: ${musicKey}`));
 			});
@@ -435,7 +435,12 @@ export default class GameScene extends Phaser.Scene {
 			});
 
 			console.log('🎮 CHECKPOINT 2: Sounds loaded, starting grid iteration');
-			console.log('🎮 Grid dimensions:', gameContext.serverState.world.grid.length, 'x', gameContext.serverState.world.grid[0]?.length);
+			console.log(
+				'🎮 Grid dimensions:',
+				gameContext.serverState.world.grid.length,
+				'x',
+				gameContext.serverState.world.grid[0]?.length,
+			);
 
 			gameContext.serverState.world.grid.forEach((layer, x) => {
 				if (x % 10 === 0) console.log(`🎮 Processing column ${x}/${gameContext.serverState.world.grid.length}`);
@@ -624,10 +629,13 @@ export default class GameScene extends Phaser.Scene {
 						console.log('[GameScene] Music config found:', !!config);
 
 						if (config) {
-							setTimeout(() => {
-								console.log('[GameScene] Starting music for:', musicKey);
-								gameContext.musicManager.play(musicKey, config);
-							}, gameContext.briefings[worldName] ? 0 : 1000); // Delay if showing briefing
+							setTimeout(
+								() => {
+									console.log('[GameScene] Starting music for:', musicKey);
+									gameContext.musicManager.play(musicKey, config);
+								},
+								gameContext.briefings[worldName] ? 0 : 1000,
+							); // Delay if showing briefing
 						} else {
 							console.warn('[GameScene] No music config found for world:', worldName);
 						}
@@ -711,7 +719,7 @@ export default class GameScene extends Phaser.Scene {
 			shipY: ship.y,
 			texture: ship.texture.key,
 			textureExists: this.textures.exists('transport'),
-			spacecoExists: !!gameContext.spaceco
+			spacecoExists: !!gameContext.spaceco,
 		});
 
 		// Fade in the ship
@@ -802,7 +810,7 @@ export default class GameScene extends Phaser.Scene {
 			});
 
 			// Clear player sprites
-			gameContext.players.forEach((player) => {
+			gameContext.players.forEach(player => {
 				if (player.sprite) {
 					player.sprite.destroy();
 				}
@@ -878,10 +886,13 @@ export default class GameScene extends Phaser.Scene {
 			const config = musicConfig[musicKey];
 
 			if (config && gameContext.musicManager) {
-				setTimeout(() => {
-					console.log('[GameScene] Starting music for:', musicKey);
-					gameContext.musicManager.play(musicKey, config);
-				}, gameContext.briefings[worldName] ? 0 : 1000); // Delay if showing briefing
+				setTimeout(
+					() => {
+						console.log('[GameScene] Starting music for:', musicKey);
+						gameContext.musicManager.play(musicKey, config);
+					},
+					gameContext.briefings[worldName] ? 0 : 1000,
+				); // Delay if showing briefing
 			} else {
 				console.warn('[GameScene] No music config found for world:', worldName);
 			}

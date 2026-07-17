@@ -1,4 +1,14 @@
-import { Button, Elem, Input, Label, Select, capitalize, styled, theme, Oxject as Context } from '@vanilla-bean/components';
+import {
+	Button,
+	Elem,
+	Input,
+	Label,
+	Select,
+	capitalize,
+	styled,
+	theme,
+	Oxject as Context,
+} from '@vanilla-bean/components';
 
 import { MineralImage, ItemImage } from '../shared/SpriteSheetImage';
 import { updateTradeOffer, acceptTrade, cancelTrade } from '../api';
@@ -75,19 +85,22 @@ class TradeItemsList extends (styled.Component`
 	}
 `) {
 	build() {
-
 		const { offer, editable, tradeDialog } = this.options;
 		this.renderContent(offer, editable, tradeDialog);
 	}
 
-	static handlers = {
-		offer(value) {
-			if (this.elem) {
-				this.elem.innerHTML = '';
-				const { editable, tradeDialog } = this.options;
-				this.renderContent(value, editable, tradeDialog);
-			}
+	static schema = {
+		offer: {
+			set(value) {
+				if (this.elem) {
+					this.elem.innerHTML = '';
+					const { editable, tradeDialog } = this.options;
+					this.renderContent(value, editable, tradeDialog);
+				}
+			},
 		},
+		editable: {},
+		tradeDialog: {},
 	};
 
 	renderContent(offer, editable, tradeDialog) {
@@ -510,7 +523,9 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 		if (this.myAcceptButton) {
 			this.myAcceptButton.elem.textContent = this.iAccepted ? '✓ You Accepted' : 'Accept Trade';
-			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted ? theme.colors.green.toRgbString() : theme.colors.blue.toRgbString();
+			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted
+				? theme.colors.green.toRgbString()
+				: theme.colors.blue.toRgbString();
 			this.myAcceptButton.elem.disabled = this.iAccepted;
 		}
 
@@ -555,7 +570,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			),
 		);
 	}
-
 
 	renderQuantityControls(dataObject, key) {
 		const currentValue = dataObject[key] || 0;
@@ -729,10 +743,12 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		return Object.keys(this.currentPlayer.hull).filter(mineral => (this.currentPlayer.hull[mineral] || 0) > 0);
 	}
 
-	static handlers = {
-		view(value) {
-			this._body.empty();
-			this[`render_${value.toLowerCase()}`]();
+	static schema = {
+		view: {
+			set(value) {
+				this._body.empty();
+				this[`render_${value.toLowerCase()}`]();
+			},
 		},
 	};
 }

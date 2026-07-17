@@ -96,11 +96,11 @@ const generateAsteroidPreview = (worldDef, options = {}) => {
 
 	// Create a simple grid - full resolution, no shape complications
 	const grid = Array.from({ length: resolution }, () =>
-		Array.from({ length: resolution }, () => ({ type: 'ground', color: world.ground?.base || 'white' }))
+		Array.from({ length: resolution }, () => ({ type: 'ground', color: world.ground?.base || 'white' })),
 	);
 
 	// Helper to get crater/cave count range average
-	const getAverage = (range) => {
+	const getAverage = range => {
 		if (Array.isArray(range)) return (range[0] + range[1]) / 2;
 		return range || 0;
 	};
@@ -108,10 +108,10 @@ const generateAsteroidPreview = (worldDef, options = {}) => {
 	// 1. Place craters (surface holes)
 	const craterCount = Math.floor(
 		getAverage(world.craters?.huge || [0, 0]) * 0.3 +
-		getAverage(world.craters?.big || [0, 0]) * 0.5 +
-		getAverage(world.craters?.medium || [0, 0]) * 0.7 +
-		getAverage(world.craters?.small || [0, 0]) * 1 +
-		getAverage(world.craters?.tiny || [0, 0]) * 1.2
+			getAverage(world.craters?.big || [0, 0]) * 0.5 +
+			getAverage(world.craters?.medium || [0, 0]) * 0.7 +
+			getAverage(world.craters?.small || [0, 0]) * 1 +
+			getAverage(world.craters?.tiny || [0, 0]) * 1.2,
 	);
 
 	for (let i = 0; i < craterCount; i++) {
@@ -134,10 +134,10 @@ const generateAsteroidPreview = (worldDef, options = {}) => {
 	// 2. Place caves (internal holes)
 	const caveCount = Math.floor(
 		getAverage(world.caves?.huge || [0, 0]) * 0.3 +
-		getAverage(world.caves?.big || [0, 0]) * 0.5 +
-		getAverage(world.caves?.medium || [0, 0]) * 0.7 +
-		getAverage(world.caves?.small || [0, 0]) * 1 +
-		getAverage(world.caves?.tiny || [0, 0]) * 1.2
+			getAverage(world.caves?.big || [0, 0]) * 0.5 +
+			getAverage(world.caves?.medium || [0, 0]) * 0.7 +
+			getAverage(world.caves?.small || [0, 0]) * 1 +
+			getAverage(world.caves?.tiny || [0, 0]) * 1.2,
 	);
 
 	for (let i = 0; i < caveCount; i++) {
@@ -172,9 +172,12 @@ const generateAsteroidPreview = (worldDef, options = {}) => {
 
 			// Move in random direction
 			const dir = randInt(0, 3);
-			if (dir === 0) y = Math.min(resolution - 1, y + 1); // Down
-			else if (dir === 1) x = Math.min(resolution - 1, x + 1); // Right
-			else if (dir === 2) x = Math.max(0, x - 1); // Left
+			if (dir === 0)
+				y = Math.min(resolution - 1, y + 1); // Down
+			else if (dir === 1)
+				x = Math.min(resolution - 1, x + 1); // Right
+			else if (dir === 2)
+				x = Math.max(0, x - 1); // Left
 			else y = Math.max(0, y - 1); // Up
 		}
 	}
@@ -242,8 +245,13 @@ class UpgradeStat extends (styled.Component`
 	width: 100%;
 	margin: 2px 0;
 `) {
-	build() {
+	static schema = {
+		label: {},
+		value: {},
+		current: {},
+	};
 
+	build() {
 		const isNumber = typeof this.options.value === 'number';
 		const diff = isNumber && this.options.value - (this.options.current ?? 0);
 
@@ -273,7 +281,7 @@ class UpgradeStat extends (styled.Component`
 				content: diff === 0 ? '+0' : `${diff > 0 ? '+' : ''}${diff}`,
 				styles: ({ colors }) => ({
 					color: diff === 0 ? colors.yellow : colors[diff >= 0 ? 'green' : 'red'],
-					marginLeft: '6px'
+					marginLeft: '6px',
 				}),
 			});
 		}
@@ -288,7 +296,6 @@ class StatChange extends (styled.Component`
 	width: 100%;
 `) {
 	build() {
-
 		const { label, value } = this.options;
 
 		this.append([
@@ -311,7 +318,6 @@ class UpgradePricing extends (styled.Component`
 	margin: 6px 0;
 `) {
 	build() {
-
 		const { basePrice, tradeInDiscount } = this.options;
 
 		if (tradeInDiscount > 0) {
@@ -478,11 +484,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			appendTo: this._body,
 			tabs: menuViews,
 			selectedTab: currentView,
-			onTabClick: (tab) => {
+			onTabClick: tab => {
 				InfoButton.closeAllPopovers();
 				this.options.view = tab;
 			},
-			isTabEmpty: (tab) => this.isMenuEmpty(tab),
+			isTabEmpty: tab => this.isMenuEmpty(tab),
 		});
 
 		this._menuBody = new Elem({ className: 'menuBody', appendTo: this._body });
@@ -778,11 +784,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			appendTo: this._menuBody,
 			tabs: menuViews,
 			selectedTab: currentView,
-			onTabClick: (tab) => {
+			onTabClick: tab => {
 				InfoButton.closeAllPopovers();
 				this.options.view = `upgrade_${tab}`;
 			},
-			isTabEmpty: (tab) => this.isUpgradeSubmenuEmpty(tab),
+			isTabEmpty: tab => this.isUpgradeSubmenuEmpty(tab),
 		});
 
 		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
@@ -1452,12 +1458,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				return new Button({
 					content: view,
 					onPointerPress: () => {
-				InfoButton.closeAllPopovers();
-				this.options.view = viewKey;
-			},
+						InfoButton.closeAllPopovers();
+						this.options.view = viewKey;
+					},
 					disabled: isDisabled,
 					className,
-		});
+				});
 			}),
 		);
 
@@ -1818,7 +1824,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 												content: new Elem(
 													{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
 													new Elem({ content: 'Sell All' }),
-													new PriceDisplay({ amount: sellPrice * count, size: 14, variant: 'success', preText: '(', postText: ')' }),
+													new PriceDisplay({
+														amount: sellPrice * count,
+														size: 14,
+														variant: 'success',
+														preText: '(',
+														postText: ')',
+													}),
 												),
 												onPointerPress: async () => {
 													spacecoLog.info('Attempting to sell all items:', key, 'count:', count);
@@ -1867,12 +1879,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								textAlign: 'center',
 							},
 						}),
-						style: preview ? {
-							backgroundImage: `url(${preview.toDataURL()})`,
-							backgroundSize: 'cover',
-							backgroundPosition: 'center',
-							position: 'relative',
-						} : {},
+						style: preview
+							? {
+									backgroundImage: `url(${preview.toDataURL()})`,
+									backgroundSize: 'cover',
+									backgroundPosition: 'center',
+									position: 'relative',
+								}
+							: {},
 						body: new Elem({
 							style: {
 								display: 'flex',
@@ -1884,84 +1898,83 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								borderRadius: '4px',
 							},
 							append: [
-								missingRequirements ?
-									new Elem({
-										style: {
-											display: 'flex',
-											flexDirection: 'column',
-											gap: '8px',
-											width: '100%',
-										},
-										append: [
-											new Elem({
-												tag: 'p',
-												content: 'Requirements',
-												style: {
-													fontSize: '13px',
-													fontWeight: 'bold',
-													marginBottom: '4px',
-													textAlign: 'center',
-												},
-											}),
-											...requirements.map(([key, goal]) => {
-												const current = minerals[key]
-													? (gameContext.serverState.world.spaceco.hull?.[key] ?? 0)
-													: (gameContext.serverState.world.spaceco?.[key] ?? 0);
-												const percentage = Math.min((current / goal) * 100, 100);
-												const label = minerals[key]
-													? capitalize(minerals[key].name)
-													: 'Pension Credits';
-
-												return new Elem({
+								missingRequirements
+									? new Elem({
+											style: {
+												display: 'flex',
+												flexDirection: 'column',
+												gap: '8px',
+												width: '100%',
+											},
+											append: [
+												new Elem({
+													tag: 'p',
+													content: 'Requirements',
 													style: {
-														display: 'flex',
-														flexDirection: 'column',
-														gap: '4px',
+														fontSize: '13px',
+														fontWeight: 'bold',
+														marginBottom: '4px',
+														textAlign: 'center',
 													},
-													append: [
-														new Elem({
-															content: `${label}: ${current} / ${goal}`,
-															style: {
-																fontSize: '12px',
-																textAlign: 'left',
-																fontWeight: 'bold',
-															},
-														}),
-														new Elem({
-															style: {
-																width: '100%',
-																height: '16px',
-																background: 'rgba(255, 255, 255, 0.15)',
-																borderRadius: '8px',
-																overflow: 'hidden',
-																position: 'relative',
-																border: '1px solid rgba(255, 255, 255, 0.2)',
-															},
-															append: new Elem({
+												}),
+												...requirements.map(([key, goal]) => {
+													const current = minerals[key]
+														? (gameContext.serverState.world.spaceco.hull?.[key] ?? 0)
+														: (gameContext.serverState.world.spaceco?.[key] ?? 0);
+													const percentage = Math.min((current / goal) * 100, 100);
+													const label = minerals[key] ? capitalize(minerals[key].name) : 'Pension Credits';
+
+													return new Elem({
+														style: {
+															display: 'flex',
+															flexDirection: 'column',
+															gap: '4px',
+														},
+														append: [
+															new Elem({
+																content: `${label}: ${current} / ${goal}`,
 																style: {
-																	width: `${percentage}%`,
-																	height: '100%',
-																	background: percentage >= 100
-																		? theme.colors.green
-																		: `linear-gradient(90deg, ${theme.colors.red}, ${theme.colors.yellow})`,
-																	transition: 'width 0.3s ease',
-																	boxShadow: percentage > 0 ? 'inset 0 1px 3px rgba(0, 0, 0, 0.3)' : 'none',
+																	fontSize: '12px',
+																	textAlign: 'left',
+																	fontWeight: 'bold',
 																},
 															}),
-														}),
-													],
-												});
-											}),
-										],
-									}) :
-									new DescriptionText({
-										summary: worldDef?.summary || '',
-										description: worldDef?.description || '',
-										title: worldDef?.name || '',
-										style: {
-											textAlign: 'center',
-										},
-									}),
+															new Elem({
+																style: {
+																	width: '100%',
+																	height: '16px',
+																	background: 'rgba(255, 255, 255, 0.15)',
+																	borderRadius: '8px',
+																	overflow: 'hidden',
+																	position: 'relative',
+																	border: '1px solid rgba(255, 255, 255, 0.2)',
+																},
+																append: new Elem({
+																	style: {
+																		width: `${percentage}%`,
+																		height: '100%',
+																		background:
+																			percentage >= 100
+																				? theme.colors.green
+																				: `linear-gradient(90deg, ${theme.colors.red}, ${theme.colors.yellow})`,
+																		transition: 'width 0.3s ease',
+																		boxShadow: percentage > 0 ? 'inset 0 1px 3px rgba(0, 0, 0, 0.3)' : 'none',
+																	},
+																}),
+															}),
+														],
+													});
+												}),
+											],
+										})
+									: new DescriptionText({
+											summary: worldDef?.summary || '',
+											description: worldDef?.description || '',
+											title: worldDef?.name || '',
+											style: {
+												textAlign: 'center',
+											},
+										}),
 							],
 						}),
 						footer: new Elem({
@@ -2023,12 +2036,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				return new Button({
 					content: view,
 					onPointerPress: () => {
-				InfoButton.closeAllPopovers();
+						InfoButton.closeAllPopovers();
 						this.options.view = `status_${view}`;
-			},
+					},
 					disabled: isDisabled,
 					className,
-		});
+				});
 			}),
 		);
 
@@ -2230,13 +2243,15 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	static handlers = {
-		view(value) {
-			this._body.empty();
+	static schema = {
+		view: {
+			set(value) {
+				this._body.empty();
 
-			this.renderMenu();
+				this.renderMenu();
 
-			this[`render_${value.toLowerCase()}`]();
+				this[`render_${value.toLowerCase()}`]();
+			},
 		},
 	};
 }

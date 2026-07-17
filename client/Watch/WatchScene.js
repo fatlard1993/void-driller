@@ -124,19 +124,14 @@ export default class WatchScene extends Phaser.Scene {
 
 		// Render SpaceCo
 		if (spaceco) {
-			const spacecoSprite = new Spaceco(
-				this,
-				spaceco.position.x,
-				spaceco.position.y,
-				spaceco.variant
-			);
+			const spacecoSprite = new Spaceco(this, spaceco.position.x, spaceco.position.y, spaceco.variant);
 			gameContext.sceneLayers.hazards.add(spacecoSprite);
 			spaceco.sprite = spacecoSprite;
 		}
 
 		// Render all players
 		gameContext.players = new Map();
-		gameContext.serverState.players.forEach((player) => {
+		gameContext.serverState.players.forEach(player => {
 			this.addPlayer(player);
 		});
 
@@ -155,7 +150,7 @@ export default class WatchScene extends Phaser.Scene {
 			player.orientation,
 			vehicles[player.configuration.vehicle].spriteIndex,
 			drills[player.configuration.drill].spriteIndex,
-			player.name
+			player.name,
 		);
 
 		gameContext.sceneLayers.players.add(drill);
@@ -224,7 +219,7 @@ export default class WatchScene extends Phaser.Scene {
 	}
 
 	showAchievementNotification(playerId, achievement) {
-		const player = gameContext.serverState.players.find((p) => p.id === playerId);
+		const player = gameContext.serverState.players.find(p => p.id === playerId);
 		if (!player) return;
 
 		const position = this.getNotificationPositionAroundPlayer(playerId);
@@ -303,7 +298,7 @@ export default class WatchScene extends Phaser.Scene {
 		const fadeDelay = 1000;
 		const fadeDuration = 2800;
 
-		Object.values(gameContext.sceneLayers).forEach((layer) => {
+		Object.values(gameContext.sceneLayers).forEach(layer => {
 			this.tweens.add({
 				targets: layer,
 				alpha: 0,
@@ -337,12 +332,12 @@ export default class WatchScene extends Phaser.Scene {
 		}
 
 		// Clear existing layers
-		Object.values(gameContext.sceneLayers).forEach((layer) => {
+		Object.values(gameContext.sceneLayers).forEach(layer => {
 			layer.removeAll(true);
 		});
 
 		// Clear player labels
-		this.playerLabels.forEach((label) => label.destroy());
+		this.playerLabels.forEach(label => label.destroy());
 		this.playerLabels.clear();
 
 		// Clear players
@@ -428,12 +423,12 @@ export default class WatchScene extends Phaser.Scene {
 		}
 
 		// Render all players
-		gameContext.serverState.players.forEach((player) => {
+		gameContext.serverState.players.forEach(player => {
 			this.addPlayer(player);
 		});
 
 		// Set layers to alpha 0 initially
-		Object.values(gameContext.sceneLayers).forEach((layer) => {
+		Object.values(gameContext.sceneLayers).forEach(layer => {
 			layer.alpha = 0;
 		});
 	}
@@ -443,7 +438,7 @@ export default class WatchScene extends Phaser.Scene {
 
 		// Fade in all scene layers
 		const fadeInDuration = 1200;
-		Object.values(gameContext.sceneLayers).forEach((layer) => {
+		Object.values(gameContext.sceneLayers).forEach(layer => {
 			this.tweens.add({
 				targets: layer,
 				alpha: 1,
@@ -471,7 +466,7 @@ export default class WatchScene extends Phaser.Scene {
 		// QR code dimensions (just the code, no text)
 		const qrSize = 200;
 		const qrCenterY = screenHeight / 2; // Move to middle of screen instead of top third
-		const qrTopY = qrCenterY - (qrSize / 2);
+		const qrTopY = qrCenterY - qrSize / 2;
 
 		// Ship positioned directly above QR code - make it bigger!
 		const shipScale = 1.5;

@@ -23,7 +23,8 @@ export default class PriceDisplay extends (styled.Component`
 		white-space: nowrap;
 	}
 
-	& .prefix, & .suffix {
+	& .prefix,
+	& .suffix {
 		white-space: nowrap;
 	}
 
@@ -36,7 +37,6 @@ export default class PriceDisplay extends (styled.Component`
 	}
 `) {
 	build() {
-
 		const { amount, variant = 'default', size = 16, preText, postText } = this.options;
 
 		// Add variant class for color styling
@@ -47,9 +47,7 @@ export default class PriceDisplay extends (styled.Component`
 		// Add preText if provided
 		if (preText) {
 			this.append(
-				typeof preText === 'string'
-					? new Elem({ tag: 'span', className: 'prefix', content: preText })
-					: preText,
+				typeof preText === 'string' ? new Elem({ tag: 'span', className: 'prefix', content: preText }) : preText,
 			);
 		}
 
@@ -69,9 +67,7 @@ export default class PriceDisplay extends (styled.Component`
 		// Add postText if provided
 		if (postText) {
 			this.append(
-				typeof postText === 'string'
-					? new Elem({ tag: 'span', className: 'suffix', content: postText })
-					: postText,
+				typeof postText === 'string' ? new Elem({ tag: 'span', className: 'suffix', content: postText }) : postText,
 			);
 		}
 	}

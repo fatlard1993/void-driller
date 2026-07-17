@@ -90,7 +90,6 @@ export default class Game extends (styled.Component`
 	}
 
 	build() {
-
 		// Debug log initial system state
 		if (window.debugLog) {
 			window.debugLog('Game render() called');

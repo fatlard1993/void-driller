@@ -1,8 +1,8 @@
 import { styled } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
-import gameContext from '../shared/gameContext';
 import { onMessage } from '@fatlard1993/web-game-framework/client/socket';
+import gameContext from '../shared/gameContext';
 import WatchScene from './WatchScene';
 import watchSocketRouter from './watchSocketRouter';
 
@@ -46,7 +46,6 @@ export default class WatchGame extends (styled.Component`
 	}
 
 	build() {
-
 		// Setup socket router for watch mode
 		const socketCleanup = onMessage(watchSocketRouter);
 		this.addCleanup('socketCleanup', () => socketCleanup());

@@ -33,18 +33,14 @@ export class DescriptionText extends (styled.Component`
 		margin-top: 2px;
 	}
 `) {
-	constructor(options = {}) {
-		super({
-			summary: '',
-			description: '',
-			title: '',
-			expanded: false,
-			...options,
-		});
-	}
+	static schema = {
+		summary: { default: '' },
+		description: { default: '' },
+		title: { default: '' },
+		expanded: { default: false },
+	};
 
 	build() {
-
 		this.renderContent();
 	}
 

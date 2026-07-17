@@ -29,16 +29,13 @@ export class InfoButton extends (styled.Component`
 		line-height: 1.4;
 	}
 `) {
-	constructor(options = {}) {
-		super({
-			title: 'Information',
-			description: '',
-			...options,
-		});
-	}
+	static schema = {
+		title: { default: 'Information' },
+		description: { default: '' },
+		buttonText: {},
+	};
 
 	build() {
-
 		// Create the info button using default Button styling
 		this._infoButton = new Button({
 			className: 'info-button',

@@ -21,13 +21,7 @@ export default class StatusBarHUD {
 		const startX = (window.innerWidth - totalWidth) / 2; // Center the group
 
 		// Create health bar
-		this.healthFrame = scene.add.rectangle(
-			startX,
-			topMargin,
-			barWidth + 4,
-			barHeight + 4,
-			0x000000,
-		);
+		this.healthFrame = scene.add.rectangle(startX, topMargin, barWidth + 4, barHeight + 4, 0x000000);
 		this.healthFrame.setOrigin(0, 0);
 		this.healthFrame.setScrollFactor(0);
 		this.healthFrame.setDepth(1000);

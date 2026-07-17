@@ -2,7 +2,7 @@ import gameContext from '../shared/gameContext';
 import { destroyGround } from '../Play/effects';
 
 // Validation helper functions
-const validateMessage = (data) => {
+const validateMessage = data => {
 	// Handle non-JSON messages (like hotReload)
 	if (!data || typeof data !== 'object') {
 		return false;
@@ -22,7 +22,7 @@ const validateMessage = (data) => {
 };
 
 // Handle player movement updates
-const handlePlayerMove = (data) => {
+const handlePlayerMove = data => {
 	console.log('[WatchRouter] playerMove data:', data);
 	const scene = gameContext.scene;
 	if (!scene) return;
@@ -31,7 +31,7 @@ const handlePlayerMove = (data) => {
 
 	if (!playerData) {
 		// Player doesn't exist yet, let addPlayer handle it
-		const serverPlayer = gameContext.serverState.players.find((p) => p.id === data.player.id);
+		const serverPlayer = gameContext.serverState.players.find(p => p.id === data.player.id);
 		if (serverPlayer) {
 			scene.addPlayer(serverPlayer);
 			playerData = gameContext.players.get(data.player.id);
@@ -56,7 +56,7 @@ const handlePlayerMove = (data) => {
 	}
 
 	// Update server state
-	const serverPlayer = gameContext.serverState.players.find((p) => p.id === data.player.id);
+	const serverPlayer = gameContext.serverState.players.find(p => p.id === data.player.id);
 	if (serverPlayer) {
 		Object.assign(serverPlayer, data.player);
 	}
@@ -75,7 +75,7 @@ const handlePlayerMove = (data) => {
 
 			// Handle item collection with proper animation
 			if (cell.items?.length) {
-				cell.items.forEach((item) => {
+				cell.items.forEach(item => {
 					if (item.sprite?.scene) {
 						// Use destroy animation for other players in Watch mode
 						item.sprite.destroy();
@@ -88,12 +88,12 @@ const handlePlayerMove = (data) => {
 };
 
 // Handle adding new players
-const handleAddPlayer = (data) => {
+const handleAddPlayer = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
 	// Add to server state if not exists
-	if (!gameContext.serverState.players.find((p) => p.id === data.player.id)) {
+	if (!gameContext.serverState.players.find(p => p.id === data.player.id)) {
 		gameContext.serverState.players.push(data.player);
 	}
 
@@ -109,7 +109,7 @@ const handleAddPlayer = (data) => {
 };
 
 // Handle removing players
-const handleRemovePlayer = (data) => {
+const handleRemovePlayer = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
@@ -127,7 +127,7 @@ const handleRemovePlayer = (data) => {
 	}
 
 	// Remove from server state
-	const index = gameContext.serverState.players.findIndex((p) => p.id === data.playerId);
+	const index = gameContext.serverState.players.findIndex(p => p.id === data.playerId);
 	if (index > -1) {
 		const player = gameContext.serverState.players[index];
 		gameContext.serverState.players.splice(index, 1);
@@ -136,11 +136,11 @@ const handleRemovePlayer = (data) => {
 };
 
 // Handle achievement notifications
-const handleAchievement = (data) => {
+const handleAchievement = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
-	const player = gameContext.serverState.players.find((p) => p.id === data.playerId);
+	const player = gameContext.serverState.players.find(p => p.id === data.playerId);
 	if (!player) return;
 
 	scene.showAchievementNotification(data.playerId, data.achievement);
@@ -148,16 +148,16 @@ const handleAchievement = (data) => {
 };
 
 // Handle player damage
-const handleHurtPlayers = (data) => {
+const handleHurtPlayers = data => {
 	if (!data.players) return;
 
-	data.players.forEach((playerUpdate) => {
+	data.players.forEach(playerUpdate => {
 		const playerData = gameContext.players.get(playerUpdate.id);
 		if (playerData?.sprite?.updateHealth) {
 			playerData.sprite.updateHealth(playerUpdate.health);
 		}
 
-		const serverPlayer = gameContext.serverState.players.find((p) => p.id === playerUpdate.id);
+		const serverPlayer = gameContext.serverState.players.find(p => p.id === playerUpdate.id);
 		if (serverPlayer) {
 			serverPlayer.health = playerUpdate.health;
 		}
@@ -165,11 +165,11 @@ const handleHurtPlayers = (data) => {
 };
 
 // Handle item usage
-const handleUseItem = (data) => {
+const handleUseItem = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
-	const player = gameContext.serverState.players.find((p) => p.id === data.playerId);
+	const player = gameContext.serverState.players.find(p => p.id === data.playerId);
 	if (!player) return;
 
 	// Show alert for interesting items positioned around the player
@@ -181,13 +181,13 @@ const handleUseItem = (data) => {
 };
 
 // Handle world updates (aliens, hazards, etc.)
-const handleWorldUpdate = (data) => {
+const handleWorldUpdate = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
 	// Handle different world update types
 	if (data.update === 'alien_attack') {
-		const player = gameContext.serverState.players.find((p) => p.id === data.playerId);
+		const player = gameContext.serverState.players.find(p => p.id === data.playerId);
 		if (player) {
 			scene.showAlert(`Alien attack!`, 'error', data.playerId);
 		}
@@ -198,12 +198,12 @@ const handleWorldUpdate = (data) => {
 };
 
 // Handle transport transition
-const handleSpacecoBuyTransport = (data) => {
+const handleSpacecoBuyTransport = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
 	// Show notification
-	const player = gameContext.serverState.players.find((p) => p.id === data.playerId);
+	const player = gameContext.serverState.players.find(p => p.id === data.playerId);
 	if (player) {
 		scene.showAlert(`Transporting to ${data.world}...`, 'info', data.playerId);
 	}
@@ -228,7 +228,7 @@ const handleSpacecoBuyTransport = (data) => {
 };
 
 // Handle SpaceCo falling
-const handleSpacecoFall = (data) => {
+const handleSpacecoFall = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
@@ -258,7 +258,7 @@ const handleSpacecoFall = (data) => {
 };
 
 // Main router
-export default (data) => {
+export default data => {
 	console.log('[WatchRouter] Received message:', data.update, data);
 
 	if (!validateMessage(data)) return;

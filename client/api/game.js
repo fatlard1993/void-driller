@@ -81,7 +81,7 @@ export const spacecoBuyTransport = async ({ world }, options) =>
 		...options,
 	});
 
-export const spacecoResupply = async (options) =>
+export const spacecoResupply = async options =>
 	await POST('/games/:gameId/:playerId/spaceco/resupply', {
 		invalidates: ['games'],
 		urlParameters: apiContext,

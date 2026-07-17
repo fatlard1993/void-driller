@@ -98,7 +98,8 @@ export const minerals = {
 		tint: '#d86666',
 		spriteIndex: 2,
 		description: 'Radiates faint heat. Dense enough to warp drills, unstable enough to warrant serious upgrades.',
-		flavor: 'Compressed to the edge of stability - occasionally rearranges your surroundings without warning. SpaceCo calls it "spicy ore."',
+		flavor:
+			'Compressed to the edge of stability - occasionally rearranges your surroundings without warning. SpaceCo calls it "spicy ore."',
 	},
 	black: {
 		name: 'quadium',

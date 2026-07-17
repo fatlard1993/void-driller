@@ -98,8 +98,10 @@ export class ConsoleContainer extends (styled.Component`
 		this.skip.elem.remove();
 	}
 
-	static handlers = {
-		textContent() {},
-		append() {},
+	// data: textContent and append collide with the elem property and Component method;
+	// content is managed manually here, so both must stay store-only
+	static schema = {
+		textContent: { data: true },
+		append: { data: true },
 	};
 }

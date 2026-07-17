@@ -5,6 +5,13 @@ import { Component, Elem, theme } from '@vanilla-bean/components';
  * Based on the SpacecoDialog shop player inventory item cards reference template
  */
 export class Card extends Component {
+	static schema = {
+		header: {},
+		body: {},
+		footer: {},
+		footerButtons: {},
+	};
+
 	constructor(options = {}) {
 		const defaultStyle = {
 			display: 'flex',

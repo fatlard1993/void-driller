@@ -43,6 +43,10 @@ import {
 const CollapsibleLabel = configured(Label, { variant: 'collapsible' });
 
 class AlertControl extends Component {
+	static schema = {
+		key: {},
+	};
+
 	build() {
 		new Label(
 			{
@@ -75,13 +79,10 @@ class NotifyControl extends Component {
 		new Label(
 			{
 				appendTo: this,
-				label: gameContext.subscriber(
-					'notify',
-					notify => {
-						const seconds = notify.autoDismissTimeout / 1000;
-						return `Auto-dismiss timeout (${seconds}s)`;
-					},
-				),
+				label: gameContext.subscriber('notify', notify => {
+					const seconds = notify.autoDismissTimeout / 1000;
+					return `Auto-dismiss timeout (${seconds}s)`;
+				}),
 			},
 			new Input({
 				type: 'range',
@@ -99,6 +100,10 @@ class NotifyControl extends Component {
 }
 
 class VolumeControl extends Component {
+	static schema = {
+		key: {},
+	};
+
 	build() {
 		new Label(
 			{
@@ -179,7 +184,6 @@ class DebugControl extends Component {
 
 class AutoPathControl extends Component {
 	build() {
-
 		new Label(
 			{
 				appendTo: this,
@@ -377,7 +381,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			color: ${({ colors }) => colors.green} !important;
 			font-weight: bold;
 
-
 			&:before {
 				content: '';
 				background-color: ${({ colors }) => colors.alpha(colors.white, 0.02)};
@@ -457,14 +460,17 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		// Player needs rescue if they can't move due to insufficient fuel or no health
 		// Basic fuel consumption is 0.3 / fuelEfficiency (minimum to move one tile)
 		const basicFuelConsumption = player ? 0.3 / (player.fuelEfficiency || 1) : 0;
-		const needsRescue = (player?.fuel < basicFuelConsumption) || player?.health <= 0;
+		const needsRescue = player?.fuel < basicFuelConsumption || player?.health <= 0;
 
 		// Build buttons array - add rescue button if player needs rescue
 		const buttons = [];
 
 		if (needsRescue) {
 			buttons.push({
-				textContent: player.credits >= 50 ? 'SpaceCo Emergency Rescue ($50)' : 'SpaceCo Emergency Rescue ($50) - Insufficient Funds',
+				textContent:
+					player.credits >= 50
+						? 'SpaceCo Emergency Rescue ($50)'
+						: 'SpaceCo Emergency Rescue ($50) - Insufficient Funds',
 				addClass: ['rescueButton'],
 				disabled: player.credits < 50,
 			});
@@ -498,7 +504,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			appendTo: this._body,
 			tabs: menuViews,
 			selectedTab: currentView,
-			onTabClick: (tab) => {
+			onTabClick: tab => {
 				InfoButton.closeAllPopovers();
 				this.options.view = tab;
 			},
@@ -587,7 +593,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			appendTo: this._menuBody,
 			tabs: menuViews,
 			selectedTab: currentView,
-			onTabClick: (tab) => {
+			onTabClick: tab => {
 				this.options.view = `status_${tab}`;
 			},
 		});
@@ -615,9 +621,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				new List({
 					items: [
 						new Elem({
-						style: { display: 'flex', alignItems: 'center', gap: '6px' },
-						append: [new Elem({ content: 'Credits:' }), new PriceDisplay({ amount: player.credits, size: 14 })],
-					}),
+							style: { display: 'flex', alignItems: 'center', gap: '6px' },
+							append: [new Elem({ content: 'Credits:' }), new PriceDisplay({ amount: player.credits, size: 14 })],
+						}),
 						`Health: ${player.health}hp / ${player.maxHealth}hp (${convertRange(player.health, [0, player.maxHealth], [0, 100]).toFixed(1)}%)`,
 						`Fuel: ${player.fuel.toFixed(1)}l / ${player.maxFuel}l (${convertRange(player.fuel, [0, player.maxFuel], [0, 100]).toFixed(1)}%)`,
 						`Cargo: ${player.cargo.toFixed(2)}t / ${player.maxCargo}t (${convertRange(player.cargo, [0, player.maxCargo], [0, 100]).toFixed(1)}%)`,
@@ -1102,20 +1108,21 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								disabled: !canUse,
 							}),
 							// Add remote disarm button for void_detonator items
-							key.startsWith('void_detonator_') && new Button({
-								content: 'Remote Disarm',
-								variant: 'secondary',
-								onPointerPress: () => {
-									// Extract coordinates from void_detonator_x_y format
-									const coords = key.split('_');
-									const x = parseInt(coords[2], 10);
-									const y = parseInt(coords[3], 10);
+							key.startsWith('void_detonator_') &&
+								new Button({
+									content: 'Remote Disarm',
+									variant: 'secondary',
+									onPointerPress: () => {
+										// Extract coordinates from void_detonator_x_y format
+										const coords = key.split('_');
+										const x = parseInt(coords[2], 10);
+										const y = parseInt(coords[3], 10);
 
-									disarmBomb({ x, y });
-									Notify.success('Void implosion remotely disarmed');
-									this.close();
-								},
-							}),
+										disarmBomb({ x, y });
+										Notify.success('Void implosion remotely disarmed');
+										this.close();
+									},
+								}),
 						].filter(Boolean),
 					}),
 				];
@@ -1367,13 +1374,15 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile.body, appendTo: this._subMenuBody });
 	}
 
-	static handlers = {
-		view(value) {
-			this._body.empty();
+	static schema = {
+		view: {
+			set(value) {
+				this._body.empty();
 
-			this.renderMenu();
+				this.renderMenu();
 
-			this[`render_${value.toLowerCase()}`]();
+				this[`render_${value.toLowerCase()}`]();
+			},
 		},
 	};
 }

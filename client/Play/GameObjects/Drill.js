@@ -72,7 +72,7 @@ export class Drill extends Phaser.GameObjects.Sprite {
 			if (this.nameTag.visible) {
 				this.scene.tweens.add({ targets: this.nameTag, duration: speed, x: x - nameWidth / 2, y: y - 60 });
 			} else {
-				this.nameTag.x = x - (nameWidth / 2) - 2;
+				this.nameTag.x = x - nameWidth / 2 - 2;
 				this.nameTag.y = y - 62;
 			}
 		}

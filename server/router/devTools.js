@@ -1,5 +1,5 @@
-import { generateAsteroid } from '../generateAsteroid.js';
 import { requestMatch } from '@fatlard1993/web-game-framework/utils';
+import { generateAsteroid } from '../generateAsteroid.js';
 import { serverLog } from '../../utils/logger.js';
 
 /**
@@ -7,7 +7,7 @@ import { serverLog } from '../../utils/logger.js';
  * Only accessible when NODE_ENV === 'development'
  * @param request
  */
-export default async (request) => {
+export default async request => {
 	if (process.env.NODE_ENV !== 'development') {
 		return null; // Fall through to next router
 	}
