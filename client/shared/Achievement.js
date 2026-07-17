@@ -187,6 +187,10 @@ export class Achievement extends styled.Popover(
 		}
 	`,
 ) {
+	static schema = {
+		achievement: {},
+	};
+
 	build() {
 		if (gameContext.visibleAchievement) {
 			gameContext.achievementQueue.push(this.options.achievement);
@@ -217,6 +221,8 @@ export class Achievement extends styled.Popover(
 			return;
 		}
 
+		// Register the base Popover auto-open only when this instance will actually display
+		super.build();
 
 		gameContext.sounds.achievement.play({ volume: gameContext.volume.alerts });
 

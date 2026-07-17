@@ -1,6 +1,6 @@
 import { Link, styled, theme } from '@vanilla-bean/components';
 
-import View from './shared/View.js';
+import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import { LevelEditor } from './DevTools/LevelEditor';
 
 // Container styled to match other page containers (like ConsoleContainer)
@@ -19,9 +19,12 @@ const DevToolsContainer = styled.Component`
  * Only accessible in development mode
  */
 export default class DevTools extends View {
+	static schema = {
+		activeTab: { default: 'levelEditor' },
+	};
+
 	constructor(options) {
 		super({
-			activeTab: 'levelEditor',
 			...options,
 			toolbar: {
 				heading: 'SpaceCo // Development Console',
@@ -37,7 +40,6 @@ export default class DevTools extends View {
 	}
 
 	build() {
-
 		this.container = new DevToolsContainer({ appendTo: this._body });
 
 		this.renderTabContent(this.container);

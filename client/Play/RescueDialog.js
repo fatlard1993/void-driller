@@ -100,7 +100,10 @@ export default class RescueDialog extends (styled(BaseDialog)`
 				content: new Elem(
 					{ style: { display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' } },
 					new Elem({ content: 'Buy Remote Teleport (' }),
-					new PriceDisplay({ amount: getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost, size: 14 }),
+					new PriceDisplay({
+						amount: getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost,
+						size: 14,
+					}),
 					new Elem({ content: ')' }),
 				),
 				disabled: player.credits < getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost,
@@ -260,13 +263,15 @@ export default class RescueDialog extends (styled(BaseDialog)`
 		return null;
 	}
 
-	static handlers = {
-		view(value) {
-			this._body.empty();
+	static schema = {
+		view: {
+			set(value) {
+				this._body.empty();
 
-			this.renderMenu();
+				this.renderMenu();
 
-			this[`render_${value.toLowerCase()}`]();
+				this[`render_${value.toLowerCase()}`]();
+			},
 		},
 	};
 }

@@ -32,13 +32,7 @@ export default class BurgerTabs {
 			return;
 		}
 
-		const {
-			tabs = [],
-			selectedTab,
-			onTabClick,
-			isTabEmpty = () => false,
-			getTabClassName = () => '',
-		} = this.options;
+		const { tabs = [], selectedTab, onTabClick, isTabEmpty = () => false, getTabClassName = () => '' } = this.options;
 
 		console.log('BurgerTabs updateMenuButtons', { tabs, selectedTab, expanded: this._menuExpanded });
 

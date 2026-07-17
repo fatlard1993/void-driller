@@ -147,7 +147,6 @@ export default class DebugLog extends (styled.Component`
 	}
 
 	build() {
-
 		// Create header with controls
 		const header = document.createElement('div');
 		header.style.cssText = `

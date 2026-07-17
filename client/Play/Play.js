@@ -1,13 +1,17 @@
 import { Button, Dialog, Label, Input } from '@vanilla-bean/components';
 
+import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import Notify from '../shared/Notify';
-import View from '../shared/View.js';
 import { exitGame, getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import Game from './Game';
 import ConsoleDialog from './ConsoleDialog';
 
 export default class Play extends View {
+	static schema = {
+		gameId: {},
+	};
+
 	constructor(options, ...children) {
 		super(
 			{
@@ -18,7 +22,7 @@ export default class Play extends View {
 						new Button({
 							content: 'Abort Contract',
 							onPointerPress: () => {
-								this.options.removePlayerOnExit = true;
+								this.removePlayerOnExit = true;
 
 								gameContext.openDialog = new Dialog({
 									size: 'small',
@@ -27,7 +31,7 @@ export default class Play extends View {
 										{
 											label:
 												'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
-											inline: { after: true },
+											variant: 'inline-after',
 											styles: () => `
 												bottom: 48px;
 												position: absolute;
@@ -38,14 +42,14 @@ export default class Play extends View {
 											type: 'checkbox',
 											value: true,
 											onChange: ({ value }) => {
-												this.options.removePlayerOnExit = value;
+												this.removePlayerOnExit = value;
 											},
 										}),
 									),
 									buttons: ['Abort Contract', 'Cancel'],
 									onButtonPress: async ({ button, closeDialog }) => {
 										if (button === 'Abort Contract') {
-											if (this.options.removePlayerOnExit) {
+											if (this.removePlayerOnExit) {
 												const { response, body } = await exitGame();
 
 												if (response.status !== 200) {
@@ -101,10 +105,6 @@ export default class Play extends View {
 
 		this.game = await getGame(gameContext.gameId);
 
-		this.options.onDisconnected = () => {
-			this.game.unsubscribe();
-		};
-
 		if (this.game.response.status !== 200) {
 			new Notify({ type: 'error', content: this.game.body?.message || this.game.response.statusText });
 
@@ -123,7 +123,7 @@ export default class Play extends View {
 			return;
 		}
 
-		this._toolbar._heading.elem.textContent = this.game.body.name;
+		this._toolbar.options.heading = this.game.body.name;
 
 		new Game({ appendTo: this._body });
 	}

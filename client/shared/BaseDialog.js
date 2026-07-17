@@ -57,7 +57,7 @@ export default class BaseDialog extends StyledDialog {
 
 		// Prevent dialog clicks from propagating to Phaser canvas
 		// Use the same pattern as Achievement
-		this.options.onPointerDown = (event) => {
+		this.options.onPointerDown = event => {
 			if (event) {
 				event.stopPropagation();
 				// Don't preventDefault - we need buttons to work

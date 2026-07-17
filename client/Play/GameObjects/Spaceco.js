@@ -23,7 +23,7 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 			fontFamily: 'monospace',
 			fill: '#ffffff',
 			backgroundColor: 'hsl(209, 55%, 45%)',
-			padding: { x: 8, y: 4 }
+			padding: { x: 8, y: 4 },
 		});
 
 		this.tradeButton.visible = false;

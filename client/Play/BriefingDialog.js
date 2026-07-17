@@ -25,7 +25,9 @@ export default class BriefingDialog extends BaseDialog {
 	}
 
 	async _init() {
-		const helpFile = await GET(`docs/briefings/${encodeURIComponent(gameContext.serverState.world.name.replace(/:\s+/g, '_').replace(/\s+/g, '_'))}.md`);
+		const helpFile = await GET(
+			`docs/briefings/${encodeURIComponent(gameContext.serverState.world.name.replace(/:\s+/g, '_').replace(/\s+/g, '_'))}.md`,
+		);
 
 		if (!helpFile.response.ok) {
 			new Notify({

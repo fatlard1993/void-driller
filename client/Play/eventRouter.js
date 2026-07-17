@@ -4,19 +4,27 @@
  * Complete replacement for socketRouter/* files
  * All game events handled through EventRouter pattern
  */
-import { createClientEventRouter, createValidationMiddleware, createLoggingMiddleware } from '@fatlard1993/web-game-framework/client';
+import {
+	createClientEventRouter,
+	createValidationMiddleware,
+	createLoggingMiddleware,
+} from '@fatlard1993/web-game-framework/client';
 import { randInt } from '@vanilla-bean/components';
 
 import gameContext from '../shared/gameContext';
-import { destroyGround, explode, implode } from './effects';
-import { Drill, Item, Gas, Lava } from './GameObjects';
-import { createAlien } from './GameObjects/aliens';
 import { Achievement } from '../shared/Achievement';
 import Notify from '../shared/Notify';
-import TradeDialog from './TradeDialog';
 import { vehicles, drills } from '../../constants';
+import { destroyGround, explode, implode } from './effects';
+import { Drill, Gas, Lava } from './GameObjects';
+import { createAlien } from './GameObjects/aliens';
+import TradeDialog from './TradeDialog';
 
 // Helper function to check resource alerts
+/**
+ *
+ * @param player
+ */
 function checkResourceAlerts(player) {
 	if (!player || player.id !== gameContext.playerId) return;
 
@@ -110,7 +118,7 @@ export function setupEventRouter() {
 	router.use(
 		createValidationMiddleware({
 			requiredFields: ['id', 'update'],
-		})
+		}),
 	);
 
 	// Add logging middleware (only for development)
@@ -118,13 +126,13 @@ export function setupEventRouter() {
 		router.use(
 			createLoggingMiddleware({
 				exclude: ['playerMove'], // Don't log every movement
-			})
+			}),
 		);
 	}
 
 	// === Player Events ===
 
-	router.on('playerMove', (data) => {
+	router.on('playerMove', data => {
 		let player = gameContext.players.get(data.player.id);
 
 		if (!player?.sprite) {
@@ -134,7 +142,7 @@ export function setupEventRouter() {
 				data.player.position.y,
 				data.player.orientation,
 				gameContext.serverState.world.vehicles[data.player.configuration.vehicle].spriteIndex,
-				gameContext.serverState.world.drills[data.player.configuration.drill].spriteIndex
+				gameContext.serverState.world.drills[data.player.configuration.drill].spriteIndex,
 			);
 
 			gameContext.players.set(data.player.id, { ...player, ...data.player, sprite });
@@ -167,7 +175,7 @@ export function setupEventRouter() {
 		gameContext.serverState.world.grid[player.position.x][player.position.y].items = [];
 	});
 
-	router.on('addPlayer', (data) => {
+	router.on('addPlayer', data => {
 		console.log('🎮 addPlayer event received:', data.newPlayer);
 
 		const sprite = new Drill(
@@ -176,7 +184,7 @@ export function setupEventRouter() {
 			data.newPlayer.position.y,
 			data.newPlayer.orientation,
 			vehicles[data.newPlayer.configuration.vehicle].spriteIndex,
-			drills[data.newPlayer.configuration.drill].spriteIndex
+			drills[data.newPlayer.configuration.drill].spriteIndex,
 		);
 
 		gameContext.players.set(data.newPlayer.id, { ...data.newPlayer, sprite });
@@ -187,7 +195,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('removePlayer', (data) => {
+	router.on('removePlayer', data => {
 		const player = gameContext.players.get(data.id);
 
 		if (player?.sprite?.scene) {
@@ -197,8 +205,8 @@ export function setupEventRouter() {
 		gameContext.players.delete(data.id);
 	});
 
-	router.on('hurtPlayers', (data) => {
-		data.players.forEach((playerData) => {
+	router.on('hurtPlayers', data => {
+		data.players.forEach(playerData => {
 			const player = gameContext.players.get(playerData.id);
 			if (player) {
 				gameContext.players.set(playerData.id, { ...player, ...playerData });
@@ -213,35 +221,35 @@ export function setupEventRouter() {
 		});
 	});
 
-	router.on('useItem', (data) => {
+	router.on('useItem', data => {
 		if (data.playerId === gameContext.playerId && data.updates) {
-			gameContext.players.update(data.playerId, (_) => ({ ..._, ...data.updates }));
+			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 			checkResourceAlerts(gameContext.players.get(data.playerId));
 		}
 	});
 
-	router.on('playerFall', (data) => {
-		gameContext.players.update(data.playerId, (_) => ({ ..._, position: data.position }));
+	router.on('playerFall', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, position: data.position }));
 	});
 
-	router.on('updatePlayer', (data) => {
-		gameContext.players.update(data.playerId, (_) => ({ ..._, ...data.updates }));
+	router.on('updatePlayer', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 	});
 
-	router.on('playerMovementComplete', (data) => {
+	router.on('playerMovementComplete', data => {
 		const player = gameContext.players.get(data.playerId);
 		if (player) {
 			gameContext.players.set(data.playerId, { ...player, moving: false });
 		}
 	});
 
-	router.on('playerCantMove', (data) => {
+	router.on('playerCantMove', data => {
 		if (data.playerId === gameContext.playerId) {
 			new Notify({ type: 'error', content: data.reason || 'Cannot move there', timeout: 2000 });
 		}
 	});
 
-	router.on('playerMovementInterrupted', (data) => {
+	router.on('playerMovementInterrupted', data => {
 		const player = gameContext.players.get(data.playerId);
 		if (player) {
 			gameContext.players.set(data.playerId, { ...player, moving: false, position: data.position });
@@ -251,13 +259,13 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('playerMovementError', (data) => {
+	router.on('playerMovementError', data => {
 		if (data.playerId === gameContext.playerId) {
 			new Notify({ type: 'error', content: data.error || 'Movement failed', timeout: 2000 });
 		}
 	});
 
-	router.on('achievement', (data) => {
+	router.on('achievement', data => {
 		new Achievement({ achievement: data.achievement });
 
 		const player = gameContext.players.get(data.playerId);
@@ -273,8 +281,8 @@ export function setupEventRouter() {
 
 	// === SpaceCo Events ===
 
-	router.on('spacecoBuyTransport', (data) => {
-		gameContext.players.update(data.playerId, (_) => ({ ..._, ...data.updates }));
+	router.on('spacecoBuyTransport', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
 		if (data.playerId === gameContext.playerId) {
 			const updatedPlayer = gameContext.players.get(data.playerId);
@@ -293,7 +301,7 @@ export function setupEventRouter() {
 			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
 
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
-				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70))
+				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 			);
 
 			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
@@ -326,7 +334,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('spacecoAchievement', (data) => {
+	router.on('spacecoAchievement', data => {
 		new Achievement({ achievement: data.achievement });
 
 		gameContext.serverState.world.spaceco.achievements = data.spaceco.achievements;
@@ -334,12 +342,12 @@ export function setupEventRouter() {
 		gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
 	});
 
-	router.on('spacecoFall', (data) => {
+	router.on('spacecoFall', data => {
 		gameContext.serverState.world.spaceco.position = data.position;
 		gameContext.serverState.world.spaceco.health = data.health;
 	});
 
-	router.on('spacecoEggSubmission', (data) => {
+	router.on('spacecoEggSubmission', data => {
 		if (data.spaceco) {
 			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
 			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
@@ -348,11 +356,13 @@ export function setupEventRouter() {
 
 	// === World Events ===
 
-	router.on('dissipateGas', (data) => {
-		data.addedGas.forEach((gas) => {
+	router.on('dissipateGas', data => {
+		data.addedGas.forEach(gas => {
 			const sprite = new Gas(gameContext.scene, gas.x, gas.y, 'fill');
 
-			gameContext.serverState.world.grid[gas.x][gas.y].hazards = gameContext.serverState.world.grid[gas.x][gas.y].hazards.filter((hazard) => {
+			gameContext.serverState.world.grid[gas.x][gas.y].hazards = gameContext.serverState.world.grid[gas.x][
+				gas.y
+			].hazards.filter(hazard => {
 				if (hazard.type === 'alien') {
 					gameContext.scene.sound.play('hurt_chomper', { volume: gameContext.volume.effects });
 					hazard.sprite.destroy();
@@ -365,10 +375,10 @@ export function setupEventRouter() {
 			gameContext.sceneLayers.hazards.add(sprite);
 		});
 
-		data.removedGas.forEach((gas) => {
+		data.removedGas.forEach(gas => {
 			const updatedHazards = [];
 
-			gameContext.serverState.world.grid[gas.x][gas.y].hazards.forEach((hazard) => {
+			gameContext.serverState.world.grid[gas.x][gas.y].hazards.forEach(hazard => {
 				if (hazard.type === 'gas') hazard.sprite.dissipate();
 				else updatedHazards.push(hazard);
 			});
@@ -377,11 +387,13 @@ export function setupEventRouter() {
 		});
 	});
 
-	router.on('spillLava', (data) => {
-		data.addedLava.forEach((lava) => {
+	router.on('spillLava', data => {
+		data.addedLava.forEach(lava => {
 			const sprite = new Lava(gameContext.scene, lava.x, lava.y, 'fill');
 
-			gameContext.serverState.world.grid[lava.x][lava.y].hazards = gameContext.serverState.world.grid[lava.x][lava.y].hazards.filter((hazard) => {
+			gameContext.serverState.world.grid[lava.x][lava.y].hazards = gameContext.serverState.world.grid[lava.x][
+				lava.y
+			].hazards.filter(hazard => {
 				if (hazard.type === 'alien') {
 					gameContext.scene.sound.play('hurt_chomper', { volume: gameContext.volume.effects });
 					hazard.sprite.destroy();
@@ -394,10 +406,10 @@ export function setupEventRouter() {
 			gameContext.sceneLayers.hazards.add(sprite);
 		});
 
-		data.removedLava.forEach((lava) => {
+		data.removedLava.forEach(lava => {
 			const updatedHazards = [];
 
-			gameContext.serverState.world.grid[lava.x][lava.y].hazards.forEach((hazard) => {
+			gameContext.serverState.world.grid[lava.x][lava.y].hazards.forEach(hazard => {
 				if (hazard.type === 'lava') hazard.sprite.dissipate();
 				else updatedHazards.push(hazard);
 			});
@@ -406,9 +418,9 @@ export function setupEventRouter() {
 		});
 	});
 
-	router.on('alien_wake', (data) => {
+	router.on('alien_wake', data => {
 		const alien = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.find(
-			(hazard) => hazard.type === 'alien' && hazard.name === data.alien
+			hazard => hazard.type === 'alien' && hazard.name === data.alien,
 		);
 
 		if (!alien?.sprite) return;
@@ -418,17 +430,17 @@ export function setupEventRouter() {
 		if (data.move) {
 			alien.sprite.move(data.move, 500, data.orientation);
 
-			gameContext.serverState.world.grid[data.position.x][data.position.y].hazards = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.filter(
-				(hazard) => !(hazard.type === 'alien' && hazard.name === data.alien)
-			);
+			gameContext.serverState.world.grid[data.position.x][data.position.y].hazards = gameContext.serverState.world.grid[
+				data.position.x
+			][data.position.y].hazards.filter(hazard => !(hazard.type === 'alien' && hazard.name === data.alien));
 
 			gameContext.serverState.world.grid[data.move.x][data.move.y].hazards.push(alien);
 		}
 	});
 
-	router.on('alien_sleep', (data) => {
+	router.on('alien_sleep', data => {
 		const alien = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.find(
-			(hazard) => hazard.type === 'alien' && hazard.name === data.name
+			hazard => hazard.type === 'alien' && hazard.name === data.name,
 		);
 
 		if (!alien?.sprite) return;
@@ -436,15 +448,17 @@ export function setupEventRouter() {
 		alien.sprite.sleep();
 	});
 
-	router.on('alien_attack', (data) => {
-		const alien = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.find((hazard) => hazard.type === 'alien');
+	router.on('alien_attack', data => {
+		const alien = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.find(
+			hazard => hazard.type === 'alien',
+		);
 
 		if (!alien?.sprite) return;
 
 		alien.sprite.attack?.();
 
 		if (data.playerUpdates && data.playerId === gameContext.playerId) {
-			gameContext.players.update(data.playerId, (_) => ({
+			gameContext.players.update(data.playerId, _ => ({
 				..._,
 				...data.playerUpdates,
 				hull: { ..._.hull, ...(data.playerUpdates?.hull || {}) },
@@ -455,23 +469,23 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('alien_message', (data) => {
+	router.on('alien_message', data => {
 		if (data.targetPlayerId === gameContext.playerId) {
 			new Notify({ type: 'tip', textContent: `Alien ${data.name} says: ${data.message}`, timeout: 3000 });
 		}
 	});
 
-	router.on('alien_move', (data) => {
+	router.on('alien_move', data => {
 		const oldAlien = gameContext.serverState.world.grid[data.from.x][data.from.y].hazards.find(
-			(hazard) => hazard.type === 'alien' && hazard.name === data.name
+			hazard => hazard.type === 'alien' && hazard.name === data.name,
 		);
 
 		if (oldAlien?.sprite) {
 			oldAlien.sprite.move(data.to, 500, data.orientation);
 
-			gameContext.serverState.world.grid[data.from.x][data.from.y].hazards = gameContext.serverState.world.grid[data.from.x][data.from.y].hazards.filter(
-				(hazard) => !(hazard.type === 'alien' && hazard.name === data.name)
-			);
+			gameContext.serverState.world.grid[data.from.x][data.from.y].hazards = gameContext.serverState.world.grid[
+				data.from.x
+			][data.from.y].hazards.filter(hazard => !(hazard.type === 'alien' && hazard.name === data.name));
 
 			if (!gameContext.serverState.world.grid[data.to.x]) {
 				gameContext.serverState.world.grid[data.to.x] = [];
@@ -487,7 +501,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('alien_spawn', (data) => {
+	router.on('alien_spawn', data => {
 		const { spawnPosition, spawnType, spawnTarget } = data;
 
 		if (spawnType === 'alien') {
@@ -509,11 +523,11 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('explodeBomb', (data) => {
+	router.on('explodeBomb', data => {
 		explode({ position: data.position, radius: data.radius });
 	});
 
-	router.on('explodeImplosion', (data) => {
+	router.on('explodeImplosion', data => {
 		implode({
 			position: data.position,
 			radius: data.radius,
@@ -536,7 +550,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('groundEffect', (data) => {
+	router.on('groundEffect', data => {
 		if (data.type === 'gasRelease') {
 			gameContext.scene.sound.play('psykick_attack', {
 				volume: gameContext.volume.effects * 0.6,
@@ -586,7 +600,7 @@ export function setupEventRouter() {
 
 	// === Trade Events ===
 
-	router.on('tradeSessionStarted', (data) => {
+	router.on('tradeSessionStarted', data => {
 		const { trade, player1Name, player2Name } = data;
 
 		const isPlayer1 = trade.player1Id === gameContext.playerId;
@@ -627,7 +641,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('tradeUpdated', (data) => {
+	router.on('tradeUpdated', data => {
 		const { trade, updatedBy } = data;
 
 		if (gameContext.openDialog instanceof TradeDialog && gameContext.openDialog.tradeSession?.id === trade.id) {
@@ -644,7 +658,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('tradeAcceptanceChanged', (data) => {
+	router.on('tradeAcceptanceChanged', data => {
 		const { tradeId, playerId, player1Accepted, player2Accepted } = data;
 
 		if (gameContext.openDialog instanceof TradeDialog && gameContext.openDialog.tradeSession?.id === tradeId) {
@@ -666,11 +680,11 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('tradeCompleted', (data) => {
+	router.on('tradeCompleted', data => {
 		const { player1Id, player2Id, player1Updates, player2Updates } = data;
 
 		if (player1Id === gameContext.playerId) {
-			gameContext.players.update(player1Id, (player) => ({
+			gameContext.players.update(player1Id, player => ({
 				...player,
 				...player1Updates,
 			}));
@@ -681,7 +695,7 @@ export function setupEventRouter() {
 				timeout: 3000,
 			});
 		} else if (player2Id === gameContext.playerId) {
-			gameContext.players.update(player2Id, (player) => ({
+			gameContext.players.update(player2Id, player => ({
 				...player,
 				...player2Updates,
 			}));
@@ -694,13 +708,13 @@ export function setupEventRouter() {
 		}
 
 		if (player1Id !== gameContext.playerId) {
-			gameContext.players.update(player1Id, (player) => ({
+			gameContext.players.update(player1Id, player => ({
 				...player,
 				...player1Updates,
 			}));
 		}
 		if (player2Id !== gameContext.playerId) {
-			gameContext.players.update(player2Id, (player) => ({
+			gameContext.players.update(player2Id, player => ({
 				...player,
 				...player2Updates,
 			}));
@@ -715,7 +729,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('tradeFailed', (data) => {
+	router.on('tradeFailed', data => {
 		const { error, player1Id, player2Id } = data;
 
 		if (player1Id === gameContext.playerId || player2Id === gameContext.playerId) {
@@ -731,7 +745,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('tradeCancelled', (data) => {
+	router.on('tradeCancelled', data => {
 		const { cancelledBy, player1Id, player2Id } = data;
 
 		if (cancelledBy === gameContext.playerId) {

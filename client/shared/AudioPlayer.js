@@ -138,7 +138,6 @@ class AudioPlayer extends styled.Component(
 	}
 
 	build() {
-
 		// Title text
 		this.titleElem = new Elem({
 			appendTo: this,

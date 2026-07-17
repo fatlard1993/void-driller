@@ -475,9 +475,7 @@ export const playerAchievements = [
 		flavor: 'Fuel reserves fully depleted. Emergency protocols engaged.',
 		hidden: true, // Reveals failure state mechanic
 		trigger: { type: 'playerCantMove', check: ({ player }) => player.stats.outOfFuelEvents >= 1 },
-		awards: [
-			['xp', 30],
-		],
+		awards: [['xp', 30]],
 	},
 	{
 		id: 'emergency_evacuation',

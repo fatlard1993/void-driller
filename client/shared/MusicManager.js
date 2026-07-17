@@ -180,7 +180,7 @@ export default class MusicManager {
 	_playOutro() {
 		console.log('[MusicManager] _playOutro called', {
 			hasOutro: !!this.config?.outro,
-			outroConfig: this.config?.outro
+			outroConfig: this.config?.outro,
 		});
 
 		if (!this.config.outro) {
@@ -263,7 +263,7 @@ export default class MusicManager {
 			duration: duration,
 			onComplete: () => {
 				this.stop();
-			}
+			},
 		});
 	}
 
@@ -281,7 +281,7 @@ export default class MusicManager {
 		this.scene.tweens.add({
 			targets: this.currentSound,
 			volume: target,
-			duration: duration
+			duration: duration,
 		});
 	}
 
@@ -296,7 +296,7 @@ export default class MusicManager {
 		console.log('[MusicManager] playTransportTransition called', {
 			isPlaying: this.isPlaying,
 			currentSection: this.currentSection,
-			hasOutro: !!this.config?.outro
+			hasOutro: !!this.config?.outro,
 		});
 
 		// Load transition music if needed
@@ -368,7 +368,7 @@ export default class MusicManager {
 		});
 
 		transitionSound.play({
-			volume: gameContext.volume.music
+			volume: gameContext.volume.music,
 		});
 
 		console.log('[MusicManager] Transport transition sound started, duration:', transitionSound.duration);

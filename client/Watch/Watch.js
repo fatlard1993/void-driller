@@ -1,11 +1,15 @@
 import { Link } from '@vanilla-bean/components';
-import View from '../shared/View.js';
+import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import Notify from '../shared/Notify';
 import { getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import WatchGame from './WatchGame';
 
 export default class Watch extends View {
+	static schema = {
+		gameId: {},
+	};
+
 	constructor(options, ...children) {
 		super(
 			{
@@ -45,10 +49,6 @@ export default class Watch extends View {
 
 		this.game = await getGame(gameContext.gameId);
 
-		this.options.onDisconnected = () => {
-			this.game.unsubscribe();
-		};
-
 		if (this.game.response.status !== 200) {
 			new Notify({ type: 'error', content: this.game.body?.message || this.game.response.statusText });
 
@@ -59,7 +59,7 @@ export default class Watch extends View {
 
 		gameContext.serverState = this.game.body;
 
-		this._toolbar._heading.elem.textContent = `Watch Mode - ${this.game.body.name}`;
+		this._toolbar.options.heading = `Watch Mode - ${this.game.body.name}`;
 
 		new WatchGame({ appendTo: this._body });
 	}
