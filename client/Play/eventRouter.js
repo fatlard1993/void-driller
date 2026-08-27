@@ -346,12 +346,48 @@ export function setupEventRouter() {
 	router.on('spacecoFall', data => {
 		gameContext.serverState.world.spaceco.position = data.position;
 		gameContext.serverState.world.spaceco.health = data.health;
-	});
 
-	router.on('spacecoEggSubmission', data => {
 		if (data.spaceco) {
 			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
 			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+			if (data.spaceco.health !== undefined) {
+				gameContext.serverState.world.spaceco.health = data.spaceco.health;
+			}
+		}
+
+		// The visible half the migration stub dropped: the outpost actually
+		// falling - without it the sprite floats over the hole until reload
+		gameContext.spaceco.fall(data.position);
+	});
+
+	router.on('spacecoEggSubmission', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		if (!gameContext.serverState.world.spaceco.eggHunt) {
+			gameContext.serverState.world.spaceco.eggHunt = {
+				totalEggsSubmitted: 0,
+				playerSubmissions: new Map(),
+			};
+		}
+		gameContext.serverState.world.spaceco.eggHunt.totalEggsSubmitted = data.totalEggsSubmitted;
+		gameContext.serverState.world.spaceco.eggHunt.playerSubmissions.set(data.playerId, data.playerSubmissions);
+
+		if (data.spaceco) {
+			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
+			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+		}
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		gameContext.sounds.psykick_attack.play({ volume: gameContext.volume.effects * 0.7 });
+		new Notify({
+			type: 'success',
+			content: `Submitted ${data.count} psykick egg${data.count > 1 ? 's' : ''} to the endgame hunt!`,
+			timeout: 2000,
+		});
+		gameContext.spaceco.dialog.options.view = 'shop_Player';
+		if (gameContext.spaceco.dialog?.render) {
+			gameContext.spaceco.dialog.render();
 		}
 	});
 
