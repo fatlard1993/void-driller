@@ -1039,7 +1039,7 @@ const addToManualPath = (player, position, grid) => {
 	return true;
 };
 
-export const onPointerDown = pointer => {
+export const onPointerDown = (pointer, gameObjects = []) => {
 	// Don't process pointer events if a dialog exists or transitioning worlds
 	// Note: We check if openDialog exists, not if it's open, because the close click
 	// happens while the dialog is closing (elem.open becomes false immediately)
@@ -1048,6 +1048,20 @@ export const onPointerDown = pointer => {
 	}
 
 	const player = gameContext.players.currentPlayer;
+
+	// Don't interfere with UI buttons - the same guard onPointerMove has
+	// always had; without it a Trade button over drivable ground opened the
+	// dialog AND drove the pod to the tile underneath it
+	if (
+		gameObjects.some(
+			one =>
+				one === gameContext.spaceco.tradeButton ||
+				one === player?.sprite?.tradeButton ||
+				one === player?.sprite?.bombButton ||
+				one === player?.sprite?.teleportButton,
+		)
+	)
+		return;
 
 	if (player?.moving) {
 		// Track click attempts while moving for manual recovery
