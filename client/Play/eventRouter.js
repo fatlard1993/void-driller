@@ -289,23 +289,55 @@ export function setupEventRouter() {
 		}
 	});
 
+	// Every rejection path clears the local movement flags (moving,
+	// _movingStartTime, _stuckClickCount) the way the old socketRouter did -
+	// the stubs left them set, so one refused path swallowed every click
+	// after it until a reload resynced.
+	const clearMovementState = playerId =>
+		gameContext.players.update(playerId, _ => ({
+			..._,
+			moving: false,
+			_movingStartTime: null,
+			_stuckClickCount: 0,
+		}));
+
 	router.on('playerCantMove', data => {
+		clearMovementState(data.playerId);
+
 		if (data.playerId === gameContext.playerId) {
 			new Notify({ type: 'error', content: data.reason || 'Cannot move there', timeout: 2000 });
 		}
 	});
 
+	router.on('invalidMovement', data => {
+		clearMovementState(data.playerId);
+
+		if (data.playerId === gameContext.playerId) {
+			new Notify({ type: 'warning', content: data.reason || 'Path blocked', timeout: 2000 });
+		}
+	});
+
 	router.on('playerMovementInterrupted', data => {
-		const player = gameContext.players.get(data.playerId);
-		if (player) {
-			gameContext.players.set(data.playerId, { ...player, moving: false, position: data.position });
-			if (data.playerId === gameContext.playerId) {
-				new Notify({ type: 'warning', content: data.reason || 'Movement interrupted', timeout: 2000 });
+		clearMovementState(data.playerId);
+		if (data.position) {
+			gameContext.players.update(data.playerId, _ => ({ ..._, position: data.position }));
+		}
+
+		if (data.playerId === gameContext.playerId) {
+			new Notify({ type: 'warning', content: data.reason || 'Movement interrupted', timeout: 2000 });
+
+			// The stranded-pod lifeline the migration dropped
+			if (['no_fuel', 'no_health'].includes(data.reason)) {
+				import('./RescueDialog.js').then(module => {
+					gameContext.openDialog = new module.default();
+				});
 			}
 		}
 	});
 
 	router.on('playerMovementError', data => {
+		clearMovementState(data.playerId);
+
 		if (data.playerId === gameContext.playerId) {
 			new Notify({ type: 'error', content: data.error || 'Movement failed', timeout: 2000 });
 		}
