@@ -23,7 +23,7 @@ export default class WatchGame extends (styled.Component`
 		super({ ...options, autoRender: false });
 
 		gameContext.game = new Phaser.Game({
-			type: Phaser.WEBGL,
+			type: Phaser.AUTO,
 			parent: this.elem,
 			width: window.innerWidth,
 			height: window.innerHeight - 78,

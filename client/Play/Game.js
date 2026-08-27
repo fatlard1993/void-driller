@@ -34,7 +34,7 @@ export default class Game extends (styled.Component`
 
 		try {
 			gameContext.game = new Phaser.Game({
-				type: Phaser.WEBGL,
+				type: Phaser.AUTO,
 				parent: this.elem,
 				width: window.innerWidth,
 				height: window.innerHeight - 78,
