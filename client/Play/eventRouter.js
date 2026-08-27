@@ -15,6 +15,7 @@ import gameContext from '../shared/gameContext';
 import { Achievement } from '../shared/Achievement';
 import Notify from '../shared/Notify';
 import { vehicles, drills } from '../../constants';
+import { gridToPxPosition } from '../../utils';
 import { destroyGround, explode, implode } from './effects';
 import { Drill, Gas, Lava } from './GameObjects';
 import { createAlien } from './GameObjects/aliens';
@@ -351,6 +352,156 @@ export function setupEventRouter() {
 		if (data.spaceco) {
 			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
 			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+		}
+	});
+
+	// The commerce handlers below were ported from the deleted
+	// socketRouter/spaceco.js (ae7e4b9) - the eventRouter migration brought
+	// movement, aliens, and trades across but left the whole shop behind:
+	// every purchase applied server-side and echoed into a void.
+	// State updates apply for any player; sounds, toasts, and dialog moves
+	// only for the one at the register.
+
+	const updateSpacecoState = data => {
+		if (!data.spaceco) return;
+		gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
+		gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+		if (data.spaceco.hull) gameContext.serverState.world.spaceco.hull = data.spaceco.hull;
+		if (data.spaceco.shop) gameContext.serverState.world.spaceco.shop = data.spaceco.shop;
+		if (data.spaceco.health !== undefined) gameContext.serverState.world.spaceco.health = data.spaceco.health;
+	};
+
+	const playRegisterFeedback = (count, { content = 'Thank you!', timeout = 1000 } = {}) => {
+		[...Array(randInt(2, Math.min(100, Math.max(3, count))))].forEach((_, index) =>
+			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+		);
+		gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
+		new Notify({ type: 'success', content, timeout });
+	};
+
+	router.on('spacecoSell', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.gain / 10);
+		gameContext.spaceco.dialog.options.view = 'sell';
+	});
+
+	router.on('spacecoRefuel', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		gameContext.players.get(data.playerId).sprite.updateStatusBars();
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'refuel';
+		gameContext.dismissedAlerts.fuel = false;
+	});
+
+	router.on('spacecoRepair', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.type === 'outpost') {
+			if (!data.spaceco || data.spaceco.health === undefined) {
+				gameContext.serverState.world.spaceco.health = 9;
+			}
+			gameContext.spaceco.hurt();
+		}
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		if (data.type === 'player') {
+			gameContext.players.get(data.playerId).sprite.updateStatusBars();
+			checkResourceAlerts(gameContext.players.get(data.playerId));
+			gameContext.dismissedAlerts.health = false;
+		}
+
+		[...Array(randInt(2, Math.min(100, Math.max(3, data.purchasedRepairs))))].forEach((_, index) =>
+			setTimeout(() => gameContext.sounds.heal.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+		);
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'repair';
+	});
+
+	router.on('spacecoBuyItem', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'shop';
+	});
+
+	router.on('spacecoSellItem', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		[...Array(randInt(1, Math.min(50, Math.max(2, data.sellValue))))].forEach((_, index) =>
+			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(50, 90)),
+		);
+		new Notify({ type: 'success', content: `Sold for $${data.sellValue}!`, timeout: 1500 });
+		gameContext.spaceco.dialog.options.view = 'shop_Player';
+	});
+
+	router.on('spacecoBuyUpgrade', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+		if (data.spaceco?.[data.type]) {
+			gameContext.serverState.world.spaceco[data.type] = data.spaceco[data.type];
+		}
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		gameContext.players.get(data.playerId).sprite.updateStatusBars();
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'upgrade';
+		gameContext.dismissedAlerts = {};
+	});
+
+	router.on('spacecoRelocate', data => {
+		gameContext.serverState.world.spaceco.position = data.newPosition;
+
+		gameContext.scene.tweens.add({
+			targets: gameContext.spaceco,
+			duration: 1000,
+			x: gridToPxPosition(data.newPosition.x),
+			y: gridToPxPosition(data.newPosition.y),
+			ease: 'Power2.easeInOut',
+			onComplete: () => {
+				gameContext.spaceco.updateStatusBars({ position: data.newPosition });
+				gameContext.spaceco.checkForNearbyPlayer();
+				gameContext.sounds.teleport.play({ volume: gameContext.volume.effects });
+			},
+		});
+
+		gameContext.scene.tweens.add({
+			targets: [gameContext.spaceco.healthBar, gameContext.spaceco.healthBarFrame],
+			duration: 1000,
+			x: gridToPxPosition(data.newPosition.x),
+			y: gridToPxPosition(data.newPosition.y) - 136,
+			ease: 'Power2.easeInOut',
+		});
+	});
+
+	router.on('spacecoHazardDamage', data => {
+		gameContext.serverState.world.spaceco.position = data.position;
+		gameContext.serverState.world.spaceco.health = data.health;
+		updateSpacecoState(data);
+
+		if (gameContext.spaceco?.hurt) {
+			gameContext.spaceco.hurt();
 		}
 	});
 
