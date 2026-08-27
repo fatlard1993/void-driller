@@ -17,7 +17,7 @@ import Notify from '../shared/Notify';
 import { vehicles, drills } from '../../constants';
 import { gridToPxPosition } from '../../utils';
 import { destroyGround, explode, implode } from './effects';
-import { Drill, Gas, Lava } from './GameObjects';
+import { Drill, Gas, Item, Lava } from './GameObjects';
 import { createAlien } from './GameObjects/aliens';
 import TradeDialog from './TradeDialog';
 
@@ -222,15 +222,60 @@ export function setupEventRouter() {
 		});
 	});
 
+	// Ported from the deleted socketRouter/player.js (ae7e4b9) - the
+	// migration's stub applied self-updates and dropped every visible
+	// effect: teleports, station placement, heal sounds, bomb sprites.
 	router.on('useItem', data => {
-		if (data.playerId === gameContext.playerId && data.updates) {
-			gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-			checkResourceAlerts(gameContext.players.get(data.playerId));
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		const updatedPlayer = gameContext.players.get(data.playerId);
+		checkResourceAlerts(updatedPlayer);
+
+		if (data.playerId === gameContext.playerId && gameContext.statusBarHUD) {
+			gameContext.statusBarHUD.update(updatedPlayer);
+		}
+
+		if (data.item === 'spaceco_teleporter' || data.item.startsWith('activated_teleporter')) {
+			gameContext.players.get(data.playerId).sprite.teleport(data.updates.position, 1000);
+
+			if (data.item.startsWith('activated_teleporter')) {
+				gameContext.serverState.world.grid[data.stationPosition.x][data.stationPosition.y].items =
+					gameContext.serverState.world.grid[data.stationPosition.x][data.stationPosition.y].items.filter(item => {
+						if (item.name !== 'teleport_station') return true;
+
+						if (item.sprite?.scene) item.sprite.destroy();
+					});
+			}
+		} else if (data.item === 'repair_nanites') {
+			[...Array(randInt(2, 40))].forEach((_, index) =>
+				setTimeout(() => gameContext.sounds.heal.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+			);
+			const player = gameContext.players.get(data.playerId);
+
+			player.sprite.move(player.position, 0, player.orientation);
+		} else if (data.item === 'advanced_teleporter') {
+			const sprite = new Item(gameContext.scene, data.stationPosition.x, data.stationPosition.y, 'teleport_station');
+
+			gameContext.serverState.world.grid[data.stationPosition.x][data.stationPosition.y].items.push({
+				name: 'teleport_station',
+				sprite,
+			});
+		} else if (data.item === 'timed_charge' || data.item === 'remote_charge') {
+			const sprite = new Item(gameContext.scene, data.bombPosition.x, data.bombPosition.y, data.item);
+
+			gameContext.serverState.world.grid[data.bombPosition.x][data.bombPosition.y].items.push({
+				name: data.item,
+				sprite,
+			});
 		}
 	});
 
 	router.on('playerFall', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, position: data.position }));
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		// The stub read data.position (never sent) and skipped the fall
+		// animation entirely
+		gameContext.players.get(data.playerId).sprite.fall(data.updates.position);
 	});
 
 	router.on('updatePlayer', data => {
@@ -267,7 +312,12 @@ export function setupEventRouter() {
 	});
 
 	router.on('achievement', data => {
-		new Achievement({ achievement: data.achievement });
+		// The popup belongs to the earner alone (the guard the migration
+		// dropped - ben's badges were drawing on other players' screens);
+		// the stat updates below still apply for everyone
+		if (data.playerId === gameContext.playerId) {
+			new Achievement({ achievement: data.achievement });
+		}
 
 		const player = gameContext.players.get(data.playerId);
 		if (player) {
