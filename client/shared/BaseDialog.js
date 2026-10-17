@@ -28,6 +28,25 @@ const StyledDialog = styled(Dialog)`
 	}
 `;
 
+/**
+ * Gives game input back once a dialog closes, however it closes. openDialog stays set a moment longer, so the press that
+ * closed the dialog doesn't reach the game behind it.
+ * @param {object} dialog - A dialog assigned to gameContext.openDialog
+ * @returns {object} The dialog
+ */
+export const releaseInputOnClose = dialog => {
+	dialog.on({
+		targetEvent: 'close',
+		id: 'releaseInput',
+		callback: () =>
+			setTimeout(() => {
+				if (gameContext.openDialog === dialog) gameContext.openDialog = null;
+			}, 100),
+	});
+
+	return dialog;
+};
+
 export default class BaseDialog extends StyledDialog {
 	constructor(options = {}) {
 		// Default configuration for all game dialogs
@@ -64,15 +83,7 @@ export default class BaseDialog extends StyledDialog {
 			}
 		};
 
-		// Keep openDialog set briefly after closing, to block pointer events
-		this.on({
-			targetEvent: 'close',
-			id: 'clearOpenDialog',
-			callback: () =>
-				setTimeout(() => {
-					if (gameContext.openDialog === this) gameContext.openDialog = null;
-				}, 100),
-		});
+		releaseInputOnClose(this);
 
 		// Play dialog sound effect
 		this.playDialogSound();
