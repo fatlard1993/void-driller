@@ -740,7 +740,7 @@ export function setupEventRouter() {
 
 	router.on('alien_message', data => {
 		if (data.targetPlayerId === gameContext.playerId) {
-			new Notify({ type: 'tip', textContent: `Alien ${data.name} says: ${data.message}`, timeout: 3000 });
+			new Notify({ type: 'info', textContent: `Alien ${data.name} says: ${data.message}`, timeout: 3000 });
 		}
 	});
 
