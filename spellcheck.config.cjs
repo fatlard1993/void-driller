@@ -1,5 +1,6 @@
 module.exports = {
 	skipWords: [
+		'starfield',
 		'38bdf8',
 		'7dd3fc',
 		'Argi',

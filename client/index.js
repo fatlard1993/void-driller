@@ -1,5 +1,6 @@
 import { Page, appendStyles, theme } from '@vanilla-bean/components';
 
+import './background';
 import router from './router';
 
 import '@fatlard1993/web-game-framework/client/socket';
