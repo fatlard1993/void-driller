@@ -64,19 +64,15 @@ export default class BaseDialog extends StyledDialog {
 			}
 		};
 
-		// When dialog closes, delay clearing gameContext.openDialog
-		setTimeout(() => {
-			if (this.elem) {
-				this.elem.addEventListener('close', () => {
-					// Keep openDialog set briefly to block pointer events
-					setTimeout(() => {
-						if (gameContext.openDialog === this) {
-							gameContext.openDialog = null;
-						}
-					}, 100);
-				});
-			}
-		}, 0);
+		// Keep openDialog set briefly after closing, to block pointer events
+		this.on({
+			targetEvent: 'close',
+			id: 'clearOpenDialog',
+			callback: () =>
+				setTimeout(() => {
+					if (gameContext.openDialog === this) gameContext.openDialog = null;
+				}, 100),
+		});
 
 		// Play dialog sound effect
 		this.playDialogSound();

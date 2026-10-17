@@ -200,13 +200,9 @@ class AudioPlayer extends styled.Component(
 			content: '✕',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'close'],
-			onPointerDown: event => {
-				if (event) {
-					event.stopPropagation();
-					event.preventDefault();
-				}
-				this.stop();
-			},
+			onPointerDown: event => event?.stopPropagation(),
+			// Closes on the release, so nothing under the player gets pressed in its place
+			onPointerPress: () => this.stop(),
 		});
 
 		this.updateUI();

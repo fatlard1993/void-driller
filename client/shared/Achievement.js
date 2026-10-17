@@ -250,13 +250,9 @@ export class Achievement extends styled.Popover(
 			}, 400);
 		};
 
-		this.options.onPointerDown = event => {
-			if (event) {
-				event.stopPropagation();
-				event.preventDefault();
-			}
-			dismissAchievement();
-		};
+		this.options.onPointerDown = event => event?.stopPropagation();
+		// Dismissed on the release, so nothing under the achievement gets pressed in its place
+		this.options.onPointerPress = () => dismissAchievement();
 
 		this.autoDismissTimer = setTimeout(() => {
 			dismissAchievement();

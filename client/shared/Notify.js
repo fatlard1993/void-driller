@@ -11,14 +11,8 @@ export default class Notify extends BaseNotify {
 			x: randInt(12, window.innerWidth - 12),
 			y: randInt(72, window.innerHeight / 3),
 			timeout,
-			onPointerDown: event => {
-				if (event) {
-					event.stopPropagation();
-					event.preventDefault();
-				}
-
-				this.elem.remove();
-			},
+			// Dismissed by the press itself (the release), so nothing under the toast gets pressed in its place
+			onPointerDown: event => event?.stopPropagation(),
 			...options,
 		});
 	}
