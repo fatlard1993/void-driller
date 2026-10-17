@@ -1,4 +1,4 @@
-import { requestMatch } from '@fatlard1993/web-game-framework/utils';
+import { requestMatch } from '@vanilla-bean/components/app';
 import { generateAsteroid } from '../generateAsteroid.js';
 import { serverLog } from '../../utils/logger.js';
 

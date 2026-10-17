@@ -1,19 +1,9 @@
+import { hotReload } from '@vanilla-bean/components/app';
+
 import { serverLog } from '../utils/logger.js';
 import server from './server.js';
 
-const spawnBuild = async () => {
-	const buildProcess = Bun.spawn(['bun', 'run', 'build:watch']);
-
-	for await (const chunk of buildProcess.stdout) {
-		const line = new TextDecoder().decode(chunk);
-
-		serverLog.debug('Build output', { output: line.trim() });
-
-		if (line === 'build.success\n') server.reloadClients();
-	}
-};
-
-export const handleDevCommand = async (command, server, spawnBuild) => {
+export const handleDevCommand = async (command, server) => {
 	if ({ stop: 1, close: 1, exit: 1 }[command]) {
 		process.kill(process.pid, 'SIGTERM');
 		return;
@@ -21,7 +11,7 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 
 	if (command === 'b' || command === 'build') {
 		serverLog.info('Manual build triggered');
-		spawnBuild();
+		hotReload.rebuild();
 		return;
 	}
 
@@ -575,13 +565,13 @@ export const handleDevCommand = async (command, server, spawnBuild) => {
 
 if (process.env.NODE_ENV === 'development') {
 	try {
-		spawnBuild();
+		hotReload.watch();
 
 		for await (const line of console) {
 			const command = line.trim();
-			await handleDevCommand(command, server, spawnBuild);
+			await handleDevCommand(command, server);
 		}
 	} catch (error) {
-		serverLog.error('Build process error', { error: error.message });
+		serverLog.error('Dev console error', { error: error.message });
 	}
 }

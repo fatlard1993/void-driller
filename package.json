@@ -18,7 +18,6 @@
 		"prepare": "bun run build",
 		"build": "bun run build:clean && bun run client/build.js",
 		"build:clean": "rm -rf ./client/build/",
-		"build:watch": "bun run build -- --watch",
 		"db:clean": "rm -f ~/.void-driller.json",
 		"start": "NODE_ENV=production bun server/index.js",
 		"dev": "NODE_ENV=development bun --hot server/index.js",

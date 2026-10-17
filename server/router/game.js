@@ -1,4 +1,4 @@
-import { requestMatch } from '@fatlard1993/web-game-framework/utils';
+import { requestMatch } from '@vanilla-bean/components/app';
 import { serverLog, gameLog, playerLog } from '../../utils/logger.js';
 import { getScaledServiceCosts } from '../../utils/pricing.js';
 

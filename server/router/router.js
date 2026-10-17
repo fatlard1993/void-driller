@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import { requestMatch } from '@fatlard1993/web-game-framework/utils';
+import { requestMatch } from '@vanilla-bean/components/app';
 import { basicGameRoutes } from '@fatlard1993/web-game-framework';
 import { serverLog } from '../../utils/logger.js';
 
