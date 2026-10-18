@@ -34,8 +34,6 @@ export default class BurgerTabs {
 
 		const { tabs = [], selectedTab, onTabClick, isTabEmpty = () => false, getTabClassName = () => '' } = this.options;
 
-		console.log('BurgerTabs updateMenuButtons', { tabs, selectedTab, expanded: this._menuExpanded });
-
 		// Clear both sections
 		this._expandableMenu.empty();
 		this._menuContainer.empty();
@@ -62,12 +60,11 @@ export default class BurgerTabs {
 		}
 
 		// Hamburger button (always in fixed position)
-		const hamburger = new Button({
+		new Button({
 			appendTo: this._menuContainer,
 			content: new Icon({ icon: 'bars' }),
 			onPointerPress: () => {
 				this._menuExpanded = !this._menuExpanded;
-				console.log('Hamburger clicked, expanded now:', this._menuExpanded);
 				// Re-render menu buttons
 				this.updateMenuButtons();
 			},
@@ -75,19 +72,15 @@ export default class BurgerTabs {
 				backgroundColor: this._menuExpanded ? theme.colors.red : '',
 			},
 		});
-		console.log('Hamburger button created:', hamburger);
 
 		// Selected tab button (always in fixed position, after hamburger)
 		if (selectedTab) {
-			const selectedButton = new Button({
+			new Button({
 				appendTo: this._menuContainer,
 				content: selectedTab,
 				className: 'selected-menu',
 				disabled: true,
 			});
-			console.log('Selected tab button created:', selectedTab, selectedButton);
-		} else {
-			console.log('No selectedTab to display');
 		}
 	}
 }
