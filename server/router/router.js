@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import { requestMatch } from '@vanilla-bean/components/app';
+import { requestMatch, sameOrigin } from '@vanilla-bean/components/app';
 import { basicGameRoutes } from '@fatlard1993/web-game-framework';
 import { serverLog } from '../../utils/logger.js';
 
@@ -73,6 +73,9 @@ const router = server => async request => {
 				headers: { 'Retry-After': '60' },
 			});
 		}
+		// Another site's page can't join a game or act in one through the visitor's browser
+		if (!sameOrigin(request)) return new Response('Cross-origin request refused', { status: 403 });
+
 		let match;
 		let response;
 
@@ -88,7 +91,8 @@ const router = server => async request => {
 			return new Response(content, {
 				headers: {
 					'Content-Type': 'text/html',
-					'Access-Control-Allow-Origin': '*',
+					// The chunks it names are renamed by each build, so a cached copy points at files that are gone
+					'Cache-Control': 'no-cache',
 				},
 			});
 		}
