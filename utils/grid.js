@@ -400,10 +400,7 @@ export const findBestOrientation = (position, grid, movementDelta, currentOrient
 		const alternateOrientation = movingUp ? `up_${oppositeSide}` : `down_${oppositeSide}`;
 
 		const alternateSupport = hasWheelSupport(position, grid, excludePositions, alternateOrientation);
-		if (alternateSupport.hasSupport) {
-			bestOrientation = alternateOrientation;
-			bestSupport = alternateSupport;
-		}
+		if (alternateSupport.hasSupport) bestOrientation = alternateOrientation;
 	}
 
 	return bestOrientation;

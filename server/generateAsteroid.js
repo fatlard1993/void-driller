@@ -594,7 +594,7 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 
 				if (distance <= 1.0) {
 					// For edge craters, create a semi-spherical profile that gets shallower away from edge
-					let edgeDepthFactor = 1.0;
+					let edgeDepthFactor;
 
 					if (hole.burstEdge === 0) {
 						// Top edge

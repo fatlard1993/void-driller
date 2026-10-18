@@ -660,8 +660,8 @@ export default class Game extends BaseGame {
 		Object.entries(player.hull || {}).forEach(([key, value]) => {
 			if (value <= 0) return;
 
-			let weight = 0;
-			let mineralType = key;
+			let weight;
+			let mineralType;
 
 			if (key.startsWith('mineral_')) {
 				mineralType = key.replace('mineral_', '');
@@ -3805,7 +3805,7 @@ export default class Game extends BaseGame {
 		const surrounds = getImmediateSurrounds(currentPos, ['left', 'right', 'bottom', 'top'], this.world.grid);
 		const delta = { x: targetPos.x - currentPos.x, y: targetPos.y - currentPos.y };
 
-		let preferredMoves = [];
+		let preferredMoves;
 
 		switch (movementType) {
 			case 'approach':

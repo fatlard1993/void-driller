@@ -382,7 +382,7 @@ const generateOptimizedAStar = (start, end, player, grid) => {
 		}
 
 		const movementDelta = { x: to.x - from.x, y: to.y - from.y };
-		let testOrientation = 'right';
+		let testOrientation;
 
 		if (movementDelta.y === 0) {
 			testOrientation = movementDelta.x < 0 ? 'left' : 'right';
@@ -649,7 +649,7 @@ const generateFlowField = (start, end, player, grid) => {
 			}
 
 			const movementDelta = { x: next.x - current.x, y: next.y - current.y };
-			let testOrientation = 'right';
+			let testOrientation;
 
 			if (movementDelta.y === 0) {
 				testOrientation = movementDelta.x < 0 ? 'left' : 'right';
@@ -831,7 +831,7 @@ const generateDirectPath = (start, end, player, grid) => {
 			x: currentX - (path[path.length - 1]?.x || start.x),
 			y: currentY - (path[path.length - 1]?.y || start.y),
 		};
-		let testOrientation = 'right';
+		let testOrientation;
 
 		if (movementDelta.y === 0) {
 			testOrientation = movementDelta.x < 0 ? 'left' : 'right';
@@ -876,7 +876,7 @@ const generateAutoPath = (start, end, player, grid) => {
 		return [];
 	}
 
-	let path = [];
+	let path;
 
 	if (distance <= 2) {
 		path = generateDirectPath(start, end, player, grid);

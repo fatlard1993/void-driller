@@ -952,7 +952,7 @@ export default class GameScene extends Phaser.Scene {
 						const item = gridConfig.items[z];
 						if (!item || !item.name) continue;
 
-						let sprite = null;
+						let sprite;
 
 						try {
 							if (item.name.startsWith('mineral_')) {
