@@ -1,4 +1,4 @@
-import { styled, theme, Elem, Button, Component } from '@vanilla-bean/components';
+import { styled, theme, Elem, Button, Component, copyToClipboard } from '@vanilla-bean/components';
 
 import { minerals } from '../../constants/minerals';
 
@@ -2278,22 +2278,9 @@ export class LevelEditor extends Component {
 	}
 
 	async handleCopyToClipboard() {
-		const { asteroid } = this.state;
-		const json = JSON.stringify(asteroid, null, 2);
+		const copied = await copyToClipboard(JSON.stringify(this.state.asteroid, null, 2));
 
-		try {
-			await navigator.clipboard.writeText(json);
-			console.log('✅ Asteroid JSON copied to clipboard');
-		} catch (err) {
-			console.error('Failed to copy to clipboard:', err);
-			// Fallback: select text in a temporary textarea
-			const textarea = document.createElement('textarea');
-			textarea.value = json;
-			document.body.appendChild(textarea);
-			textarea.select();
-			document.execCommand('copy');
-			document.body.removeChild(textarea);
-			console.log('✅ Asteroid JSON copied to clipboard (fallback)');
-		}
+		if (copied) console.log('✅ Asteroid JSON copied to clipboard');
+		else console.error('Failed to copy the asteroid JSON to the clipboard');
 	}
 }

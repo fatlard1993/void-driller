@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
 
+import QRCode from '@fatlard1993/web-game-framework/ui/QRCode';
 import gameContext from '../shared/gameContext';
 import { Ground, Item, Spaceco, Drill, Lava, Gas } from '../Play/GameObjects';
 import { createAlien } from '../Play/GameObjects/aliens';
 import { vehicles, drills } from '../../constants';
 import Notify from '../shared/Notify';
-import QRCode from '../shared/QRCode';
 
 export default class WatchScene extends Phaser.Scene {
 	constructor() {

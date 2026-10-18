@@ -5,6 +5,7 @@ import {
 	Label,
 	Select,
 	capitalize,
+	debounce,
 	styled,
 	theme,
 	Oxject as Context,
@@ -393,9 +394,17 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			theyAccepted: this.theyAccepted,
 		});
 
-		// Debounce timer for offer updates
-		this.updateDebounceTimer = null;
-		this.pendingOffer = null;
+		// Rapid edits to the offer reach the server once they settle
+		this.sendOffer = debounce(async offer => {
+			try {
+				await updateTradeOffer({ tradeId: this.tradeSession.id, offer });
+			} catch (error) {
+				new Notify({
+					type: 'error',
+					content: error.message || 'Failed to update offer',
+				});
+			}
+		}, 500);
 
 		// Component references for updating
 		this.myOfferList = null;
@@ -708,29 +717,8 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		);
 	}
 
-	async sendOfferUpdate() {
-		// Clear any existing debounce timer
-		if (this.updateDebounceTimer) {
-			clearTimeout(this.updateDebounceTimer);
-		}
-
-		// Store the current offer as pending
-		this.pendingOffer = { ...this.tradeContext.myOffer };
-
-		// Debounce the actual API call
-		this.updateDebounceTimer = setTimeout(async () => {
-			try {
-				await updateTradeOffer({
-					tradeId: this.tradeSession.id,
-					offer: this.pendingOffer,
-				});
-			} catch (error) {
-				new Notify({
-					type: 'error',
-					content: error.message || 'Failed to update offer',
-				});
-			}
-		}, 500); // 500ms debounce
+	sendOfferUpdate() {
+		this.sendOffer({ ...this.tradeContext.myOffer });
 	}
 
 	getAvailableItems() {
