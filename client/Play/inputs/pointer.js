@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import socket from '@fatlard1993/web-game-framework/client/socket';
 import {
 	gridToPxPosition,
-	hasWheelSupport,
+	moveHasSupport,
 	pxToGridPosition,
 	validateMovement,
 	validateMovementPath,
@@ -387,7 +387,7 @@ const generateOptimizedAStar = (start, end, player, grid) => {
 		if (movementDelta.y === 0) {
 			testOrientation = movementDelta.x < 0 ? 'left' : 'right';
 		} else if (movementDelta.x === 0) {
-			// Use consistent vertical orientation logic with server
+			// Either wall will do; moveHasSupport measures both and takes the better grip, as the server does
 			testOrientation = movementDelta.y < 0 ? 'up_left' : 'down_left';
 		} else {
 			if (movementDelta.y < 0 && movementDelta.x < 0) {
@@ -401,7 +401,7 @@ const generateOptimizedAStar = (start, end, player, grid) => {
 			}
 		}
 
-		const wheelCheck = hasWheelSupport(to, grid, pathSoFar, testOrientation);
+		const wheelCheck = moveHasSupport(to, grid, pathSoFar, testOrientation, movementDelta);
 		if (!wheelCheck.hasSupport) {
 			movementCostCache.set(toKey, Infinity);
 			return Infinity;
@@ -654,7 +654,8 @@ const generateFlowField = (start, end, player, grid) => {
 			if (movementDelta.y === 0) {
 				testOrientation = movementDelta.x < 0 ? 'left' : 'right';
 			} else if (movementDelta.x === 0) {
-				testOrientation = movementDelta.y < 0 ? 'up_right' : 'down_right';
+				// Either wall will do; moveHasSupport measures both and takes the better grip, as the server does
+				testOrientation = movementDelta.y < 0 ? 'up_left' : 'down_left';
 			} else {
 				if (movementDelta.y < 0 && movementDelta.x < 0) {
 					testOrientation = 'up_left';
@@ -667,7 +668,7 @@ const generateFlowField = (start, end, player, grid) => {
 				}
 			}
 
-			if (!hasWheelSupport(next, grid, [], testOrientation).hasSupport) {
+			if (!moveHasSupport(next, grid, [], testOrientation, movementDelta).hasSupport) {
 				continue;
 			}
 
@@ -836,7 +837,7 @@ const generateDirectPath = (start, end, player, grid) => {
 		if (movementDelta.y === 0) {
 			testOrientation = movementDelta.x < 0 ? 'left' : 'right';
 		} else if (movementDelta.x === 0) {
-			// Use consistent vertical orientation logic with server
+			// Either wall will do; moveHasSupport measures both and takes the better grip, as the server does
 			testOrientation = movementDelta.y < 0 ? 'up_left' : 'down_left';
 		} else {
 			if (movementDelta.y < 0 && movementDelta.x < 0) {
@@ -850,7 +851,7 @@ const generateDirectPath = (start, end, player, grid) => {
 			}
 		}
 
-		if (!hasWheelSupport(position, grid, path, testOrientation).hasSupport) {
+		if (!moveHasSupport(position, grid, path, testOrientation, movementDelta).hasSupport) {
 			break;
 		}
 

@@ -334,6 +334,28 @@ export const hasWheelSupport = (position, grid, excludePositions = [], orientati
  * @param {Array} excludePositions - Positions to exclude from footing check
  * @returns {string} - Best orientation for this position
  */
+/**
+ * How well the drill grips after a move, in the orientation the move puts it in. A straight up or down move can ride
+ * either wall, so both are measured and the better grip wins, as findBestOrientation does on the server; otherwise a
+ * route along a right-hand wall would be graded as poor footing.
+ * @param {object} position - Where the drill ends up
+ * @param {Array} grid - The world grid
+ * @param {Array} excludePositions - Positions to treat as open (the path so far)
+ * @param {string} orientation - The orientation the move suggests
+ * @param {object} movementDelta - The move, as { x, y }
+ * @returns {object} hasWheelSupport's answer for the better-gripping side
+ */
+export const moveHasSupport = (position, grid, excludePositions, orientation, movementDelta) => {
+	const support = hasWheelSupport(position, grid, excludePositions, orientation);
+
+	if (movementDelta.x !== 0 || movementDelta.y === 0) return support;
+
+	const otherSide = orientation.replace(/left|right/, side => (side === 'left' ? 'right' : 'left'));
+	const other = hasWheelSupport(position, grid, excludePositions, otherSide);
+
+	return other.supportCount > support.supportCount ? other : support;
+};
+
 export const findBestOrientation = (position, grid, movementDelta, currentOrientation, excludePositions = []) => {
 	// Validate inputs
 	if (!position || typeof position.x !== 'number' || typeof position.y !== 'number') {
