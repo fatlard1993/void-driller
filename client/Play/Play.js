@@ -27,18 +27,13 @@ export default class Play extends View {
 
 								gameContext.openDialog = releaseInputOnClose(
 									new Dialog({
-										size: 'small',
+										size: 'fit',
 										header: 'Abort Contract',
 										body: new Label(
 											{
 												label:
 													'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
 												variant: 'inline-after',
-												styles: () => `
-												bottom: 48px;
-												position: absolute;
-												width: calc(100% - 60px);
-											`,
 											},
 											new Input({
 												type: 'checkbox',
