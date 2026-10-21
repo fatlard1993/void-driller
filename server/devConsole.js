@@ -1,20 +1,9 @@
-import { hotReload } from '@vanilla-bean/components/app';
+import { devConsole, hotReload } from '@vanilla-bean/components/app';
 
 import { serverLog } from '../utils/logger.js';
 import server from './server.js';
 
 export const handleDevCommand = async (command, server) => {
-	if ({ stop: 1, close: 1, exit: 1 }[command]) {
-		process.kill(process.pid, 'SIGTERM');
-		return;
-	}
-
-	if (command === 'b' || command === 'build') {
-		serverLog.info('Manual build triggered');
-		hotReload.rebuild();
-		return;
-	}
-
 	// Enhanced dev queries
 	if (command === 'help') {
 		console.log('\n=== DEV SERVER COMMANDS ===');
@@ -450,7 +439,7 @@ export const handleDevCommand = async (command, server) => {
 			const processes = new TextDecoder().decode(await psOutput).split('\n');
 
 			processes.forEach(line => {
-				if (line.includes('bun run client/build.js') && !line.includes('grep')) {
+				if (line.includes('vbc-build') && !line.includes('grep')) {
 					const pid = line.trim().split(/\s+/)[1];
 					zombieProcesses.push({ pid, line: line.trim() });
 				}
@@ -566,12 +555,9 @@ export const handleDevCommand = async (command, server) => {
 if (process.env.NODE_ENV === 'development') {
 	try {
 		hotReload.watch();
-
-		for await (const line of console) {
-			const command = line.trim();
-			await handleDevCommand(command, server);
-		}
 	} catch (error) {
 		serverLog.error('Dev console error', { error: error.message });
 	}
+
+	devConsole(command => handleDevCommand(command, server));
 }

@@ -17,7 +17,7 @@
 	"scripts": {
 		"prepare": "bun run prepare:githooks && bun run build",
 		"prepare:githooks": "[ -n \"$CI\" ] && exit 0 || (git config --local core.hooksPath .githooks || echo 'Cannot set core.hooksPath -- pre-commit checks will not run')",
-		"build": "bun run build:clean && bun run client/build.js",
+		"build": "bun run build:clean && vbc-build",
 		"build:clean": "rm -rf ./client/build/",
 		"db:clean": "rm -f ~/.void-driller.json",
 		"start": "NODE_ENV=production bun server/index.js",
