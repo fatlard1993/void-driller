@@ -1,6 +1,4 @@
-import { nanoid } from 'nanoid';
-
-import { requestMatch, sameOrigin } from '@vanilla-bean/components/app';
+import { requestMatch } from '@vanilla-bean/components/app';
 import { basicGameRoutes } from '@fatlard1993/web-game-framework';
 import { serverLog } from '../../utils/logger.js';
 
@@ -73,14 +71,10 @@ const router = server => async request => {
 				headers: { 'Retry-After': '60' },
 			});
 		}
-		// Another site's page can't join a game or act in one through the visitor's browser
-		if (!sameOrigin(request)) return new Response('Cross-origin request refused', { status: 403 });
 
-		let match;
 		let response;
 
-		match = requestMatch('GET', '/', request);
-		if (match) {
+		if (requestMatch('GET', '/', request)) {
 			const file = Bun.file('client/build/index.html');
 			let content = await file.text();
 
@@ -95,18 +89,6 @@ const router = server => async request => {
 					'Cache-Control': 'no-cache',
 				},
 			});
-		}
-
-		match = requestMatch('GET', '/ws', request);
-		if (match) {
-			const success = server.httpServer.upgrade(request, { data: { clientId: nanoid() } });
-
-			return success
-				? undefined
-				: new Response(
-						'WebSocket upgrade failed. Our comms technicians suggest turning it off and back on again (refresh).',
-						{ status: 400 },
-					);
 		}
 
 		response = await basicGameRoutes({ logger: serverLog })(request, server);
