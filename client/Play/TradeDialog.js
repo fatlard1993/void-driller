@@ -62,8 +62,8 @@ const TradeItemRow = styled.Component`
 	}
 
 	& .quantity-button {
-		width: 24px;
-		height: 24px;
+		width: 32px;
+		height: 32px;
 		font-size: 14px;
 		padding: 0;
 		display: flex;

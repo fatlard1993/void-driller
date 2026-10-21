@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { theme } from '@vanilla-bean/components';
 
 import { rand } from '../../utils';
 import gameContext from '../shared/gameContext';
@@ -121,8 +122,8 @@ export default class GameScene extends Phaser.Scene {
 			left: 50%;
 			transform: translate(-50%, -50%);
 			z-index: 9999;
-			background: black;
-			border: 3px solid #7dd3fc;
+			background: ${theme.colors.black};
+			border: 3px solid ${theme.colors.lighter(theme.colors.blue)};
 			width: clamp(90vw, 80vw, 600px);
 			border-radius: 6px;
 			padding: 20px;
@@ -134,7 +135,7 @@ export default class GameScene extends Phaser.Scene {
 		consoleText.textContent = `SPACECO MINING RIG - SYSTEM BOOT\n\nInitializing mining systems...\nLoading asset database: 0%\n\n`;
 		consoleText.style.cssText = `
 			font-family: 'FontWithASyntaxHighlighter', monospace;
-			color: white;
+			color: ${theme.colors.white};
 			font-size: 18px;
 			white-space: pre-wrap;
 			margin: 0 0 16px 0;
@@ -146,8 +147,8 @@ export default class GameScene extends Phaser.Scene {
 		loadingBarContainer.style.cssText = `
 			width: 100%;
 			height: 20px;
-			background: rgba(255,255,255,0.1);
-			border: 1px solid #7dd3fc;
+			background: ${theme.colors.alpha(theme.colors.white, 0.1)};
+			border: 1px solid ${theme.colors.lighter(theme.colors.blue)};
 			border-radius: 3px;
 			overflow: hidden;
 			position: relative;
@@ -157,7 +158,7 @@ export default class GameScene extends Phaser.Scene {
 		const loadingBarFill = document.createElement('div');
 		loadingBarFill.style.cssText = `
 			height: 100%;
-			background: linear-gradient(90deg, #7dd3fc, #38bdf8);
+			background: linear-gradient(90deg, ${theme.colors.lighter(theme.colors.blue)}, ${theme.colors.light(theme.colors.blue)});
 			width: 0%;
 			transition: width 0.3s ease;
 			border-radius: 2px;
@@ -171,11 +172,11 @@ export default class GameScene extends Phaser.Scene {
 			top: 50%;
 			left: 50%;
 			transform: translate(-50%, -50%);
-			color: white;
+			color: ${theme.colors.white};
 			font-family: 'FontWithASyntaxHighlighter', monospace;
 			font-size: 12px;
 			font-weight: bold;
-			text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+			text-shadow: 1px 1px 2px ${theme.colors.alpha(theme.colors.vantablack, 0.8)};
 			z-index: 1;
 		`;
 

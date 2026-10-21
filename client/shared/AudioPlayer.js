@@ -19,7 +19,7 @@ class AudioPlayer extends styled.Component(
 		align-items: center;
 		gap: 12px;
 		z-index: 10000;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+		box-shadow: 0 4px 12px ${colors.alpha(colors.vantablack, 0.5)};
 		animation: slideDown 0.3s ease-out;
 
 		@keyframes slideDown {

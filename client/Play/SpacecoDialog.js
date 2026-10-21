@@ -1496,7 +1496,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				gap: '8px',
 				marginBottom: '8px',
 				padding: '8px',
-				background: 'rgba(0, 0, 0, 0.3)',
+				background: theme.colors.alpha(theme.colors.vantablack, 0.3),
 				borderRadius: '4px',
 			},
 			append: [
@@ -1658,7 +1658,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								padding: '16px',
 								minWidth: '160px',
 								gap: '8px',
-								boxShadow: '0 0 10px rgba(128, 0, 128, 0.3)',
+								boxShadow: `0 0 10px ${theme.colors.alpha(theme.colors.purple, 0.3)}`,
 							},
 							append: [
 								new Elem({
@@ -1873,7 +1873,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						header: new Elem({
 							content: capitalize(key.replaceAll('_', ' '), true),
 							style: {
-								background: 'rgba(0, 0, 0, 0.85)',
+								background: theme.colors.alpha(theme.colors.vantablack, 0.85),
 								padding: '6px 12px',
 								borderRadius: '4px',
 								textAlign: 'center',
@@ -1893,7 +1893,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								flexDirection: 'column',
 								alignItems: 'center',
 								gap: '4px',
-								background: 'rgba(0, 0, 0, 0.7)',
+								background: theme.colors.alpha(theme.colors.vantablack, 0.7),
 								padding: '8px',
 								borderRadius: '4px',
 							},
@@ -1943,11 +1943,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 																style: {
 																	width: '100%',
 																	height: '16px',
-																	background: 'rgba(255, 255, 255, 0.15)',
+																	background: theme.colors.alpha(theme.colors.white, 0.15),
 																	borderRadius: '8px',
 																	overflow: 'hidden',
 																	position: 'relative',
-																	border: '1px solid rgba(255, 255, 255, 0.2)',
+																	border: `1px solid ${theme.colors.alpha(theme.colors.white, 0.2)}`,
 																},
 																append: new Elem({
 																	style: {
@@ -1958,7 +1958,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 																				? theme.colors.green
 																				: `linear-gradient(90deg, ${theme.colors.red}, ${theme.colors.yellow})`,
 																		transition: 'width 0.3s ease',
-																		boxShadow: percentage > 0 ? 'inset 0 1px 3px rgba(0, 0, 0, 0.3)' : 'none',
+																		boxShadow:
+																			percentage > 0
+																				? `inset 0 1px 3px ${theme.colors.alpha(theme.colors.vantablack, 0.3)}`
+																				: 'none',
 																	},
 																}),
 															}),
@@ -1982,7 +1985,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								gap: '4px',
-								background: 'rgba(0, 0, 0, 0.8)',
+								background: theme.colors.alpha(theme.colors.vantablack, 0.8),
 								padding: '8px',
 								borderRadius: '4px',
 							},
