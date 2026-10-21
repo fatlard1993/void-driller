@@ -1,15 +1,6 @@
 // ./client/shared/gameContext.js
 import { gameContext } from '@fatlard1993/web-game-framework/client';
-
-const safeParseLocalStorage = (key, defaultValue = null) => {
-	try {
-		return JSON.parse(localStorage.getItem(key)) ?? defaultValue;
-	} catch (err) {
-		console.warn(key, err);
-
-		return defaultValue;
-	}
-};
+import { readStorage } from '@vanilla-bean/components/utils';
 
 gameContext.achievementQueue = [];
 gameContext.sceneLayers = {};
@@ -20,14 +11,14 @@ gameContext.volume = {
 	alerts: 0.5,
 	interfaces: 0.06,
 	effects: 0.3,
-	...safeParseLocalStorage('volume', {}),
+	...readStorage('volume', {}),
 };
-gameContext.alert = { fuel: 0.33, health: 0.33, cargo: 0.33, ...safeParseLocalStorage('alert', {}) };
-gameContext.briefings = { ...safeParseLocalStorage('briefings', {}) };
+gameContext.alert = { fuel: 0.33, health: 0.33, cargo: 0.33, ...readStorage('alert', {}) };
+gameContext.briefings = { ...readStorage('briefings', {}) };
 gameContext.dismissedAlerts = {};
-gameContext.scale = safeParseLocalStorage('scale', 1.0);
-gameContext.debugVisible = safeParseLocalStorage('debugVisible', false);
-gameContext.notifySettings = { autoDismissTimeout: 5000, ...safeParseLocalStorage('notify', {}) };
+gameContext.scale = readStorage('scale', 1.0);
+gameContext.debugVisible = readStorage('debugVisible', false);
+gameContext.notifySettings = { autoDismissTimeout: 5000, ...readStorage('notify', {}) };
 
 gameContext.autoPath = {
 	enabled: true,
@@ -38,7 +29,7 @@ gameContext.autoPath = {
 	obstacleAvoidanceWeight: 2.0, // How much to penalize paths near obstacles
 	maxSearchIterations: 2000, // Maximum A* iterations
 	preferOpenSpaces: true, // Prefer routing through open areas when possible
-	...safeParseLocalStorage('autoPath', {}),
+	...readStorage('autoPath', {}),
 };
 
 gameContext.getNearbyPlayers = (position, range = 1) => {

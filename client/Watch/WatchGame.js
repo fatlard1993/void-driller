@@ -50,9 +50,8 @@ export default class WatchGame extends (styled.Component`
 		const socketCleanup = onMessage(watchSocketRouter);
 		this.addCleanup('socketCleanup', () => socketCleanup());
 
-		// Handle window resize
-		window.addEventListener('resize', () => {
-			gameContext.game.scale.resize(window.innerWidth, window.innerHeight - 78);
+		window.addEventListener('resize', () => gameContext.game.scale.resize(window.innerWidth, window.innerHeight - 78), {
+			signal: this.signal,
 		});
 	}
 }

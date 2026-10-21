@@ -107,6 +107,7 @@ export default class Game extends (styled.Component`
 			debounce(() => {
 				gameContext.game.scale.resize(window.innerWidth, window.innerHeight - 78);
 			}),
+			{ signal: this.signal },
 		);
 
 		gameContext.scene.input.on('pointerdown', onPointerDown);
