@@ -7,8 +7,12 @@ import { InfoButton } from './InfoButton';
  */
 const StyledDialog = styled(Dialog)`
 	@media (max-width: 480px) {
+		box-sizing: border-box;
 		margin: 0;
+		width: 100% !important;
+		max-width: 100%;
 		height: 100% !important;
+		max-height: 100%;
 
 		&:after {
 			background: none;
