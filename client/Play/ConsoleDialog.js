@@ -1049,6 +1049,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				let imageName = key;
 
 				if (key.startsWith('detonator')) imageName = 'detonator';
+				else if (key.startsWith('void_detonator')) imageName = 'void_detonator';
 				else if (key === 'advanced_teleporter') imageName = 'teleport_station';
 				else if (key.startsWith('activated_teleporter')) imageName = 'advanced_teleporter';
 
@@ -1111,7 +1112,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							key.startsWith('void_detonator_') &&
 								new Button({
 									content: 'Remote Disarm',
-									variant: 'secondary',
+									variant: 'flat',
 									onPointerPress: () => {
 										// Extract coordinates from void_detonator_x_y format
 										const coords = key.split('_');

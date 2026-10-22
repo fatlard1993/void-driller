@@ -60,7 +60,7 @@ export class DescriptionText extends (styled.Component`
 			new Button({
 				className: 'toggle-button',
 				content: this.options.expanded ? 'Less' : 'More',
-				variant: 'secondary',
+				variant: 'flat',
 				appendTo: this,
 				onPointerPress: () => {
 					this.options.expanded = !this.options.expanded;
