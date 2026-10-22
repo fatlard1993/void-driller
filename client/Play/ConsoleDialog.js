@@ -1046,11 +1046,14 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
-				let imageName = key;
+				// A detonator for a charge already placed carries the charge's position: detonator_x_y, void_detonator_x_y
+				const [, placedItem, placedX, placedY] = key.match(/^((?:void_)?detonator)_(\d+)_(\d+)$/) || [];
+				const itemKey = placedItem || key;
+				const itemName = items[itemKey]?.name || capitalize(itemKey.replaceAll('_', ' '), true);
 
-				if (key.startsWith('detonator')) imageName = 'detonator';
-				else if (key.startsWith('void_detonator')) imageName = 'void_detonator';
-				else if (key === 'advanced_teleporter') imageName = 'teleport_station';
+				let imageName = itemKey;
+
+				if (key === 'advanced_teleporter') imageName = 'teleport_station';
 				else if (key.startsWith('activated_teleporter')) imageName = 'advanced_teleporter';
 
 				// Check if player can use item
@@ -1059,7 +1062,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						header: `${capitalize(key.replaceAll('_', ' '), true)}`,
+						header: itemName,
 						style: {
 							opacity: canUse ? 1 : 0.6,
 						},
@@ -1073,10 +1076,16 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							append: [
 								new ItemImage(imageName, { displaySize: 96 }),
 								new DescriptionText({
-									summary: items[key]?.summary || '',
-									description: items[key]?.description || 'No description available.',
-									title: items[key]?.name || capitalize(key.replaceAll('_', ' '), true),
+									summary: items[itemKey]?.summary || '',
+									description: items[itemKey]?.description || 'No description available.',
+									title: itemName,
 								}),
+								placedItem &&
+									new Elem({
+										tag: 'p',
+										content: `Armed at ${placedX}, ${placedY}`,
+										style: { margin: '4px 0 0', fontSize: '13px', textAlign: 'center' },
+									}),
 								new Elem({
 									tag: 'p',
 									content: `Quantity: ${count}`,
