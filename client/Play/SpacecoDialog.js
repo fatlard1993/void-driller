@@ -464,12 +464,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	}
 `) {
 	constructor(options = {}) {
+		// The Upgrade pages were once saved as status_ views, which don't exist
+		const savedMenu = localStorage.getItem('console_defaultSpacecoMenu');
+		const defaultMenu =
+			typeof SpacecoDialog.prototype[`render_${savedMenu?.toLowerCase()}`] === 'function' ? savedMenu : 'Sell';
+
 		super({
 			header: 'Spaceco',
-			view:
-				gameContext.serverState.world.spaceco.health > 0
-					? localStorage.getItem('console_defaultSpacecoMenu') || 'Sell'
-					: 'destroyed',
+			view: gameContext.serverState.world.spaceco.health > 0 ? defaultMenu : 'destroyed',
 			menuExpanded: false,
 			...options,
 		});
@@ -2254,6 +2256,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				this.renderMenu();
 
 				this[`render_${value.toLowerCase()}`]();
+
+				// A menu's render moves on to its first page by setting view, which isn't applied during the first render
+				if (!this.rendered && this.options.view !== value) this._setOption('view', this.options.view);
 			},
 		},
 	};

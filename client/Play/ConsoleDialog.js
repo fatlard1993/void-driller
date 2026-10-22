@@ -1228,7 +1228,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						'Help',
 						{ label: 'Help > Briefing', value: 'help_Briefing' },
 					],
-					value: localStorage.getItem('console_defaultMenu') || 'help_Briefing',
+					value: localStorage.getItem('console_defaultMenu') || 'Help',
 					onChange: ({ value }) => localStorage.setItem('console_defaultMenu', value),
 				}),
 			),
@@ -1241,11 +1241,11 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						'Refuel',
 						'Repair',
 						'Upgrade',
-						{ label: 'Upgrade > Current', value: 'status_Current' },
-						{ label: 'Upgrade > Vehicles', value: 'status_Vehicles' },
-						{ label: 'Upgrade > Drills', value: 'status_Drills' },
-						{ label: 'Upgrade > Engines', value: 'status_Engines' },
-						{ label: 'Upgrade > Parts', value: 'status_Parts' },
+						{ label: 'Upgrade > Current', value: 'upgrade_Current' },
+						{ label: 'Upgrade > Vehicles', value: 'upgrade_Vehicles' },
+						{ label: 'Upgrade > Drills', value: 'upgrade_Drills' },
+						{ label: 'Upgrade > Engines', value: 'upgrade_Engines' },
+						{ label: 'Upgrade > Parts', value: 'upgrade_Parts' },
 						'Shop',
 						'Transport',
 						'Status',
@@ -1385,6 +1385,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				this.renderMenu();
 
 				this[`render_${value.toLowerCase()}`]();
+
+				// A menu's render moves on to its first page by setting view, which isn't applied during the first render
+				if (!this.rendered && this.options.view !== value) this._setOption('view', this.options.view);
 			},
 		},
 	};
