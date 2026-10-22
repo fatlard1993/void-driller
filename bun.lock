@@ -5,10 +5,10 @@
     "": {
       "name": "void-driller",
       "dependencies": {
-        "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#ec2769a",
-        "@vanilla-bean/components": "^5.2.0",
-        "@vanilla-bean/hypertether": "^1.1.1",
-        "argi": "github:fatlard1993/argi#785979e",
+        "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#bb92658",
+        "@vanilla-bean/components": "^6.0.0",
+        "@vanilla-bean/hypertether": "^1.2.0",
+        "argi-cli": "^1.0.0",
         "augmented-ui": "^2.0.0",
         "emoji-js": "^3.9.0",
         "log": "github:fatlard1993/log#e0d55f6",
@@ -68,7 +68,7 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.7.2", "", { "dependencies": { "@eslint/core": "^1.2.1", "levn": "^0.4.1" } }, "sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A=="],
 
-    "@fatlard1993/web-game-framework": ["@fatlard1993/web-game-framework@github:fatlard1993/web-game-framework#ec2769a", { "dependencies": { "lowdb": "^7.0.1", "nanoid": "^6.0.0", "qrcode": "^1.5.4" }, "peerDependencies": { "@vanilla-bean/components": "^5.0.0", "@vanilla-bean/hypertether": "^1.1.1" } }, "fatlard1993-web-game-framework-ec2769a", "sha512-fM3kzv/UeAbyMpgQt6mTmfWJF5loh+7MT5aqm6yPFy3k9TQa+avuKQikUhQIH5TGpanmxsdziaX+7jTZPZ2Hhg=="],
+    "@fatlard1993/web-game-framework": ["@fatlard1993/web-game-framework@github:fatlard1993/web-game-framework#bb92658", { "dependencies": { "lowdb": "^7.0.1", "nanoid": "^6.0.0", "qrcode": "^1.5.4" }, "peerDependencies": { "@vanilla-bean/components": "^6.0.0", "@vanilla-bean/hypertether": "^1.2.0" } }, "fatlard1993-web-game-framework-bb92658", "sha512-p/d4/z7LNcoci59hRNfyP+Il0686/p20SqS49QYsZ51D0cJsrOCMwd/AUfPzn2Rf4UGfyQo8CMcN4mBs7f+Y9w=="],
 
     "@fontsource-variable/kode-mono": ["@fontsource-variable/kode-mono@5.2.8", "", {}, "sha512-X1O4RAIPyP4Vm8rVoKHirg3amVdE2XvIAQUvDRU17aCzSUz648/9w2KJafH1vK6g0uy7U8PrOCc1I11riXhHwQ=="],
 
@@ -126,9 +126,9 @@
 
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.62.0", "", { "dependencies": { "@typescript-eslint/types": "8.62.0", "eslint-visitor-keys": "^5.0.0" } }, "sha512-CY3uyFSRbcQv3nnSv8S0+lDftMVz6P963PoRlxrV7ew/Md564g9ut60PYzdLM5qW4jFn93GBF+Soi90ISAN+GQ=="],
 
-    "@vanilla-bean/components": ["@vanilla-bean/components@5.2.0", "", { "dependencies": { "@ctrl/tinycolor": "^4.2.0", "@fontsource-variable/kode-mono": "^5.2.8", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "6" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "lowdb": "^7.0.1" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "lowdb"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-wQczKylgvKhUbYXAXlQBSIhUi+0Pe/orYe3SGXpznHXQFsz3V40U6Q24FHzJKz9l2vP8w40ySZrbzmBtsRU0nw=="],
+    "@vanilla-bean/components": ["@vanilla-bean/components@6.0.0", "", { "dependencies": { "@ctrl/tinycolor": "^4.2.0", "@fontsource-variable/kode-mono": "^5.2.8", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/hypertether": "^1.1.1", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "6" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "emoji-js": "^3.9.0", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "lowdb": "^7.0.1", "marked": ">=18" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "emoji-js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "lowdb", "marked"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-T7Opp/C2kx3f33rRdAeyJqP6FSKO4Rr0JKfSDAXuIA/27u81gORg0P1tWFau5LFJ4b7flwyEJIhroe1e7HqNeg=="],
 
-    "@vanilla-bean/hypertether": ["@vanilla-bean/hypertether@1.1.1", "", {}, "sha512-zLE3BhEo8kj9A+kDLw4FZkQXrRbrtmorxT/LcB4sGrGlTjyoQdkNw/a5AJnpUq9j0HZ/DbnF5bCnB64IW+A7pg=="],
+    "@vanilla-bean/hypertether": ["@vanilla-bean/hypertether@1.2.0", "", {}, "sha512-f1x+J46+lpEKuZbgWkleG9Wb3FiqcYI3xo+lmedc7rw+lhWL2/YkufYU5wFO/7ayUAfF0eogXVyEUyOVKfxpow=="],
 
     "@vanilla-bean/oxject": ["@vanilla-bean/oxject@1.0.0", "", {}, "sha512-/VusT7+8r61Q8Q6cN0HWGhkpdTr1q0hYu/i9U8glU3nw2fp9CCb071f46nlI/DOsq/BAI1gXEdD8JvS49HS+mg=="],
 
@@ -146,7 +146,7 @@
 
     "are-docs-informative": ["are-docs-informative@0.0.2", "", {}, "sha512-ixiS0nLNNG5jNQzgZJNoUpBKdo9yTYZMGJ+QgT2jmjR7G7+QHRCc4v6LQ3NgE7EBJq+o0ams3waJwkrlBom8Ig=="],
 
-    "argi": ["argi@github:fatlard1993/argi#785979e", {}, "fatlard1993-argi-785979e", "sha512-SnNyf2+zbgxOFQG2omI5+1cM6e4KTLnRqlVZaEt6VxofdaIpvdMbQUeRXVlTr9DcB7Kl51HCnc61AT0gchZCPQ=="],
+    "argi-cli": ["argi-cli@1.0.0", "", {}, "sha512-0iupCg+eh7zx/yoz2fAQZ8PfLDboRPpzs5PFHWb9Wfdmr/n6e9Pe9oJ6bPhyg4aU2A4DoJiNSAFHIp0C6/iA0A=="],
 
     "aria-query": ["aria-query@5.3.0", "", { "dependencies": { "dequal": "^2.0.3" } }, "sha512-b0P0sZPKtyu8HkeRAfCq0IfURZK+SuwMjY1UXGBU27wpAiTwQAIlq56IbIO+ytk/JjS1fMR14ee5WBBfKi5J6A=="],
 

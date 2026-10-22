@@ -3,7 +3,7 @@
 import os from 'os';
 import path from 'path';
 
-import Argi from 'argi';
+import Argi from 'argi-cli';
 
 import { Server } from '@fatlard1993/web-game-framework';
 import { serverLog, setVerbosity } from '../utils/logger.js';
