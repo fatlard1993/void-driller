@@ -1,4 +1,5 @@
 import { Elem, Button, theme, styled } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
@@ -117,11 +118,9 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			new Button({
 				content: 'Abort Contract ($0)',
 				onPointerPress: async () => {
-					const { response, body } = await exitGame();
+					const result = await exitGame();
 
-					if (response.status !== 200) {
-						new Notify({ type: 'error', content: body?.message || response.statusText });
-					}
+					if (result.status === 'error') new Notify({ type: 'error', content: failureReason(result) });
 
 					window.location.href = `#/join/${gameContext.gameId}`;
 

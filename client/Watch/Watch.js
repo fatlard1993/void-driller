@@ -1,4 +1,5 @@
 import { Link } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import Notify from '../shared/Notify';
 import { getGame } from '../api';
@@ -49,8 +50,8 @@ export default class Watch extends View {
 
 		this.game = await getGame(gameContext.gameId);
 
-		if (this.game.response.status !== 200) {
-			new Notify({ type: 'error', content: this.game.body?.message || this.game.response.statusText });
+		if (this.game.status === 'error') {
+			new Notify({ type: 'error', content: failureReason(this.game) });
 
 			window.location.href = `#/hub`;
 
