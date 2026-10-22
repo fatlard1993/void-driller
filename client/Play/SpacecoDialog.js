@@ -1622,16 +1622,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
-				const { name: itemName, image: imageName } = inventoryItem(key);
+				const { name: itemName, image: imageName, state } = inventoryItem(key);
 
-				// Check if item exists in items config (sellable)
+				// SpaceCo buys only what's in the items config; a placed charge or beacon is keyed by its position instead
 				const itemConfig = items[key];
-				if (!itemConfig) {
-					// Show item but without sell button for items that can't be sold
-					return [
-						new Label({ label: itemName }, `x${count.toString()}`, new ItemImage(imageName, { displaySize: 96 })),
-					];
-				}
+				const sellable = !!itemConfig;
 
 				// Special handling for psykick_egg - show endgame hunt info
 				if (key === 'psykick_egg') {
@@ -1748,13 +1743,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				}
 
 				// Calculate sell price (70% of current market value)
-				const basePrice = itemConfig.price;
-				const currentMarketPrice = getScaledItemPrice(basePrice, gameContext.serverState.world.spaceco.xp);
+				const currentMarketPrice =
+					sellable && getScaledItemPrice(itemConfig.price, gameContext.serverState.world.spaceco.xp);
 				const sellPrice = Math.floor(currentMarketPrice * 0.7);
 
 				return [
 					new Card({
-						header: `${capitalize(key.replaceAll('_', ' '), true)}`,
+						header: itemName,
 						body: new Elem({
 							style: {
 								display: 'flex',
@@ -1771,75 +1766,87 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								}),
 							],
 						}),
-						footer: new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								gap: '4px',
-							},
-							append: [
-								new Elem({
+						footer: sellable
+							? new Elem({
 									style: {
-										fontSize: '14px',
-										color: theme.colors.gray,
-										textAlign: 'center',
 										display: 'flex',
-										alignItems: 'center',
+										flexDirection: 'column',
 										gap: '4px',
-										justifyContent: 'center',
 									},
 									append: [
-										new Elem({ content: '(' }),
-										new PriceDisplay({ amount: currentMarketPrice, size: 14 }),
-										new Elem({ content: '- 30% restocking fee)' }),
-									],
-								}),
-								new Button({
-									content: new Elem(
-										{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-										new Elem({ content: count > 1 ? 'Sell 1' : 'Sell' }),
-										new PriceDisplay({ amount: sellPrice, size: 14, variant: 'success', preText: '(', postText: ')' }),
-									),
-									onPointerPress: async () => {
-										spacecoLog.info('Attempting to sell item:', key, 'count:', 1);
-										try {
-											const result = await spacecoSellItem({ item: key, count: 1 });
-											spacecoLog.info('Sell item result:', result);
-										} catch (error) {
-											spacecoLog.error('Failed to sell item:', error);
-											spacecoLog.error('Error details:', error.response?.data || error.message);
-										}
-									},
-								}),
-								...(count > 1
-									? [
-											new Button({
-												content: new Elem(
-													{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
-													new Elem({ content: 'Sell All' }),
-													new PriceDisplay({
-														amount: sellPrice * count,
-														size: 14,
-														variant: 'success',
-														preText: '(',
-														postText: ')',
+										new Elem({
+											style: {
+												fontSize: '14px',
+												color: theme.colors.gray,
+												textAlign: 'center',
+												display: 'flex',
+												alignItems: 'center',
+												gap: '4px',
+												justifyContent: 'center',
+											},
+											append: [
+												new Elem({ content: '(' }),
+												new PriceDisplay({ amount: currentMarketPrice, size: 14 }),
+												new Elem({ content: '- 30% restocking fee)' }),
+											],
+										}),
+										new Button({
+											content: new Elem(
+												{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+												new Elem({ content: count > 1 ? 'Sell 1' : 'Sell' }),
+												new PriceDisplay({
+													amount: sellPrice,
+													size: 14,
+													variant: 'success',
+													preText: '(',
+													postText: ')',
+												}),
+											),
+											onPointerPress: async () => {
+												spacecoLog.info('Attempting to sell item:', key, 'count:', 1);
+												try {
+													const result = await spacecoSellItem({ item: key, count: 1 });
+													spacecoLog.info('Sell item result:', result);
+												} catch (error) {
+													spacecoLog.error('Failed to sell item:', error);
+													spacecoLog.error('Error details:', error.response?.data || error.message);
+												}
+											},
+										}),
+										...(count > 1
+											? [
+													new Button({
+														content: new Elem(
+															{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+															new Elem({ content: 'Sell All' }),
+															new PriceDisplay({
+																amount: sellPrice * count,
+																size: 14,
+																variant: 'success',
+																preText: '(',
+																postText: ')',
+															}),
+														),
+														onPointerPress: async () => {
+															spacecoLog.info('Attempting to sell all items:', key, 'count:', count);
+															try {
+																const result = await spacecoSellItem({ item: key, count });
+																spacecoLog.info('Sell all items result:', result);
+															} catch (error) {
+																spacecoLog.error('Failed to sell items:', error);
+																spacecoLog.error('Error details:', error.response?.data || error.message);
+															}
+														},
 													}),
-												),
-												onPointerPress: async () => {
-													spacecoLog.info('Attempting to sell all items:', key, 'count:', count);
-													try {
-														const result = await spacecoSellItem({ item: key, count });
-														spacecoLog.info('Sell all items result:', result);
-													} catch (error) {
-														spacecoLog.error('Failed to sell items:', error);
-														spacecoLog.error('Error details:', error.response?.data || error.message);
-													}
-												},
-											}),
-										]
-									: []),
-							],
-						}),
+												]
+											: []),
+									],
+								})
+							: new Elem({
+									tag: 'p',
+									content: `Can't be sold${state ? ` while ${state}` : ''}`,
+									style: { margin: '4px 0', fontSize: '14px', color: theme.colors.gray, textAlign: 'center' },
+								}),
 					}),
 				];
 			}),
