@@ -435,8 +435,7 @@ export const handleDevCommand = async (command, server) => {
 		// 1. Check for zombie build processes
 		const zombieProcesses = [];
 		try {
-			const psOutput = Bun.spawn(['ps', 'aux']).stdout;
-			const processes = new TextDecoder().decode(await psOutput).split('\n');
+			const processes = Bun.spawnSync(['ps', 'aux']).stdout.toString().split('\n');
 
 			processes.forEach(line => {
 				if (line.includes('vbc-build') && !line.includes('grep')) {
@@ -469,8 +468,7 @@ export const handleDevCommand = async (command, server) => {
 
 		// 2. Check git status for uncommitted changes
 		try {
-			const gitStatusOutput = Bun.spawn(['git', 'status', '--porcelain']).stdout;
-			const gitStatus = new TextDecoder().decode(await gitStatusOutput).trim();
+			const gitStatus = Bun.spawnSync(['git', 'status', '--porcelain']).stdout.toString().trim();
 
 			if (gitStatus) {
 				console.log('🚨 PROBLEM DETECTED: Uncommitted changes found');
@@ -492,23 +490,21 @@ export const handleDevCommand = async (command, server) => {
 
 		// 3. Check if main server is running
 		try {
-			const lsofOutput = Bun.spawn(['lsof', '-i', ':3000']).stdout;
-			const lsofResult = new TextDecoder().decode(await lsofOutput).trim();
+			const lsofResult = Bun.spawnSync(['lsof', '-i', `:${server.port}`]).stdout.toString().trim();
 
 			if (!lsofResult) {
-				console.log('🚨 PROBLEM DETECTED: Main server not running on port 3000');
+				console.log(`🚨 PROBLEM DETECTED: Main server not running on port ${server.port}`);
 				console.log('💡 FIX: Run "bun run dev" to start the main server');
 			} else {
-				console.log('✅ Main server running on port 3000');
+				console.log(`✅ Main server running on port ${server.port}`);
 			}
 		} catch {
-			console.log('⚠️  Could not check port 3000 status');
+			console.log(`⚠️  Could not check port ${server.port} status`);
 		}
 
 		// 4. Check disk space
 		try {
-			const dfOutput = Bun.spawn(['df', '-h', '.']).stdout;
-			const dfResult = new TextDecoder().decode(await dfOutput).trim();
+			const dfResult = Bun.spawnSync(['df', '-h', '.']).stdout.toString().trim();
 			const lines = dfResult.split('\n');
 
 			if (lines.length > 1) {
@@ -540,7 +536,7 @@ export const handleDevCommand = async (command, server) => {
 		console.log('1. If build issues: ctrl+c, then run "bun run dev"');
 		console.log('2. If git issues: "git add ." then "git commit -m "fix: recovery commit""');
 		console.log('3. If dependency issues: "bun install"');
-		console.log('4. If port conflicts: "lsof -ti:3000 | xargs kill -9"');
+		console.log(`4. If port conflicts: "lsof -ti:${server.port} | xargs kill -9"`);
 		console.log('5. If memory issues: restart terminal and try again');
 		console.log('6. Nuclear option: "git stash && bun run dev:clean"\n');
 
