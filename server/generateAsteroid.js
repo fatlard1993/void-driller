@@ -8,7 +8,7 @@
  * Phase 4: Life & Artifacts (aliens, items with precise budgets)
  */
 
-import { randInt, weightedChance } from '../utils/index.js';
+import { randFromArray, randInt, shuffleArray, weightedChance } from '../utils/index.js';
 import { worlds } from '../constants/index.js';
 
 /**
@@ -546,14 +546,14 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 
 	// Assign gas to suitable caves (no overlap with lava)
 	if (gasCount > 0) {
-		const gasEligibleCaves = caveList
-			.filter(
+		const gasEligibleCaves = shuffleArray(
+			caveList.filter(
 				cave =>
 					['small', 'medium', 'big', 'huge'].includes(cave.size) &&
 					// Prevent any cave from having both lava and gas
 					!cave.hasLava,
-			)
-			.sort(() => Math.random() - 0.5); // Random selection
+			),
+		);
 
 		for (let i = 0; i < Math.min(gasCount, gasEligibleCaves.length); i++) {
 			gasEligibleCaves[i].hasGas = true;
@@ -1797,7 +1797,7 @@ function generateMazeVeins(world, color, size, numVeins, asteroidShape, holePatt
 		}
 
 		if (neighbors.length > 0) {
-			const [nx, ny, wallX, wallY] = neighbors[Math.floor(Math.random() * neighbors.length)];
+			const [nx, ny, wallX, wallY] = randFromArray(neighbors);
 			maze[ny][nx] = true;
 			maze[wallY][wallX] = true;
 			stack.push([currentMazeX, currentMazeY]);
@@ -2111,7 +2111,9 @@ function placeAliens(world, worldConfig) {
 
 	// Determine alien types to place
 	const alienTypesToPlace = [];
-	if (alienConfig.types && typeof alienConfig.types === 'object') {
+	if (Array.isArray(alienConfig.types) && alienConfig.types.length > 0) {
+		for (let i = 0; i < budget; i++) alienTypesToPlace.push(randFromArray(alienConfig.types));
+	} else if (alienConfig.types && typeof alienConfig.types === 'object') {
 		// World has specific alien type distribution
 		const totalWeight = Object.values(alienConfig.types).reduce((sum, weight) => sum + weight, 0);
 		for (let i = 0; i < budget; i++) {
@@ -2129,7 +2131,7 @@ function placeAliens(world, worldConfig) {
 		// No specific types - use default selection
 		const defaultAlienTypes = ['rock_mite', 'hive_drone', 'psykick_scout'];
 		for (let i = 0; i < budget; i++) {
-			alienTypesToPlace.push(defaultAlienTypes[Math.floor(Math.random() * defaultAlienTypes.length)]);
+			alienTypesToPlace.push(randFromArray(defaultAlienTypes));
 		}
 	}
 
@@ -2459,7 +2461,7 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 				const availableSpaces = caveSpaces.filter(space => !allFilledSpaces.has(`${space.x},${space.y}`));
 				if (availableSpaces.length === 0) break;
 
-				const startSpot = availableSpaces[Math.floor(Math.random() * availableSpaces.length)];
+				const startSpot = randFromArray(availableSpaces);
 				console.log(`🔥 Lava pool ${i + 1}, attempt ${attempts + 1}: Starting at (${startSpot.x}, ${startSpot.y})`);
 
 				// Fill outward and down from this spot
@@ -2506,7 +2508,7 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 				const availableSpaces = caveSpaces.filter(space => !allFilledSpaces.has(`${space.x},${space.y}`));
 				if (availableSpaces.length === 0) break;
 
-				const startSpot = availableSpaces[Math.floor(Math.random() * availableSpaces.length)];
+				const startSpot = randFromArray(availableSpaces);
 				console.log(`💨 Gas pocket ${i + 1}, attempt ${attempts + 1}: Starting at (${startSpot.x}, ${startSpot.y})`);
 
 				// Fill outward and up from this spot
