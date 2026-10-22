@@ -1,8 +1,10 @@
-import { Button, Dialog, Label, Input } from '@vanilla-bean/components';
+import { Button } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
+import { ExitDialog } from '@fatlard1993/web-game-framework/ui/GameRoom';
 import Notify from '../shared/Notify';
-import { exitGame, getGame } from '../api';
+import { getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import { releaseInputOnClose } from '../shared/BaseDialog';
 import Game from './Game';
@@ -23,49 +25,17 @@ export default class Play extends View {
 						new Button({
 							content: 'Abort Contract',
 							onPointerPress: () => {
-								this.removePlayerOnExit = true;
-
 								gameContext.openDialog = releaseInputOnClose(
-									new Dialog({
-										size: 'fit',
+									new ExitDialog({
+										gameId: gameContext.gameId,
+										playerId: gameContext.playerId,
 										header: 'Abort Contract',
-										body: new Label(
-											{
-												label:
-													'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
-												variant: 'inline-after',
-											},
-											new Input({
-												type: 'checkbox',
-												value: true,
-												onChange: ({ value }) => {
-													this.removePlayerOnExit = value;
-												},
-											}),
-										),
-										buttons: ['Abort Contract', 'Cancel'],
-										onButtonPress: async ({ button, closeDialog }) => {
-											if (button === 'Abort Contract') {
-												if (this.removePlayerOnExit) {
-													const { response, body } = await exitGame();
-
-													if (response.status !== 200) {
-														new Notify({ type: 'error', content: body?.message || response.statusText });
-													}
-												}
-
-												// Stop any playing audio and music before navigating away
-												if (gameContext.audioPlayer) {
-													gameContext.audioPlayer.stop();
-												}
-												if (gameContext.musicManager) {
-													gameContext.musicManager.stop();
-												}
-
-												window.location.href = `#/hub`;
-											}
-
-											closeDialog();
+										confirmLabel: 'Abort Contract',
+										label:
+											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
+										onExit: () => {
+											gameContext.audioPlayer?.stop();
+											gameContext.musicManager?.stop();
 										},
 									}),
 								);
@@ -103,8 +73,8 @@ export default class Play extends View {
 
 		this.game = await getGame(gameContext.gameId);
 
-		if (this.game.response.status !== 200) {
-			new Notify({ type: 'error', content: this.game.body?.message || this.game.response.statusText });
+		if (this.game.status === 'error') {
+			new Notify({ type: 'error', content: failureReason(this.game) });
 
 			localStorage.removeItem(this.options.gameId);
 
