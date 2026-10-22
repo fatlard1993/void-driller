@@ -243,7 +243,7 @@ class UpgradeStat extends (styled.Component`
 	justify-content: space-between;
 	align-items: center;
 	width: 100%;
-	margin: 2px 0;
+	margin: ${({ space }) => space.xs} 0;
 `) {
 	static schema = {
 		label: {},
@@ -265,7 +265,7 @@ class UpgradeStat extends (styled.Component`
 			new Elem({
 				appendTo: this,
 				content: this.options.value.toString(), // Will show as negative number
-				style: { color: theme.colors.red },
+				style: { color: theme.colors.danger },
 			});
 		} else {
 			new Elem({
@@ -280,8 +280,8 @@ class UpgradeStat extends (styled.Component`
 				appendTo: this,
 				content: diff === 0 ? '+0' : `${diff > 0 ? '+' : ''}${diff}`,
 				styles: ({ colors }) => ({
-					color: diff === 0 ? colors.yellow : colors[diff >= 0 ? 'green' : 'red'],
-					marginLeft: '6px',
+					color: diff === 0 ? colors.muted : colors[diff > 0 ? 'success' : 'danger'],
+					marginLeft: theme.space.sm,
 				}),
 			});
 		}
@@ -303,7 +303,7 @@ class StatChange extends (styled.Component`
 			new Elem({
 				content: `${value > 0 ? '+' : ''}${value}`,
 				style: {
-					color: value >= 0 ? theme.colors.green : theme.colors.red,
+					color: value >= 0 ? theme.colors.success : theme.colors.danger,
 					fontWeight: 'bold',
 				},
 			}),
@@ -314,8 +314,8 @@ class StatChange extends (styled.Component`
 class UpgradePricing extends (styled.Component`
 	display: flex;
 	flex-direction: column;
-	gap: 3px;
-	margin: 6px 0;
+	gap: ${({ space }) => space.xs};
+	margin: ${({ space }) => space.sm} 0;
 `) {
 	build() {
 		const { basePrice, tradeInDiscount } = this.options;
@@ -326,11 +326,11 @@ class UpgradePricing extends (styled.Component`
 					appendTo: this,
 					style: {
 						textDecoration: 'line-through',
-						color: theme.colors.gray,
+						color: theme.colors.muted,
 						fontSize: '0.9em',
 						display: 'flex',
 						alignItems: 'center',
-						gap: '4px',
+						gap: theme.space.xs,
 					},
 				},
 				new Elem({ content: 'List Price:' }),
@@ -344,11 +344,11 @@ class UpgradePricing extends (styled.Component`
 				{
 					appendTo: this,
 					style: {
-						color: theme.colors.green,
+						color: theme.colors.success,
 						fontSize: '0.9em',
 						display: 'flex',
 						alignItems: 'center',
-						gap: '4px',
+						gap: theme.space.xs,
 					},
 				},
 				new Elem({ content: 'Trade-in Credit: -' }),
@@ -370,8 +370,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	& .menu {
 		display: flex;
 		flex-wrap: wrap-reverse;
-		gap: 6px;
-		margin: 6px;
+		gap: ${({ space }) => space.sm};
+		margin: ${({ space }) => space.sm};
 
 		& button {
 			flex: 1;
@@ -398,7 +398,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		/* Style for empty/unavailable menus */
 		& button.empty-menu {
 			opacity: 0.7;
-			color: ${({ colors }) => colors.gray};
+			color: ${({ colors }) => colors.muted};
 
 			&:before {
 				background: repeating-linear-gradient(
@@ -413,7 +413,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		/* Style for currently selected menu - matches content background for continuity */
 		& button.selected-menu {
-			color: ${({ colors }) => colors.green} !important;
+			color: ${({ colors }) => colors.success} !important;
 			font-weight: bold !important;
 			opacity: 1 !important;
 
@@ -425,18 +425,18 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 	& .menuBody {
 		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
-		padding: 9px 18px;
+		padding: ${({ space }) => `${space.md} ${space.lg}`};
 	}
 
 	& p.description {
 		color: ${theme => theme.colors.lighter(theme.colors.gray)};
 		border-left: 3px solid;
-		padding-left: 6px;
+		padding-left: ${({ space }) => space.sm};
 		word-wrap: break-word;
 	}
 
 	& p.quote {
-		color: ${({ colors }) => colors.light(colors.gray)};
+		color: ${({ colors }) => colors.muted};
 		word-wrap: break-word;
 		font-size: 0.9em;
 		font-style: italic;
@@ -452,13 +452,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		& label {
 			display: inline-block;
-			margin-left: 3px;
+			margin-left: ${({ space }) => space.xs};
 		}
 
 		&.unlocked {
-			background: ${({ colors }) => colors.darkest(colors.green)};
-			border: ${({ colors }) => `3px solid ${colors.green}`};
-			border-radius: 6px;
+			background: ${({ colors }) => colors.darkest(colors.success)};
+			border: ${({ colors }) => `3px solid ${colors.success}`};
+			border-radius: ${({ radius }) => radius.md};
 		}
 	}
 `) {
@@ -621,11 +621,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			this._menuBody.append(
 				new Elem({
 					style: {
-						marginTop: '8px',
-						padding: '6px',
+						marginTop: theme.space.sm,
+						padding: theme.space.sm,
 						background: theme.colors.darkest(theme.colors.purple),
 						border: `1px solid ${theme.colors.purple}`,
-						borderRadius: '4px',
+						borderRadius: theme.radius.sm,
 						fontSize: '13px',
 					},
 					append: [
@@ -634,16 +634,16 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							style: {
 								color: theme.colors.purple,
 								fontWeight: 'bold',
-								marginBottom: '2px',
+								marginBottom: theme.space.xs,
 							},
 						}),
 						new Elem({
 							content: `Your submissions: ${playerSubmitted}`,
-							style: { color: theme.colors.gray },
+							style: { color: theme.colors.muted },
 						}),
 						new Elem({
 							content: `Global total: ${eggHunt.totalEggsSubmitted}`,
-							style: { color: theme.colors.gray },
+							style: { color: theme.colors.muted },
 						}),
 					],
 				}),
@@ -665,7 +665,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		new Button({
 			content: new Elem(
-				{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+				{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 				new Elem({ content: 'Full Repair' }),
 				new PriceDisplay({ amount: spacecoRepairCost, size: 14, preText: '(', postText: ')' }),
 			),
@@ -696,7 +696,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		}
 
 		const sellButton = new Button({
-			style: { marginBottom: '9px' },
+			style: { marginBottom: theme.space.md },
 			content: `Sell All`,
 			onPointerPress: () => spacecoSell(),
 			appendTo: this._menuBody,
@@ -729,14 +729,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						body: new Elem({
 							append: [
 								new Elem({
-									style: { marginBottom: '4px' },
+									style: { marginBottom: theme.space.xs },
 									append: [
 										new Elem({ content: `Dirty: x${dirtyCount.toString()} = `, tag: 'span' }),
 										new PriceDisplay({ amount: dirtyPrice, size: 14 }),
 									],
 								}),
 								new Elem({
-									style: { marginBottom: '8px' },
+									style: { marginBottom: theme.space.sm },
 									append: [
 										new Elem({ content: `Pure: x${pureCount.toString()} = `, tag: 'span' }),
 										new PriceDisplay({ amount: purePrice, size: 14 }),
@@ -764,7 +764,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 
 		sellButton.options.content = new Elem(
-			{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+			{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 			new Elem({ content: 'Sell All' }),
 			new PriceDisplay({ amount: credits, size: 14, variant: 'success', preText: '(', postText: ')' }),
 		);
@@ -817,7 +817,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
@@ -825,7 +825,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									style: {
 										display: 'flex',
 										alignItems: 'center',
-										gap: '4px',
+										gap: theme.space.xs,
 										justifyContent: 'center',
 									},
 									append: [
@@ -850,7 +850,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
@@ -872,7 +872,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
@@ -880,7 +880,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									style: {
 										display: 'flex',
 										alignItems: 'center',
-										gap: '4px',
+										gap: theme.space.xs,
 										justifyContent: 'center',
 									},
 									append: [
@@ -912,7 +912,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px',
+									gap: theme.space.xs,
 								},
 								append: [
 									new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
@@ -958,7 +958,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px',
+							gap: theme.space.xs,
 						},
 						append: [
 							new VehicleImage(spriteIndex, { displaySize: 96 }),
@@ -985,7 +985,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									icon: 'triangle-exclamation',
 									textContent: '-Insufficient credits-',
 									style: {
-										color: theme.colors.red,
+										color: theme.colors.danger,
 										fontSize: '13px',
 									},
 								}),
@@ -995,12 +995,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footer: [
 						new Button({
 							content: new Elem(
-								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 								new Elem({ content: 'Buy' }),
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							style: {
-								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.red),
+								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
 							onPointerPress: () => {
 								const player = gameContext.players.currentPlayer;
@@ -1040,7 +1040,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px',
+							gap: theme.space.xs,
 						},
 						append: [
 							new EngineImage(spriteIndex, { displaySize: 96 }),
@@ -1072,7 +1072,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									icon: 'triangle-exclamation',
 									textContent: '-Insufficient credits-',
 									style: {
-										color: theme.colors.red,
+										color: theme.colors.danger,
 										fontSize: '13px',
 									},
 								}),
@@ -1082,12 +1082,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footer: [
 						new Button({
 							content: new Elem(
-								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 								new Elem({ content: 'Buy' }),
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							style: {
-								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.red),
+								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
 							onPointerPress: () => {
 								spacecoBuyUpgrade({ upgrade: id, type: 'engines' });
@@ -1135,7 +1135,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px',
+							gap: theme.space.xs,
 						},
 						append: [
 							new DrillImage(spriteIndex, { displaySize: 96 }),
@@ -1168,7 +1168,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									icon: 'triangle-exclamation',
 									textContent: '-Insufficient credits-',
 									style: {
-										color: theme.colors.red,
+										color: theme.colors.danger,
 										fontSize: '13px',
 									},
 								}),
@@ -1177,7 +1177,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									icon: 'triangle-exclamation',
 									textContent: '-Insufficient torque-',
 									style: {
-										color: theme.colors.red,
+										color: theme.colors.danger,
 										fontSize: '13px',
 									},
 								}),
@@ -1187,12 +1187,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footer: [
 						new Button({
 							content: new Elem(
-								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 								new Elem({ content: 'Buy' }),
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							style: {
-								backgroundColor: !missingRequirements && canAfford ? '' : theme.colors.darkest(theme.colors.red),
+								backgroundColor: !missingRequirements && canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
 							onPointerPress: () => {
 								const player = gameContext.players.currentPlayer;
@@ -1253,7 +1253,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px',
+							gap: theme.space.xs,
 						},
 						append: [
 							spriteIndex >= 0 && new PartImage(spriteIndex, { displaySize: 96 }),
@@ -1289,7 +1289,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									icon: 'triangle-exclamation',
 									textContent: '-Insufficient credits-',
 									style: {
-										color: theme.colors.red,
+										color: theme.colors.danger,
 										fontSize: '13px',
 									},
 								}),
@@ -1299,7 +1299,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					footer: [
 						new Button({
 							content: new Elem(
-								{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+								{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 								new Elem({ content: 'Buy' }),
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
@@ -1308,7 +1308,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							},
 							disabled: !canAfford,
 							style: {
-								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.red),
+								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
 						}),
 					],
@@ -1364,7 +1364,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					}),
 				new Button({
 					content: new Elem(
-						{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+						{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 						new Elem({ content: 'Fill' }),
 						new Elem({ content: '(' }),
 						new PriceDisplay({ amount: cost.toFixed(2), size: 14 }),
@@ -1399,7 +1399,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 			new Button({
 				content: new Elem(
-					{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+					{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 					new Elem({ content: 'Full Repair' }),
 					new PriceDisplay({ amount: cost, size: 14, preText: '(', postText: ')' }),
 				),
@@ -1408,7 +1408,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				onPointerPress: () => spacecoRepair({ type: 'player' }),
 				disabled: cost > player.credits,
 				style: {
-					backgroundColor: cost <= player.credits ? '' : theme.colors.darkest(theme.colors.red),
+					backgroundColor: cost <= player.credits ? '' : theme.colors.darkest(theme.colors.danger),
 				},
 			});
 		}
@@ -1420,7 +1420,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 			new Button({
 				content: new Elem(
-					{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+					{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 					new Elem({ content: 'Full Repair' }),
 					new Elem({ content: '(' }),
 					new PriceDisplay({ amount: spacecoRepairCost, size: 14 }),
@@ -1491,11 +1491,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				flexWrap: 'wrap',
 				justifyContent: 'space-between',
 				alignItems: 'center',
-				gap: '8px',
-				marginBottom: '8px',
-				padding: '8px',
+				gap: theme.space.sm,
+				marginBottom: theme.space.sm,
+				padding: theme.space.sm,
 				background: theme.colors.alpha(theme.colors.vantablack, 0.3),
-				borderRadius: '4px',
+				borderRadius: theme.radius.sm,
 			},
 			append: [
 				new Elem({
@@ -1504,7 +1504,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				}),
 				new Button({
 					content: new Elem(
-						{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+						{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 						new Elem({ content: 'Resupply' }),
 						new PriceDisplay({ amount: resupplyCost, size: 14, preText: '(', postText: ')' }),
 					),
@@ -1521,7 +1521,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					tag: 'p',
 					content: 'Inventory full - purchase additional storage parts or use items to make space.',
 					className: 'description',
-					style: { color: theme.colors.red },
+					style: { color: theme.colors.danger },
 				}),
 		);
 
@@ -1551,7 +1551,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new ItemImage(key, { displaySize: 96 }),
@@ -1573,7 +1573,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										icon: 'triangle-exclamation',
 										textContent: `-${disabledReason}-`,
 										style: {
-											color: theme.colors.red,
+											color: theme.colors.danger,
 											fontSize: '13px',
 										},
 									}),
@@ -1583,12 +1583,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						footer: [
 							new Button({
 								content: new Elem(
-									{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+									{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 									new Elem({ content: 'Buy' }),
 									new PriceDisplay({ amount: scaledPrice, size: 14, preText: '(', postText: ')' }),
 								),
 								style: {
-									backgroundColor: canPurchase ? '' : theme.colors.darkest(theme.colors.red),
+									backgroundColor: canPurchase ? '' : theme.colors.darkest(theme.colors.danger),
 								},
 								onPointerPress: () => spacecoBuyItem({ item: key, count: 1 }),
 							}),
@@ -1609,7 +1609,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				tag: 'p',
 				content: 'No items in inventory to sell',
 				appendTo: this._subMenuBody,
-				style: { textAlign: 'center', padding: '20px', color: theme.colors.gray },
+				style: { textAlign: 'center', padding: theme.space.lg, color: theme.colors.muted },
 			});
 			return;
 		}
@@ -1639,10 +1639,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								alignItems: 'center',
 								background: theme.colors.darkest(theme.colors.purple),
 								border: `2px solid ${theme.colors.purple}`,
-								borderRadius: '8px',
-								padding: '16px',
+								borderRadius: theme.radius.lg,
+								padding: theme.space.lg,
 								minWidth: '160px',
-								gap: '8px',
+								gap: theme.space.sm,
 								boxShadow: `0 0 10px ${theme.colors.alpha(theme.colors.purple, 0.3)}`,
 							},
 							append: [
@@ -1651,7 +1651,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										display: 'flex',
 										flexDirection: 'column',
 										alignItems: 'center',
-										gap: '6px',
+										gap: theme.space.sm,
 									},
 									append: [
 										new ItemImage(imageName, { displaySize: 96 }),
@@ -1680,7 +1680,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Elem({
 									style: {
 										fontSize: '14px',
-										color: theme.colors.gray,
+										color: theme.colors.muted,
 										textAlign: 'center',
 									},
 									content: `Your submissions: ${playerSubmitted}`,
@@ -1688,7 +1688,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Elem({
 									style: {
 										fontSize: '14px',
-										color: theme.colors.gray,
+										color: theme.colors.muted,
 										textAlign: 'center',
 									},
 									content: `Global total: ${totalSubmitted}`,
@@ -1697,7 +1697,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									content: count > 1 ? 'Submit 1' : 'Submit',
 									style: {
 										width: '100%',
-										marginTop: '6px',
+										marginTop: theme.space.sm,
 										background: theme.colors.purple,
 										color: 'white',
 									},
@@ -1752,14 +1752,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new ItemImage(imageName, { displaySize: 96 }),
 								new Elem({
 									tag: 'p',
 									content: `Quantity: ${count}`,
-									style: { margin: '4px 0', fontSize: '14px' },
+									style: { margin: `${theme.space.xs} 0`, fontSize: '14px' },
 								}),
 							],
 						}),
@@ -1768,17 +1768,17 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									style: {
 										display: 'flex',
 										flexDirection: 'column',
-										gap: '4px',
+										gap: theme.space.xs,
 									},
 									append: [
 										new Elem({
 											style: {
 												fontSize: '14px',
-												color: theme.colors.gray,
+												color: theme.colors.muted,
 												textAlign: 'center',
 												display: 'flex',
 												alignItems: 'center',
-												gap: '4px',
+												gap: theme.space.xs,
 												justifyContent: 'center',
 											},
 											append: [
@@ -1789,7 +1789,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										}),
 										new Button({
 											content: new Elem(
-												{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+												{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 												new Elem({ content: count > 1 ? 'Sell 1' : 'Sell' }),
 												new PriceDisplay({
 													amount: sellPrice,
@@ -1814,7 +1814,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 											? [
 													new Button({
 														content: new Elem(
-															{ style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+															{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 															new Elem({ content: 'Sell All' }),
 															new PriceDisplay({
 																amount: sellPrice * count,
@@ -1842,7 +1842,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							: new Elem({
 									tag: 'p',
 									content: `Can't be sold${state ? ` while ${state}` : ''}`,
-									style: { margin: '4px 0', fontSize: '14px', color: theme.colors.gray, textAlign: 'center' },
+									style: {
+										margin: `${theme.space.xs} 0`,
+										fontSize: '14px',
+										color: theme.colors.muted,
+										textAlign: 'center',
+									},
 								}),
 					}),
 				];
@@ -1871,8 +1876,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							content: capitalize(key.replaceAll('_', ' '), true),
 							style: {
 								background: theme.colors.alpha(theme.colors.vantablack, 0.85),
-								padding: '6px 12px',
-								borderRadius: '4px',
+								padding: `${theme.space.sm} ${theme.space.md}`,
+								borderRadius: theme.radius.sm,
 								textAlign: 'center',
 							},
 						}),
@@ -1889,10 +1894,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 								background: theme.colors.alpha(theme.colors.vantablack, 0.7),
-								padding: '8px',
-								borderRadius: '4px',
+								padding: theme.space.sm,
+								borderRadius: theme.radius.sm,
 							},
 							append: [
 								missingRequirements
@@ -1900,7 +1905,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 											style: {
 												display: 'flex',
 												flexDirection: 'column',
-												gap: '8px',
+												gap: theme.space.sm,
 												width: '100%',
 											},
 											append: [
@@ -1910,7 +1915,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													style: {
 														fontSize: '13px',
 														fontWeight: 'bold',
-														marginBottom: '4px',
+														marginBottom: theme.space.xs,
 														textAlign: 'center',
 													},
 												}),
@@ -1925,7 +1930,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 														style: {
 															display: 'flex',
 															flexDirection: 'column',
-															gap: '4px',
+															gap: theme.space.xs,
 														},
 														append: [
 															new Elem({
@@ -1941,7 +1946,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 																	width: '100%',
 																	height: '16px',
 																	background: theme.colors.alpha(theme.colors.white, 0.15),
-																	borderRadius: '8px',
+																	borderRadius: theme.radius.lg,
 																	overflow: 'hidden',
 																	position: 'relative',
 																	border: `1px solid ${theme.colors.alpha(theme.colors.white, 0.2)}`,
@@ -1952,8 +1957,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 																		height: '100%',
 																		background:
 																			percentage >= 100
-																				? theme.colors.green
-																				: `linear-gradient(90deg, ${theme.colors.red}, ${theme.colors.yellow})`,
+																				? theme.colors.success
+																				: `linear-gradient(90deg, ${theme.colors.danger}, ${theme.colors.warning})`,
 																		transition: 'width 0.3s ease',
 																		boxShadow:
 																			percentage > 0
@@ -1981,10 +1986,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							style: {
 								display: 'flex',
 								flexDirection: 'column',
-								gap: '4px',
+								gap: theme.space.xs,
 								background: theme.colors.alpha(theme.colors.vantablack, 0.8),
-								padding: '8px',
-								borderRadius: '4px',
+								padding: theme.space.sm,
+								borderRadius: theme.radius.sm,
 							},
 							append: [
 								new PriceDisplay({
@@ -1992,7 +1997,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									size: 18,
 									style: {
 										fontSize: '14px',
-										color: theme.colors.green,
+										color: theme.colors.success,
 										justifyContent: 'center',
 										fontWeight: 'bold',
 									},
@@ -2098,7 +2103,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new MineralImage(name.replace('mineral_', '')),
@@ -2118,7 +2123,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								margin: 0,
 								whiteSpace: 'pre-wrap',
 								textAlign: 'center',
-								color: theme.colors.green,
+								color: theme.colors.success,
 								fontWeight: 'bold',
 							},
 						}),
@@ -2162,13 +2167,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						if (achievement.hidden) return;
 
 						return new Card({
-							header: `🔒 ${achievement.name}`,
+							header: [new Icon({ icon: 'lock' }), achievement.name],
 							body: new Elem({
 								style: {
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px',
+									gap: theme.space.xs,
 								},
 								append: [
 									new Elem({
@@ -2188,7 +2193,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 											style: {
 												color: theme.colors.yellow,
 												fontWeight: 'bold',
-												marginTop: '4px',
+												marginTop: theme.space.xs,
 											},
 										}),
 								],
@@ -2197,17 +2202,17 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					}
 
 					return new Card({
-						header: `✓ ${achievement.name}`,
+						header: [new Icon({ icon: 'check' }), achievement.name],
 						style: {
-							background: theme.colors.darkest(theme.colors.green),
-							border: `1px solid ${theme.colors.green}`,
+							background: theme.colors.darkest(theme.colors.success),
+							border: `1px solid ${theme.colors.success}`,
 						},
 						body: new Elem({
 							style: {
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new Elem({
@@ -2230,9 +2235,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										content: rewardsText,
 										className: 'description',
 										style: {
-											color: theme.colors.green,
+											color: theme.colors.success,
 											fontWeight: 'bold',
-											marginTop: '4px',
+											marginTop: theme.space.xs,
 										},
 									}),
 							],
