@@ -11,7 +11,9 @@ export class ScreenLayer extends Phaser.GameObjects.Container {
 
 		scene.add.existing(this);
 		scene.events.on(Phaser.Scenes.Events.PRE_RENDER, this.pin, this);
-		this.once(Phaser.GameObjects.Events.DESTROY, () => scene.events.off(Phaser.Scenes.Events.PRE_RENDER, this.pin, this));
+		this.once(Phaser.GameObjects.Events.DESTROY, () =>
+			scene.events.off(Phaser.Scenes.Events.PRE_RENDER, this.pin, this),
+		);
 	}
 
 	pin() {
