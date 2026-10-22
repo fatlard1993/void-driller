@@ -485,7 +485,9 @@ export const handleDevCommand = async (command, server) => {
 
 		// 3. Check if main server is running
 		try {
-			const lsofResult = Bun.spawnSync(['lsof', '-i', `:${server.port}`]).stdout.toString().trim();
+			const lsofResult = Bun.spawnSync(['lsof', '-i', `:${server.port}`])
+				.stdout.toString()
+				.trim();
 
 			if (!lsofResult) {
 				console.log(`🚨 PROBLEM DETECTED: Main server not running on port ${server.port}`);

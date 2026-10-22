@@ -114,7 +114,6 @@ export default class BaseDialog extends StyledDialog {
 	 * Handle dialog close action - override in subclasses for custom behavior
 	 */
 	handleClose() {
-
 		// Default close behavior - subclasses can override
 		const player = gameContext.players.currentPlayer;
 		if (player?.sprite) {

@@ -3,13 +3,14 @@ import { Hub as BaseHub } from '@fatlard1993/web-game-framework/ui/GameRoom';
 
 import { ConsoleContainer } from './shared/ConsoleContainer.js';
 
-const devButton = process.env.NODE_ENV === 'development'
-	? new Link({
-			textContent: '> Dev Console',
-			href: '#/dev',
-			variant: 'button',
-		})
-	: null;
+const devButton =
+	process.env.NODE_ENV === 'development'
+		? new Link({
+				textContent: '> Dev Console',
+				href: '#/dev',
+				variant: 'button',
+			})
+		: null;
 
 export default class Hub extends BaseHub {
 	constructor(options, ...children) {

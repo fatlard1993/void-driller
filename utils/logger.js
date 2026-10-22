@@ -27,15 +27,7 @@ export const log = new Log({ tag: 'void-driller', defaults: loggerDefaults });
 export const setVerbosity = level => {
 	loggerDefaults.verbosity = level;
 
-	const loggers = [
-		serverLog,
-		clientLog,
-		gameLog,
-		playerLog,
-		worldLog,
-		spacecoLog,
-		log,
-	];
+	const loggers = [serverLog, clientLog, gameLog, playerLog, worldLog, spacecoLog, log];
 	loggers.forEach(logger => {
 		if (logger && logger.options) {
 			logger.options.verbosity = level;

@@ -68,6 +68,6 @@
 		"eslint-plugin-write-good-comments": "^0.2.0",
 		"globals": "^17.7.0",
 		"happy-dom": "^20.14.6",
-		"prettier": "3.6.2"
+		"prettier": "^3.9.5"
 	}
 }
