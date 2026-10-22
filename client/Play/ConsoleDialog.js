@@ -8,6 +8,7 @@ import {
 	List,
 	Select,
 	Button,
+	Icon,
 	rand,
 	randInt,
 	theme,
@@ -301,8 +302,8 @@ class AutoPathControl extends Component {
 					display: 'grid',
 					gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 150px))',
 					justifyContent: 'center',
-					gap: '6px',
-					marginBottom: '6px',
+					gap: theme.space.sm,
+					marginBottom: theme.space.sm,
 				},
 			});
 
@@ -311,8 +312,9 @@ class AutoPathControl extends Component {
 				if (mineralConfig) {
 					new Button({
 						appendTo: ignoreList,
-						content: `${mineralConfig.name} ✕`,
-						style: { fontSize: '0.9em', padding: '3px 6px' },
+						textContent: mineralConfig.name,
+						icon: 'xmark',
+						style: { fontSize: '0.9em', padding: `${theme.space.xs} ${theme.space.sm}` },
 						onPointerPress: () => {
 							removeFromIgnoreList(mineralType);
 							this.refresh();
@@ -324,7 +326,7 @@ class AutoPathControl extends Component {
 			new Button({
 				appendTo: ignoreListContainer,
 				content: 'Clear All',
-				style: { fontSize: '0.9em', marginBottom: '6px' },
+				style: { fontSize: '0.9em', marginBottom: theme.space.sm },
 				onPointerPress: () => {
 					clearIgnoreList();
 					this.refresh();
@@ -370,8 +372,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	& .menu {
 		display: flex;
 		flex-wrap: wrap-reverse;
-		gap: 6px;
-		margin: 6px;
+		gap: ${({ space }) => space.sm};
+		margin: ${({ space }) => space.sm};
 
 		& button {
 			flex: 1;
@@ -379,7 +381,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		& button:disabled {
 			background: transparent;
-			color: ${({ colors }) => colors.green} !important;
+			color: ${({ colors }) => colors.success} !important;
 			font-weight: bold;
 
 			&:before {
@@ -400,18 +402,18 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 	& .menuBody {
 		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
-		padding: 9px 18px;
+		padding: ${({ space }) => `${space.md} ${space.lg}`};
 	}
 
 	& p.description {
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 		border-left: 3px solid;
-		padding-left: 6px;
+		padding-left: ${({ space }) => space.sm};
 		word-wrap: break-word;
 	}
 
 	& p.quote {
-		color: ${({ colors }) => colors.light(colors.gray)};
+		color: ${({ colors }) => colors.muted};
 		word-wrap: break-word;
 		font-size: 0.9em;
 		font-style: italic;
@@ -427,32 +429,32 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		& label {
 			display: inline-block;
-			margin-left: 3px;
+			margin-left: ${({ space }) => space.xs};
 		}
 
 		&.unlocked {
-			background: ${({ colors }) => colors.darkest(colors.green)};
-			border: ${({ colors }) => `3px solid ${colors.green}`};
-			border-radius: 6px;
+			background: ${({ colors }) => colors.darkest(colors.success)};
+			border: ${({ colors }) => `3px solid ${colors.success}`};
+			border-radius: ${({ radius }) => radius.md};
 		}
 	}
 
 	& .rescueButton {
-		background-color: ${({ colors }) => colors.darkest(colors.red)} !important;
-		border: 2px solid ${({ colors }) => colors.red} !important;
-		color: ${({ colors }) => colors.red} !important;
+		background-color: ${({ colors }) => colors.darkest(colors.danger)} !important;
+		border: 2px solid ${({ colors }) => colors.danger} !important;
+		color: ${({ colors }) => colors.danger} !important;
 		font-weight: bold !important;
 		animation: pulse 2s infinite;
 
 		&:hover {
-			background-color: ${({ colors }) => colors.darker(colors.red)} !important;
+			background-color: ${({ colors }) => colors.darker(colors.danger)} !important;
 		}
 
 		&:disabled {
 			opacity: 0.5;
 			background-color: ${({ colors }) => colors.darkest(colors.gray)} !important;
-			border-color: ${({ colors }) => colors.gray} !important;
-			color: ${({ colors }) => colors.gray} !important;
+			border-color: ${({ colors }) => colors.border} !important;
+			color: ${({ colors }) => colors.muted} !important;
 		}
 	}
 `) {
@@ -519,7 +521,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		const total = new Elem({
 			appendTo: this._menuBody,
-			style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' },
+			style: { display: 'flex', alignItems: 'center', gap: theme.space.sm, marginBottom: theme.space.sm },
 			append: [new Elem({ content: 'Total:' })],
 		});
 
@@ -548,14 +550,14 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						body: new Elem({
 							append: [
 								new Elem({
-									style: { marginBottom: '4px' },
+									style: { marginBottom: theme.space.xs },
 									append: [
 										new Elem({ content: `Dirty: ${dirtyCount.toString()}t = `, tag: 'span' }),
 										new PriceDisplay({ amount: dirtyPrice, size: 14 }),
 									],
 								}),
 								new Elem({
-									style: { marginBottom: '8px' },
+									style: { marginBottom: theme.space.sm },
 									append: [
 										new Elem({ content: `Pure: ${pureCount.toString()}kg = `, tag: 'span' }),
 										new PriceDisplay({ amount: purePrice, size: 14 }),
@@ -621,7 +623,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				new List({
 					items: [
 						new Elem({
-							style: { display: 'flex', alignItems: 'center', gap: '6px' },
+							style: { display: 'flex', alignItems: 'center', gap: theme.space.sm },
 							append: [new Elem({ content: 'Credits:' }), new PriceDisplay({ amount: player.credits, size: 14 })],
 						}),
 						`Health: ${player.health}hp / ${player.maxHealth}hp (${convertRange(player.health, [0, player.maxHealth], [0, 100]).toFixed(1)}%)`,
@@ -678,7 +680,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px',
+									gap: theme.space.xs,
 								},
 								append: [
 									new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
@@ -691,7 +693,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										style: {
 											display: 'flex',
 											flexDirection: 'column',
-											gap: '8px',
+											gap: theme.space.sm,
 											width: '100%',
 										},
 										append: [
@@ -711,7 +713,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px',
+									gap: theme.space.xs,
 								},
 								append: [
 									new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
@@ -724,7 +726,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										style: {
 											display: 'flex',
 											flexDirection: 'column',
-											gap: '8px',
+											gap: theme.space.sm,
 											width: '100%',
 										},
 										append: [
@@ -743,7 +745,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px',
+									gap: theme.space.xs,
 								},
 								append: [
 									new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
@@ -756,7 +758,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										style: {
 											display: 'flex',
 											flexDirection: 'column',
-											gap: '8px',
+											gap: theme.space.sm,
 											width: '100%',
 										},
 										append: [
@@ -783,7 +785,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										display: 'flex',
 										flexDirection: 'column',
 										alignItems: 'center',
-										gap: '4px',
+										gap: theme.space.xs,
 									},
 									append: [
 										new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
@@ -796,7 +798,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 											style: {
 												display: 'flex',
 												flexDirection: 'column',
-												gap: '4px',
+												gap: theme.space.xs,
 											},
 											append: [
 												new ConfigStat({ label: 'Max Health', value: partConfig.maxHealth }),
@@ -851,13 +853,13 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						if (achievement.hidden) return;
 
 						return new Card({
-							header: `🔒 ${achievement.name}`,
+							header: [new Icon({ icon: 'lock' }), achievement.name],
 							body: new Elem({
 								style: {
 									display: 'flex',
 									flexDirection: 'column',
 									alignItems: 'center',
-									gap: '4px',
+									gap: theme.space.xs,
 								},
 								append: [
 									new Elem({
@@ -877,7 +879,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 											style: {
 												color: theme.colors.yellow,
 												fontWeight: 'bold',
-												marginTop: '4px',
+												marginTop: theme.space.xs,
 											},
 										}),
 								],
@@ -886,17 +888,17 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					}
 
 					return new Card({
-						header: `✓ ${achievement.name}`,
+						header: [new Icon({ icon: 'check' }), achievement.name],
 						style: {
-							background: theme.colors.darkest(theme.colors.green),
-							border: `1px solid ${theme.colors.green}`,
+							background: theme.colors.darkest(theme.colors.success),
+							border: `1px solid ${theme.colors.success}`,
 						},
 						body: new Elem({
 							style: {
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new Elem({
@@ -919,9 +921,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										content: rewardsText,
 										className: 'description',
 										style: {
-											color: theme.colors.green,
+											color: theme.colors.success,
 											fontWeight: 'bold',
-											marginTop: '4px',
+											marginTop: theme.space.xs,
 										},
 									}),
 							],
@@ -944,15 +946,15 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				return new Card({
 					header: mineral.name,
 					style: {
-						background: theme.colors.darkest(theme.colors.green),
-						border: `1px solid ${theme.colors.green}`,
+						background: theme.colors.darkest(theme.colors.success),
+						border: `1px solid ${theme.colors.success}`,
 					},
 					body: new Elem({
 						style: {
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px',
+							gap: theme.space.xs,
 						},
 						append: [
 							new MineralImage(color, { displaySize: 96 }),
@@ -981,15 +983,15 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				return new Card({
 					header: capitalize(name.replaceAll('_', ' '), true),
 					style: {
-						background: theme.colors.darkest(theme.colors.green),
-						border: `1px solid ${theme.colors.green}`,
+						background: theme.colors.darkest(theme.colors.success),
+						border: `1px solid ${theme.colors.success}`,
 					},
 					body: new Elem({
 						style: {
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
-							gap: '4px',
+							gap: theme.space.xs,
 						},
 						append: [
 							new ItemImage(name, { displaySize: 96 }),
@@ -1023,7 +1025,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						tag: 'p',
 						content: 'Inventory full - use items or upgrade storage capacity.',
 						className: 'description',
-						style: { color: theme.colors.red, marginTop: '6px' },
+						style: { color: theme.colors.danger, marginTop: theme.space.sm },
 					}),
 			),
 		);
@@ -1063,7 +1065,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new ItemImage(imageName, { displaySize: 96 }),
@@ -1076,12 +1078,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									new Elem({
 										tag: 'p',
 										content: where,
-										style: { margin: '4px 0 0', fontSize: '13px', textAlign: 'center' },
+										style: { margin: `${theme.space.xs} 0 0`, fontSize: '13px', textAlign: 'center' },
 									}),
 								new Elem({
 									tag: 'p',
 									content: `Quantity: ${count}`,
-									style: { margin: '4px 0', fontSize: '14px', textAlign: 'center' },
+									style: { margin: `${theme.space.xs} 0`, fontSize: '14px', textAlign: 'center' },
 								}),
 								!canUse &&
 									disabledReason &&
@@ -1090,9 +1092,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										content: disabledReason,
 										className: 'description',
 										style: {
-											color: theme.colors.red,
+											color: theme.colors.danger,
 											fontSize: '13px',
-											marginTop: '4px',
+											marginTop: theme.space.xs,
 										},
 									}),
 							],
@@ -1314,19 +1316,20 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				appendTo: this._subMenuBody,
 				style: {
 					display: 'flex',
-					gap: '6px',
-					marginBottom: '12px',
-					padding: '6px',
-					background: theme.colors.darkest(theme.colors.gray),
-					borderRadius: '6px',
-					border: `1px solid ${theme.colors.darker(theme.colors.gray)}`,
+					gap: theme.space.sm,
+					marginBottom: theme.space.md,
+					padding: theme.space.sm,
+					background: theme.colors.surface,
+					borderRadius: theme.radius.md,
+					border: `1px solid ${theme.colors.border}`,
 				},
 			});
 
 			// If both briefing and bulletin exist, show a "Play All" button
 			if (hasBriefingAudio && hasBulletinAudio) {
 				new Button({
-					content: '📻 Play Briefing + Bulletin',
+					icon: 'radio',
+					textContent: 'Play Briefing + Bulletin',
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
@@ -1338,7 +1341,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 			if (hasBriefingAudio) {
 				new Button({
-					content: '📡 Play Briefing Audio',
+					icon: 'tower-broadcast',
+					textContent: 'Play Briefing Audio',
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
@@ -1350,7 +1354,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 			if (hasBulletinAudio) {
 				new Button({
-					content: '📋 Play Bulletin Audio',
+					icon: 'clipboard',
+					textContent: 'Play Bulletin Audio',
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
