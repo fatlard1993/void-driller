@@ -28,7 +28,6 @@ import { drills, engines, items, minerals, parts, playerAchievements, vehicles }
 import { ConfigStat } from '../shared/ConfigStat';
 import { DescriptionText } from '../shared/DescriptionText';
 import { inventoryItem } from '../shared/inventoryItem';
-import { InfoButton } from '../shared/InfoButton';
 import Notify from '../shared/Notify';
 import PriceDisplay from '../shared/PriceDisplay';
 import { formatPlayerAchievementRewards } from '../../utils';
@@ -507,7 +506,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			tabs: menuViews,
 			selectedTab: currentView,
 			onTabClick: tab => {
-				InfoButton.closeAllPopovers();
 				this.options.view = tab;
 			},
 		});

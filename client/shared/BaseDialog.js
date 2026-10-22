@@ -1,6 +1,5 @@
 import { Dialog, styled } from '@vanilla-bean/components';
 import gameContext from './gameContext';
-import { InfoButton } from './InfoButton';
 
 /**
  * Base dialog class that provides common functionality and styling for game dialogs
@@ -14,9 +13,9 @@ const StyledDialog = styled(Dialog)`
 		padding: var(--content-pad-block) var(--content-pad-inline);
 	}
 
-	@media (max-width: 480px) {
+	@media ${({ media }) => media.phone} {
 		--content-pad-block: 0px;
-		--content-pad-inline: 3px;
+		--content-pad-inline: ${({ space }) => space.xs};
 
 		box-sizing: border-box;
 		margin: 0;
@@ -36,7 +35,7 @@ const StyledDialog = styled(Dialog)`
 		}
 
 		& .menuBody {
-			padding: 3px 6px;
+			padding: ${({ space }) => space.xs} ${({ space }) => space.sm};
 		}
 	}
 `;
@@ -115,8 +114,6 @@ export default class BaseDialog extends StyledDialog {
 	 * Handle dialog close action - override in subclasses for custom behavior
 	 */
 	handleClose() {
-		// Close any open popovers when dialog closes
-		InfoButton.closeAllPopovers();
 
 		// Default close behavior - subclasses can override
 		const player = gameContext.players.currentPlayer;

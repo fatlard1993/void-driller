@@ -26,7 +26,6 @@ import {
 import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { DescriptionText } from '../shared/DescriptionText';
-import { InfoButton } from '../shared/InfoButton';
 import PriceDisplay from '../shared/PriceDisplay';
 import BurgerTabs from '../shared/BurgerTabs';
 import {
@@ -487,7 +486,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			tabs: menuViews,
 			selectedTab: currentView,
 			onTabClick: tab => {
-				InfoButton.closeAllPopovers();
 				this.options.view = tab;
 			},
 			isTabEmpty: tab => this.isMenuEmpty(tab),
@@ -787,7 +785,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			tabs: menuViews,
 			selectedTab: currentView,
 			onTabClick: tab => {
-				InfoButton.closeAllPopovers();
 				this.options.view = `upgrade_${tab}`;
 			},
 			isTabEmpty: tab => this.isUpgradeSubmenuEmpty(tab),
@@ -1460,7 +1457,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				return new Button({
 					content: view,
 					onPointerPress: () => {
-						InfoButton.closeAllPopovers();
 						this.options.view = viewKey;
 					},
 					disabled: isDisabled,
@@ -2040,7 +2036,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				return new Button({
 					content: view,
 					onPointerPress: () => {
-						InfoButton.closeAllPopovers();
 						this.options.view = `status_${view}`;
 					},
 					disabled: isDisabled,
