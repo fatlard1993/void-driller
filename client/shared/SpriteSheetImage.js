@@ -12,6 +12,7 @@ export default class SpriteSheetImage extends Elem {
 		displaySize,
 		displayWidth,
 		displayHeight,
+		offsetY = 0,
 		style = {},
 	}) {
 		if (displaySize) {
@@ -34,7 +35,8 @@ export default class SpriteSheetImage extends Elem {
 				new Elem({
 					style: {
 						backgroundImage: `url(${url})`,
-						backgroundPosition: `-${x * width}px -${y * height}px`,
+						backgroundPosition: `-${x * width}px -${y * height + offsetY}px`,
+						backgroundRepeat: 'no-repeat',
 						backgroundSize: 'auto',
 						width: `${width}px`,
 						height: `${height}px`,
@@ -97,12 +99,18 @@ export class MineralImage extends SpriteSheetImage {
 	}
 }
 
+// Rows of each item frame left empty above its art, which sits on the frame's floor as it sits on the ground in the game
+const itemArtTop = [34, 4, 28, 16, 16, 4, 6, 28, 28, 4, 6, 0, 4, 20, 0, 2, 0];
+
 export class ItemImage extends SpriteSheetImage {
 	constructor(name, options = {}) {
 		const { displaySize, displayWidth, displayHeight, ...style } = options;
 
 		// Special case for credits (not in items constant)
 		const spriteIndex = name === 'credits' ? 15 : items[name].spriteIndex;
+
+		// Shown on its own, art that leaves a quarter of its frame or more empty above it is centered in the frame instead
+		const artTop = itemArtTop[spriteIndex] ?? 0;
 
 		super({
 			url: 'img/items.png',
@@ -111,6 +119,7 @@ export class ItemImage extends SpriteSheetImage {
 			displaySize,
 			displayWidth,
 			displayHeight,
+			offsetY: displaySize && artTop >= 16 ? artTop / 2 : 0,
 			style,
 		});
 	}
