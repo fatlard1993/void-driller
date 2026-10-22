@@ -1,4 +1,4 @@
-import { Elem, styled, Button, delay } from '@vanilla-bean/components';
+import { Elem, Icon, styled, Button, delay } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 import bookendConfig from './bookendConfig.js';
 
@@ -6,20 +6,20 @@ import bookendConfig from './bookendConfig.js';
  * Floating audio player UI component
  */
 class AudioPlayer extends styled.Component(
-	({ colors, media }) => `
+	({ colors, media, space, radius }) => `
 		position: fixed;
 		top: 48px;
 		left: 50%;
 		transform: translateX(-50%);
 		background: ${colors.darkest(colors.gray)};
 		border: 2px solid ${colors.light(colors.gray)};
-		border-radius: 8px;
-		padding: 12px 18px;
+		border-radius: ${radius.lg};
+		padding: ${space.md} ${space.lg};
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: ${space.md};
 		z-index: 10000;
-		box-shadow: 0 4px 12px ${colors.alpha(colors.vantablack, 0.5)};
+		box-shadow: 0 4px 12px ${colors.overlay};
 		animation: slideDown 0.3s ease-out;
 
 		@keyframes slideDown {
@@ -33,6 +33,12 @@ class AudioPlayer extends styled.Component(
 			}
 		}
 
+		& .audio-title > * {
+			display: inline-flex;
+			align-items: center;
+			gap: ${space.sm};
+		}
+
 		& .audio-title {
 			color: ${colors.lighter(colors.gray)};
 			font-size: 14px;
@@ -43,7 +49,7 @@ class AudioPlayer extends styled.Component(
 		& .audio-controls {
 			display: flex;
 			align-items: center;
-			gap: 9px;
+			gap: ${space.md};
 		}
 
 		& .audio-button {
@@ -58,7 +64,7 @@ class AudioPlayer extends styled.Component(
 			border: 1px solid ${colors.gray};
 			cursor: pointer;
 			transition: all 0.2s;
-			border-radius: 4px;
+			border-radius: ${radius.sm};
 
 			@media ${media.phone} {
 				width: 40px;
@@ -77,22 +83,22 @@ class AudioPlayer extends styled.Component(
 			}
 
 			&.play-pause {
-				background: ${colors.darkest(colors.green)};
-				border-color: ${colors.green};
-				color: ${colors.lighter(colors.green)};
+				background: ${colors.darkest(colors.success)};
+				border-color: ${colors.success};
+				color: ${colors.lighter(colors.success)};
 
 				&:hover {
-					background: ${colors.darker(colors.green)};
+					background: ${colors.darker(colors.success)};
 				}
 			}
 
 			&.close {
-				background: ${colors.darkest(colors.red)};
-				border-color: ${colors.red};
-				color: ${colors.lighter(colors.red)};
+				background: ${colors.darkest(colors.danger)};
+				border-color: ${colors.danger};
+				color: ${colors.lighter(colors.danger)};
 
 				&:hover {
-					background: ${colors.darker(colors.red)};
+					background: ${colors.darker(colors.danger)};
 				}
 			}
 		}
@@ -100,15 +106,15 @@ class AudioPlayer extends styled.Component(
 		& .audio-visualizer {
 			display: flex;
 			align-items: center;
-			gap: 3px;
+			gap: ${space.xs};
 			height: 24px;
-			margin: 0 6px;
+			margin: 0 ${space.sm};
 		}
 
 		& .audio-bar {
 			width: 3px;
 			height: 100%;
-			background: ${colors.green};
+			background: ${colors.success};
 			animation: pulse 0.6s ease-in-out infinite alternate;
 			border-radius: 2px;
 			transform: scaleY(0.3);
@@ -152,7 +158,8 @@ class AudioPlayer extends styled.Component(
 
 		// Skip backward 10s button
 		this.skipBackBtn = new Button({
-			content: '⏪',
+			icon: 'backward',
+			'aria-label': 'Back 10 seconds',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
 			onPointerDown: event => {
@@ -165,7 +172,8 @@ class AudioPlayer extends styled.Component(
 
 		// Play/Pause button
 		this.playPauseBtn = new Button({
-			content: '▶',
+			icon: 'play',
+			'aria-label': 'Play or pause',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'play-pause'],
 			onPointerDown: event => {
@@ -178,7 +186,8 @@ class AudioPlayer extends styled.Component(
 
 		// Skip forward 10s button
 		this.skipForwardBtn = new Button({
-			content: '⏩',
+			icon: 'forward',
+			'aria-label': 'Forward 10 seconds',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
 			onPointerDown: event => {
@@ -197,7 +206,8 @@ class AudioPlayer extends styled.Component(
 
 		// Close button
 		this.closeBtn = new Button({
-			content: '✕',
+			icon: 'xmark',
+			'aria-label': 'Close',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'close'],
 			onPointerDown: event => event?.stopPropagation(),
@@ -608,10 +618,12 @@ class AudioPlayer extends styled.Component(
 		if (!this.titleElem) return;
 
 		// Update title
-		this.titleElem.content = `${this.currentType === 'briefing' ? '📡 Briefing' : '📋 Bulletin'} Audio`;
+		this.titleElem.content = new Icon({
+			icon: this.currentType === 'briefing' ? 'tower-broadcast' : 'clipboard',
+			textContent: `${this.currentType === 'briefing' ? 'Briefing' : 'Bulletin'} Audio`,
+		});
 
-		// Update play/pause button content with emoji
-		this.playPauseBtn.elem.textContent = this.isPlaying ? '⏸' : '▶';
+		this.playPauseBtn.options.icon = this.isPlaying ? 'pause' : 'play';
 
 		// Update visualizer - always show bars, but only animate when playing
 		this.visualizerElem.empty();
