@@ -25,7 +25,7 @@ export default class WatchGame extends (styled.Component`
 			type: Phaser.AUTO,
 			parent: this.elem,
 			width: window.innerWidth,
-			height: window.innerHeight - 78,
+			height: window.innerHeight,
 			scene: WatchScene,
 			transparent: true,
 			backgroundColor: 'rgba(0,0,0,0)',
@@ -48,8 +48,11 @@ export default class WatchGame extends (styled.Component`
 		const eventRouter = setupWatchRouter();
 		this.addCleanup('eventRouter', () => eventRouter.destroy());
 
-		window.addEventListener('resize', () => gameContext.game.scale.resize(window.innerWidth, window.innerHeight - 78), {
-			signal: this.signal,
-		});
+		// The canvas fills the view's body, below its toolbar
+		const fit = new ResizeObserver(
+			() => this.elem.clientHeight && gameContext.game.scale.resize(window.innerWidth, this.elem.clientHeight),
+		);
+		fit.observe(this.elem);
+		this.addCleanup('fit', () => fit.disconnect());
 	}
 }

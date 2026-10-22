@@ -37,7 +37,7 @@ export default class Game extends (styled.Component`
 				type: Phaser.AUTO,
 				parent: this.elem,
 				width: window.innerWidth,
-				height: window.innerHeight - 78,
+				height: window.innerHeight,
 				scene: GameScene,
 				transparent: true, // Transparent to show page background (stars)
 				backgroundColor: 'rgba(0,0,0,0)', // Transparent background
@@ -102,13 +102,14 @@ export default class Game extends (styled.Component`
 		const eventRouter = setupEventRouter();
 		this.addCleanup('eventRouter', () => eventRouter.destroy());
 
-		window.addEventListener(
-			'resize',
-			debounce(() => {
-				gameContext.game.scale.resize(window.innerWidth, window.innerHeight - 78);
-			}),
-			{ signal: this.signal },
+		// The canvas fills the view's body, below its toolbar
+		const fit = new ResizeObserver(
+			debounce(
+				() => this.elem.clientHeight && gameContext.game.scale.resize(window.innerWidth, this.elem.clientHeight),
+			),
 		);
+		fit.observe(this.elem);
+		this.addCleanup('fit', () => fit.disconnect());
 
 		gameContext.scene.input.on('pointerdown', onPointerDown);
 		gameContext.scene.input.on('pointermove', throttle(onPointerMove, 30));
