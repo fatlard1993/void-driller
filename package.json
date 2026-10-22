@@ -50,7 +50,6 @@
 		"emoji-js": "^3.9.0",
 		"log": "github:fatlard1993/log#e0d55f6",
 		"marked": "^16.4.2",
-		"nanoid": "^5.1.16",
 		"phaser": "^3.90.0"
 	},
 	"devDependencies": {
