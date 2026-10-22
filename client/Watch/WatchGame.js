@@ -1,10 +1,9 @@
 import { styled } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
-import { onMessage } from '@fatlard1993/web-game-framework/client/socket';
 import gameContext from '../shared/gameContext';
 import WatchScene from './WatchScene';
-import watchSocketRouter from './watchSocketRouter';
+import setupWatchRouter from './watchSocketRouter';
 
 export default class WatchGame extends (styled.Component`
 	height: 100%;
@@ -46,9 +45,8 @@ export default class WatchGame extends (styled.Component`
 	}
 
 	build() {
-		// Setup socket router for watch mode
-		const socketCleanup = onMessage(watchSocketRouter);
-		this.addCleanup('socketCleanup', () => socketCleanup());
+		const eventRouter = setupWatchRouter();
+		this.addCleanup('eventRouter', () => eventRouter.destroy());
 
 		window.addEventListener('resize', () => gameContext.game.scale.resize(window.innerWidth, window.innerHeight - 78), {
 			signal: this.signal,

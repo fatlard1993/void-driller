@@ -1,29 +1,14 @@
+import {
+	createClientEventRouter,
+	createValidationMiddleware,
+	createLoggingMiddleware,
+} from '@fatlard1993/web-game-framework/client';
+
 import gameContext from '../shared/gameContext';
 import { destroyGround } from '../Play/effects';
 
-// Validation helper functions
-const validateMessage = data => {
-	// Handle non-JSON messages (like hotReload)
-	if (!data || typeof data !== 'object') {
-		return false;
-	}
-
-	// Check required fields
-	if (!data.id || !data.update) {
-		return false;
-	}
-
-	// Verify it's for this game
-	if (data.id !== gameContext.gameId) {
-		return false;
-	}
-
-	return true;
-};
-
 // Handle player movement updates
 const handlePlayerMove = data => {
-	console.log('[WatchRouter] playerMove data:', data);
 	const scene = gameContext.scene;
 	if (!scene) return;
 
@@ -93,18 +78,18 @@ const handleAddPlayer = data => {
 	if (!scene) return;
 
 	// Add to server state if not exists
-	if (!gameContext.serverState.players.find(p => p.id === data.player.id)) {
-		gameContext.serverState.players.push(data.player);
+	if (!gameContext.serverState.players.find(p => p.id === data.newPlayer.id)) {
+		gameContext.serverState.players.push(data.newPlayer);
 	}
 
 	// Create sprite if not exists
-	if (!gameContext.players.has(data.player.id)) {
-		scene.addPlayer(data.player);
+	if (!gameContext.players.has(data.newPlayer.id)) {
+		scene.addPlayer(data.newPlayer);
 	}
 
 	// Show alert around the new player
 	setTimeout(() => {
-		scene.showAlert(`${data.player.name} joined`, 'success', data.player.id);
+		scene.showAlert(`${data.newPlayer.name} joined`, 'success', data.newPlayer.id);
 	}, 100); // Small delay to ensure sprite is created
 };
 
@@ -113,25 +98,24 @@ const handleRemovePlayer = data => {
 	const scene = gameContext.scene;
 	if (!scene) return;
 
-	const playerSprite = gameContext.players.get(data.playerId);
-	if (playerSprite) {
-		playerSprite.destroy();
-		gameContext.players.delete(data.playerId);
+	const player = gameContext.players.get(data.id);
+	if (player) {
+		player.sprite?.destroy();
+		gameContext.players.delete(data.id);
 	}
 
 	// Remove label
-	const label = scene.playerLabels.get(data.playerId);
+	const label = scene.playerLabels.get(data.id);
 	if (label) {
 		label.destroy();
-		scene.playerLabels.delete(data.playerId);
+		scene.playerLabels.delete(data.id);
 	}
 
 	// Remove from server state
-	const index = gameContext.serverState.players.findIndex(p => p.id === data.playerId);
+	const index = gameContext.serverState.players.findIndex(p => p.id === data.id);
 	if (index > -1) {
-		const player = gameContext.serverState.players[index];
-		gameContext.serverState.players.splice(index, 1);
-		scene.showAlert(`${player.name} left`, 'warning');
+		const [left] = gameContext.serverState.players.splice(index, 1);
+		scene.showAlert(`${left.name} left`, 'warning');
 	}
 };
 
@@ -174,8 +158,8 @@ const handleUseItem = data => {
 
 	// Show alert for interesting items positioned around the player
 	const alertableItems = ['teleporter', 'bomb', 'implosion_device', 'healing_kit', 'repair_kit', 'oil', 'battery'];
-	if (alertableItems.includes(data.itemName)) {
-		const itemName = data.itemName.replace(/_/g, ' ');
+	if (alertableItems.includes(data.item)) {
+		const itemName = data.item.replace(/_/g, ' ');
 		scene.showAlert(`Used ${itemName}`, 'info', data.playerId);
 	}
 };
@@ -187,9 +171,9 @@ const handleWorldUpdate = data => {
 
 	// Handle different world update types
 	if (data.update === 'alien_attack') {
-		const player = gameContext.serverState.players.find(p => p.id === data.playerId);
+		const player = gameContext.serverState.players.find(p => p.id === data.targetPlayerId);
 		if (player) {
-			scene.showAlert(`Alien attack!`, 'error', data.playerId);
+			scene.showAlert(`Alien attack!`, 'error', data.targetPlayerId);
 		}
 	} else if (data.update === 'explodeBomb' || data.update === 'explodeImplosion') {
 		// Explosions don't have a specific player position
@@ -210,8 +194,6 @@ const handleSpacecoBuyTransport = data => {
 
 	// Start the world transition immediately
 	if (data.newWorldState && scene.startWorldTransition) {
-		console.log('[WatchRouter] Transport data:', data);
-		console.log('[WatchRouter] newWorldState structure:', data.newWorldState);
 		setTimeout(() => {
 			scene.startWorldTransition(data.newWorldState);
 		}, 500);
@@ -257,53 +239,27 @@ const handleSpacecoFall = data => {
 	scene.showAlert('SpaceCo building fell!', 'warning');
 };
 
-// Main router
-export default data => {
-	console.log('[WatchRouter] Received message:', data.update, data);
+export default () => {
+	const router = createClientEventRouter({
+		gameId: gameContext.gameId,
+		logger: console,
+	});
 
-	if (!validateMessage(data)) return;
+	router.use(createValidationMiddleware({ requiredFields: ['id', 'update'] }));
 
-	switch (data.update) {
-		case 'playerMove':
-			handlePlayerMove(data);
-			return true;
+	if (process.env.NODE_ENV === 'development') router.use(createLoggingMiddleware({ exclude: ['playerMove'] }));
 
-		case 'addPlayer':
-			handleAddPlayer(data);
-			return true;
+	router.on('playerMove', handlePlayerMove);
+	router.on('addPlayer', handleAddPlayer);
+	router.on('removePlayer', handleRemovePlayer);
+	router.on('achievement', handleAchievement);
+	router.on('hurtPlayers', handleHurtPlayers);
+	router.on('useItem', handleUseItem);
+	router.on('alien_attack', handleWorldUpdate);
+	router.on('explodeBomb', handleWorldUpdate);
+	router.on('explodeImplosion', handleWorldUpdate);
+	router.on('spacecoBuyTransport', handleSpacecoBuyTransport);
+	router.on('spacecoFall', handleSpacecoFall);
 
-		case 'removePlayer':
-			handleRemovePlayer(data);
-			return true;
-
-		case 'achievement':
-			handleAchievement(data);
-			return true;
-
-		case 'hurtPlayers':
-			handleHurtPlayers(data);
-			return true;
-
-		case 'useItem':
-			handleUseItem(data);
-			return true;
-
-		case 'alien_attack':
-		case 'explodeBomb':
-		case 'explodeImplosion':
-			handleWorldUpdate(data);
-			return true;
-
-		case 'spacecoBuyTransport':
-			handleSpacecoBuyTransport(data);
-			return true;
-
-		case 'spacecoFall':
-			handleSpacecoFall(data);
-			return true;
-
-		default:
-			// Silently ignore other updates for watch mode
-			return false;
-	}
+	return router;
 };
