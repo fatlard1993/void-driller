@@ -10,7 +10,11 @@
 >
 > Trade with other players, grow SpaceCo’s **Galactic Market Share**, and unlock SpaceCo-certified achievements as you dig deeper into the Deep Belt’s strangest secrets - one drill cycle at a time.
 
-![demo](./docs/demo.gif)
+![Play: the rig drilled into the rock below the SpaceCo outpost, with the health, fuel and cargo bars across the top and a numbered path to the tile under the cursor](./img/play.png)
+
+![The SpaceCo dialog on its Shop tab: credits, a resupply button, and Oil and Transport Insurance for sale with their stock](./img/spaceco-shop.png)
+
+![The same game on a phone: the toolbar wraps under the game's name, and the rig and its path fill the screen](./img/phone.png)
 
 > Full instructions and lore: [In-Game Help](./docs/help.md)
 
@@ -31,11 +35,15 @@ Clone the repo and install dependencies:
 
 Then open your browser to [http://localhost:1040](http://localhost:1040)
 
+Options: `--port`/`-p`, `--database`/`-d` (default `~/.void-driller.json`) and `--verbosity`/`-v`. `bun run db:clean` deletes the default save file.
+
 ## Dev
 
 > Start the local development server with hot-reloading
 
 `bun dev`
+
+It rebuilds the client on change and reads commands from the terminal: `b`/`build` rebuilds, `stop` exits, and `help` lists the rest (games, players, world, SpaceCo and cell inspection). `bun run dev:clean` starts it from an empty save.
 
 ## License
 
