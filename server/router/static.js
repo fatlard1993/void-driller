@@ -1,6 +1,6 @@
 import { resolve, sep } from 'path';
 
-import { serveStatic } from '@vanilla-bean/components/app';
+import { serveApp, serveStatic } from '@vanilla-bean/components/app';
 
 import { serverLog } from '../../utils/logger.js';
 
@@ -33,9 +33,9 @@ const staticRouter = async request => {
 		if (markdown) return markdown;
 	}
 
-	// The build, then the sprites and sounds the client loads by url, then the briefing audio in docs/
+	// The page and its build, then the sprites and sounds the client loads by url, then the briefing audio in docs/
 	const response =
-		(await serveStatic(request, { packages: ['augmented-ui'] })) ??
+		(await serveApp(request, { api: '/games/', packages: ['augmented-ui'] })) ??
 		(await serveStatic(request, { root: 'client' })) ??
 		(path.startsWith('/docs/') ? await serveStatic(request, { root: '.' }) : undefined);
 

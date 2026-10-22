@@ -25,7 +25,7 @@ const views = {
 };
 
 // Add dev tools route only in development mode
-if (window.DEV_MODE) {
+if (process.env.NODE_ENV === 'development') {
 	views[paths.dev] = DevTools;
 }
 

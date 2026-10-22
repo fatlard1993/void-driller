@@ -1,4 +1,3 @@
-import { requestMatch } from '@vanilla-bean/components/app';
 import { basicGameRoutes } from '@fatlard1993/web-game-framework';
 import { serverLog } from '../../utils/logger.js';
 
@@ -6,109 +5,13 @@ import devToolsRoutes from './devTools';
 import gameRoutes from './game';
 import staticRoutes from './static';
 
-const requestCounts = new Map();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 300; // 300 requests per minute per IP (increased for asset-heavy game loads)
+const gameCrudRoutes = basicGameRoutes({ logger: serverLog });
 
-const checkRateLimit = ip => {
-	const now = Date.now();
-	const clientKey = ip || 'unknown';
+// The Server takes socket upgrades first, and answers a thrown error (withErrors)
+const router = server => async request =>
+	(await gameCrudRoutes(request, server)) ??
+	(await devToolsRoutes(request, server)) ??
+	(await gameRoutes(request, server)) ??
+	(await staticRoutes(request, server));
 
-	if (!requestCounts.has(clientKey)) {
-		requestCounts.set(clientKey, []);
-	}
-
-	const requests = requestCounts.get(clientKey);
-
-	// Remove old requests outside the time window
-	const validRequests = requests.filter(timestamp => now - timestamp < RATE_LIMIT_WINDOW);
-	requestCounts.set(clientKey, validRequests);
-
-	// Add current request
-	validRequests.push(now);
-
-	if (validRequests.length > RATE_LIMIT_MAX_REQUESTS) {
-		serverLog.warning('Rate limit exceeded', {
-			ip: clientKey,
-			requestCount: validRequests.length,
-			timeWindow: RATE_LIMIT_WINDOW,
-			maxRequests: RATE_LIMIT_MAX_REQUESTS,
-		});
-		return false;
-	}
-
-	// Log request counts to understand load patterns
-	if (validRequests.length % 10 === 0 || validRequests.length > 50) {
-		serverLog.info('Request count tracking', {
-			ip: clientKey,
-			requestCount: validRequests.length,
-			timeWindow: RATE_LIMIT_WINDOW,
-			maxRequests: RATE_LIMIT_MAX_REQUESTS,
-		});
-	}
-
-	// Log suspicious activity (more than 80% of limit)
-	if (validRequests.length > RATE_LIMIT_MAX_REQUESTS * 0.8) {
-		serverLog.info('High request rate detected', {
-			ip: clientKey,
-			requestCount: validRequests.length,
-			timeWindow: RATE_LIMIT_WINDOW,
-			maxRequests: RATE_LIMIT_MAX_REQUESTS,
-		});
-	}
-
-	return true;
-};
-
-const router = server => async request => {
-	try {
-		// Rate limiting check
-		const clientIp = request.headers.get('X-Forwarded-For') || request.headers.get('X-Real-IP') || 'unknown';
-
-		if (!checkRateLimit(clientIp)) {
-			return new Response('Rate limit exceeded. Please slow down your requests.', {
-				status: 429,
-				headers: { 'Retry-After': '60' },
-			});
-		}
-
-		let response;
-
-		if (requestMatch('GET', '/', request)) {
-			const file = Bun.file('client/build/index.html');
-			let content = await file.text();
-
-			// Inject DEV_MODE flag in development
-			const devModeScript = `<script>window.DEV_MODE = ${process.env.NODE_ENV === 'development'};</script>`;
-			content = content.replace('</head>', `${devModeScript}</head>`);
-
-			return new Response(content, {
-				headers: {
-					'Content-Type': 'text/html',
-					// The chunks it names are renamed by each build, so a cached copy points at files that are gone
-					'Cache-Control': 'no-cache',
-				},
-			});
-		}
-
-		response = await basicGameRoutes({ logger: serverLog })(request, server);
-		if (response) return response;
-
-		response = await devToolsRoutes(request, server);
-		if (response) return response;
-
-		response = await gameRoutes(request, server);
-		if (response) return response;
-
-		response = await staticRoutes(request, server);
-		if (response) return response;
-	} catch (error) {
-		serverLog.error('Router error', { error: error.message, stack: error.stack });
-
-		return new Response(
-			'Corporate mainframe error: someone unplugged something important. Give us a moment to patch the hole.',
-			{ status: 500 },
-		);
-	}
-};
 export default router;

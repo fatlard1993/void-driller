@@ -19,7 +19,7 @@ export default class Create extends BaseCreate {
 				},
 				formInputs: [
 					{ key: 'name', label: 'Contract ID' },
-					...(window.DEV_MODE
+					...(process.env.NODE_ENV === 'development'
 						? [
 								{
 									InputComponent: Select,
