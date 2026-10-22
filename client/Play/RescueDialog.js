@@ -22,8 +22,8 @@ export default class RescueDialog extends (styled(BaseDialog)`
 	& .menu {
 		display: flex;
 		flex-wrap: wrap-reverse;
-		gap: 6px;
-		margin: 6px;
+		gap: ${({ space }) => space.sm};
+		margin: ${({ space }) => space.sm};
 
 		& button {
 			flex: 1;
@@ -31,7 +31,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 		& button:disabled {
 			background: transparent;
-			color: ${({ colors }) => colors.green} !important;
+			color: ${({ colors }) => colors.success} !important;
 			font-weight: bold;
 
 			&:before {
@@ -52,13 +52,13 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 	& .menuBody {
 		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
-		padding: 9px 18px;
+		padding: ${({ space }) => `${space.md} ${space.lg}`};
 	}
 
 	& p.description {
 		color: ${({ colors }) => colors.lighter(colors.gray)};
 		border-left: 3px solid;
-		padding-left: 6px;
+		padding-left: ${({ space }) => space.sm};
 		word-wrap: break-word;
 	}
 `) {
@@ -100,7 +100,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 			new Button({
 				content: new Elem(
-					{ style: { display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' } },
+					{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm, justifyContent: 'center' } },
 					new Elem({ content: 'Buy Remote Teleport (' }),
 					new PriceDisplay({
 						amount: getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost,
@@ -168,14 +168,14 @@ export default class RescueDialog extends (styled(BaseDialog)`
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								gap: '4px',
+								gap: theme.space.xs,
 							},
 							append: [
 								new ItemImage(imageName, { displaySize: 96 }),
 								new Elem({
 									tag: 'p',
 									content: `Quantity: ${count}`,
-									style: { margin: '4px 0', fontSize: '14px' },
+									style: { margin: `${theme.space.xs} 0`, fontSize: '14px' },
 								}),
 								new DescriptionText({
 									summary,
@@ -189,9 +189,9 @@ export default class RescueDialog extends (styled(BaseDialog)`
 										content: disabledReason,
 										className: 'description',
 										style: {
-											color: theme.colors.red,
+											color: theme.colors.danger,
 											fontSize: '13px',
-											marginTop: '4px',
+											marginTop: theme.space.xs,
 										},
 									}),
 							],
