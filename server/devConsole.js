@@ -1,8 +1,3 @@
-import { devConsole, hotReload } from '@vanilla-bean/components/app';
-
-import { serverLog } from '../utils/logger.js';
-import server from './server.js';
-
 export const handleDevCommand = async (command, server) => {
 	// Enhanced dev queries
 	if (command === 'help') {
@@ -547,13 +542,3 @@ export const handleDevCommand = async (command, server) => {
 		console.log(`Unknown command: ${command}. Type 'help' for available commands.\n`);
 	}
 };
-
-if (process.env.NODE_ENV === 'development') {
-	try {
-		hotReload.watch();
-	} catch (error) {
-		serverLog.error('Dev console error', { error: error.message });
-	}
-
-	devConsole(command => handleDevCommand(command, server));
-}

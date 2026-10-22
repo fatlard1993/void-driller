@@ -8,6 +8,7 @@ import Argi from 'argi-cli';
 import { Server } from '@fatlard1993/web-game-framework';
 import { serverLog, setVerbosity } from '../utils/logger.js';
 
+import { handleDevCommand } from './devConsole.js';
 import Game from './Game';
 import router from './router';
 
@@ -36,18 +37,23 @@ const { options } = new Argi({
 // Set logger verbosity based on options
 setVerbosity(options.verbosity);
 
-serverLog.info('Server starting', {
-	port: options.port,
-	database: options.database,
-	verbosity: options.verbosity,
-	nodeEnv: process.env.NODE_ENV,
-});
-
-export default new Server({
+const server = new Server({
 	port: options.port,
 	database: options.database,
 	verbosity: options.verbosity,
 	Game,
 	router,
 	logger: serverLog,
+	devConsole: handleDevCommand,
 });
+
+await server.ready;
+
+serverLog.info('Server started', {
+	url: server.url.href,
+	database: options.database,
+	verbosity: options.verbosity,
+	nodeEnv: process.env.NODE_ENV,
+});
+
+export default server;

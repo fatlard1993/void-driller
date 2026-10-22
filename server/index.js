@@ -3,5 +3,3 @@
 import '@fatlard1993/web-game-framework/utils/exit';
 
 import './server';
-
-import './devConsole';

@@ -31,7 +31,6 @@ import {
 } from '../constants';
 import { gameLog, playerLog, worldLog, spacecoLog } from '../utils/logger.js';
 import { generateAsteroid } from './generateAsteroid.js';
-import server from './server';
 import { explode } from './effects';
 
 const WORLDS = {
@@ -95,11 +94,11 @@ export default class Game extends BaseGame {
 		});
 
 		// Call base constructor
-		super({ saveState, server, ...options });
+		super({ saveState, ...options });
 
 		// Initialize game-specific properties
 		this.world = saveState.world || generateAsteroid(WORLDS[options.worldName] || options);
-		this.url = server.url;
+		this.url = this.server.url;
 
 		// Setup EventRouter event handlers
 		this._setupEventHandlers();
@@ -2038,8 +2037,6 @@ export default class Game extends BaseGame {
 
 		return id;
 	}
-
-	// Add these methods to the Game class in ./server/Game.js
 
 	initiateTrade(initiatorId, targetId) {
 		const initiator = this.players.get(initiatorId);

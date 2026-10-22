@@ -1,8 +1,6 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 
-mock.module('./server.js', () => ({ default: {} }));
-
-const { handleDevCommand } = await import('./devConsole.js');
+import { handleDevCommand } from './devConsole.js';
 
 describe('fuck', () => {
 	test('checks the port the server listens on', async () => {
