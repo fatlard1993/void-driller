@@ -12,7 +12,7 @@ export class ConsoleContainer extends (styled.Component`
 	padding: 6px;
 	box-sizing: border-box;
 
-	@media (max-width: 768px) {
+	@media ${theme.media.phone} {
 		width: calc(100% - 24px);
 		max-width: 100vw;
 		margin-left: 12px;

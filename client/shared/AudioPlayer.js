@@ -6,7 +6,7 @@ import bookendConfig from './bookendConfig.js';
  * Floating audio player UI component
  */
 class AudioPlayer extends styled.Component(
-	({ colors }) => `
+	({ colors, media }) => `
 		position: fixed;
 		top: 48px;
 		left: 50%;
@@ -60,7 +60,7 @@ class AudioPlayer extends styled.Component(
 			transition: all 0.2s;
 			border-radius: 4px;
 
-			@media (max-width: 768px) {
+			@media ${media.phone} {
 				width: 40px;
 				height: 40px;
 				font-size: 20px;

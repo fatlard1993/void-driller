@@ -224,7 +224,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		gap: 12px;
 		min-height: 400px;
 
-		@media (max-width: 768px) {
+		@media ${({ media }) => media.phone} {
 			flex-direction: column;
 		}
 	}
@@ -319,7 +319,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		align-items: center;
 		justify-content: space-between;
 
-		@media (max-width: 768px) {
+		@media ${({ media }) => media.phone} {
 			flex-wrap: wrap;
 		}
 	}
@@ -356,7 +356,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	& .accept-button {
 		padding: 6px 16px;
 
-		@media (max-width: 768px) {
+		@media ${({ media }) => media.phone} {
 			/* Improve button rendering on mobile by using simpler styles */
 			box-shadow: none;
 			border: 1px solid ${({ colors }) => colors.alpha(colors.white, 0.2)};

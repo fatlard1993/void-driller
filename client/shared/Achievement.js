@@ -4,7 +4,7 @@ import gameContext from './gameContext';
 import PriceDisplay from './PriceDisplay';
 
 export class Achievement extends styled.Popover(
-	({ colors }) => `
+	({ colors, media }) => `
 		flex-direction: column;
 		top: 100px;
 		left: 32px;
@@ -29,7 +29,7 @@ export class Achievement extends styled.Popover(
 		}
 
 		/* Mobile responsive styles */
-		@media (max-width: 768px) {
+		@media ${media.phone} {
 			top: 20px;
 			left: 10px;
 			right: 10px;
