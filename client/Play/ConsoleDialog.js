@@ -26,6 +26,7 @@ import gameContext from '../shared/gameContext';
 import { drills, engines, items, minerals, parts, playerAchievements, vehicles } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
 import { DescriptionText } from '../shared/DescriptionText';
+import { inventoryItem } from '../shared/inventoryItem';
 import { InfoButton } from '../shared/InfoButton';
 import Notify from '../shared/Notify';
 import PriceDisplay from '../shared/PriceDisplay';
@@ -41,20 +42,6 @@ import {
 } from './inputs/pointer';
 
 const CollapsibleLabel = configured(Label, { variant: 'collapsible' });
-
-// What placing a charge or a beacon leaves in the inventory, its key carrying the position: detonator_x_y,
-// void_detonator_x_y, activated_teleporter_x_y. Each shows as the item it came from, unless its own text is given here.
-const placedItems = {
-	detonator: { item: 'detonator', at: 'Armed at' },
-	void_detonator: { item: 'void_detonator', at: 'Armed at' },
-	activated_teleporter: {
-		item: 'advanced_teleporter',
-		at: 'Anchored at',
-		summary: 'Beacon placed. Use to return to it.',
-		description:
-			'Return jump locked to your deployed beacon. Activation transports you to the beacon and recovers the teleporter for redeployment.',
-	},
-};
 
 class AlertControl extends Component {
 	static schema = {
@@ -1060,14 +1047,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
-				const [, placedKey, placedX, placedY] = key.match(/^(\w+?)_(\d+)_(\d+)$/) || [];
-				const placed = placedItems[placedKey];
-				const itemKey = placed?.item || key;
-				const itemName = items[itemKey]?.name || capitalize(itemKey.replaceAll('_', ' '), true);
-				const summary = placed?.summary || items[itemKey]?.summary || '';
-				const description = placed?.description || items[itemKey]?.description || 'No description available.';
-
-				const imageName = key === 'advanced_teleporter' ? 'teleport_station' : itemKey;
+				const { name: itemName, image: imageName, summary, description, where } = inventoryItem(key);
 
 				// Check if player can use item
 				const canUse = this.canUseItem(key, player);
@@ -1093,10 +1073,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									description,
 									title: itemName,
 								}),
-								placed &&
+								where &&
 									new Elem({
 										tag: 'p',
-										content: `${placed.at} ${placedX}, ${placedY}`,
+										content: where,
 										style: { margin: '4px 0 0', fontSize: '13px', textAlign: 'center' },
 									}),
 								new Elem({

@@ -1,4 +1,4 @@
-import { Elem, Button, capitalize, theme, styled } from '@vanilla-bean/components';
+import { Elem, Button, theme, styled } from '@vanilla-bean/components';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
@@ -8,8 +8,9 @@ import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { ItemImage } from '../shared/SpriteSheetImage';
 import { DescriptionText } from '../shared/DescriptionText';
+import { inventoryItem } from '../shared/inventoryItem';
 import PriceDisplay from '../shared/PriceDisplay';
-import { items, engines } from '../../constants';
+import { engines } from '../../constants';
 import { getScaledServiceCosts } from '../../utils';
 
 export default class RescueDialog extends (styled(BaseDialog)`
@@ -151,11 +152,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
-				let imageName = key;
-
-				if (key.startsWith('detonator')) imageName = 'detonator';
-				else if (key === 'advanced_teleporter') imageName = 'teleport_station';
-				else if (key.startsWith('activated_teleporter')) imageName = 'advanced_teleporter';
+				const { name: itemName, image: imageName, summary, description } = inventoryItem(key);
 
 				// Check if player can use item
 				const canUse = this.canUseItem(key, player);
@@ -163,7 +160,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						header: `${capitalize(key.replaceAll('_', ' '), true)}`,
+						header: itemName,
 						style: {
 							opacity: canUse ? 1 : 0.6,
 						},
@@ -182,9 +179,9 @@ export default class RescueDialog extends (styled(BaseDialog)`
 									style: { margin: '4px 0', fontSize: '14px' },
 								}),
 								new DescriptionText({
-									summary: items[key]?.summary || '',
-									description: items[key]?.description || 'No description available.',
-									title: items[key]?.name || capitalize(key.replaceAll('_', ' '), true),
+									summary,
+									description,
+									title: itemName,
 								}),
 								!canUse &&
 									disabledReason &&

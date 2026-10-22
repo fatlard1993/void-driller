@@ -42,6 +42,7 @@ import {
 import { getScaledServiceCosts, getScaledItemPrice, formatSpacecoAchievementRewards } from '../../utils';
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
+import { inventoryItem } from '../shared/inventoryItem';
 import { drills, engines, items, minerals, parts, spacecoAchievements, vehicles, worlds } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
 import { spacecoLog } from '../../utils/logger.js';
@@ -1621,22 +1622,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
-				let imageName = key;
-
-				if (key.startsWith('detonator')) imageName = 'detonator';
-				else if (key === 'advanced_teleporter') imageName = 'teleport_station';
-				else if (key.startsWith('activated_teleporter')) imageName = 'advanced_teleporter';
+				const { name: itemName, image: imageName } = inventoryItem(key);
 
 				// Check if item exists in items config (sellable)
 				const itemConfig = items[key];
 				if (!itemConfig) {
 					// Show item but without sell button for items that can't be sold
 					return [
-						new Label(
-							{ label: capitalize(key.replaceAll('_', ' '), true) },
-							`x${count.toString()}`,
-							new ItemImage(imageName, { displaySize: 96 }),
-						),
+						new Label({ label: itemName }, `x${count.toString()}`, new ItemImage(imageName, { displaySize: 96 })),
 					];
 				}
 
