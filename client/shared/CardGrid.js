@@ -8,7 +8,7 @@ export class CardGrid extends (styled.Component`
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(200px, 300px));
 	justify-content: center;
-	gap: 12px;
+	gap: ${({ space }) => space.md};
 `) {
 	static schema = {
 		minCardWidth: { default: 200 },

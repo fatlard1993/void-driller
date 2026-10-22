@@ -8,7 +8,7 @@ export class DescriptionText extends (styled.Component`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 4px;
+	gap: ${({ space }) => space.xs};
 	text-align: center;
 	max-width: 100%;
 
@@ -29,8 +29,8 @@ export class DescriptionText extends (styled.Component`
 
 	& .toggle-button {
 		font-size: 10px;
-		padding: 2px 8px;
-		margin-top: 2px;
+		padding: ${({ space }) => `${space.xs} ${space.sm}`};
+		margin-top: ${({ space }) => space.xs};
 	}
 `) {
 	static schema = {

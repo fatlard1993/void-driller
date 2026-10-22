@@ -69,7 +69,7 @@ export default class BurgerTabs {
 				this.updateMenuButtons();
 			},
 			style: {
-				backgroundColor: this._menuExpanded ? theme.colors.red : '',
+				backgroundColor: this._menuExpanded ? theme.colors.danger : '',
 			},
 		});
 

@@ -12,7 +12,7 @@ import { ItemImage } from './SpriteSheetImage';
 export default class PriceDisplay extends (styled.Component`
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: ${({ space }) => space.xs};
 
 	& .credits-icon {
 		flex-shrink: 0;

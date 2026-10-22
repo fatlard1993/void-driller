@@ -19,10 +19,10 @@ export class Card extends Component {
 			alignItems: 'center',
 			background: theme.colors.darkest(theme.colors.gray),
 			border: `2px solid ${theme.colors.gray}`,
-			borderRadius: '6px',
-			padding: '12px',
+			borderRadius: theme.radius.md,
+			padding: theme.space.md,
 			minWidth: '120px',
-			gap: '6px',
+			gap: theme.space.sm,
 		};
 
 		super({
@@ -45,9 +45,13 @@ export class Card extends Component {
 					content: this.options.header,
 					className: 'card-header',
 					style: {
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						gap: theme.space.sm,
 						fontWeight: 'bold',
 						textAlign: 'center',
-						marginBottom: '6px',
+						marginBottom: theme.space.sm,
 						color: theme.colors.lighter(theme.colors.gray),
 					},
 				}),
@@ -75,12 +79,12 @@ export class Card extends Component {
 				? {
 						display: 'flex',
 						flexDirection: 'row',
-						gap: '6px',
-						marginTop: '6px',
+						gap: theme.space.sm,
+						marginTop: theme.space.sm,
 						flexWrap: 'wrap',
 					}
 				: {
-						marginTop: '6px',
+						marginTop: theme.space.sm,
 						textAlign: 'center',
 					};
 

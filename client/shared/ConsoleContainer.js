@@ -8,15 +8,15 @@ export class ConsoleContainer extends (styled.Component`
 	border: 3px solid ${theme.colors.lighter(theme.colors.blue)};
 	width: clamp(90vw, 80vw, 1700px);
 	margin: 6em auto;
-	border-radius: 6px;
-	padding: 6px;
+	border-radius: ${theme.radius.md};
+	padding: ${theme.space.sm};
 	box-sizing: border-box;
 
 	@media ${theme.media.phone} {
 		width: calc(100% - 24px);
 		max-width: 100vw;
-		margin-left: 12px;
-		margin-right: 12px;
+		margin-left: ${theme.space.md};
+		margin-right: ${theme.space.md};
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
