@@ -1,4 +1,4 @@
-import { Elem } from '@vanilla-bean/components';
+import { Elem, writeStorage } from '@vanilla-bean/components';
 import { GET } from '@vanilla-bean/hypertether';
 
 import BaseDialog from '../shared/BaseDialog';
@@ -12,7 +12,7 @@ export default class BriefingDialog extends BaseDialog {
 			header: 'Incoming Transmission',
 			onButtonPress: () => {
 				gameContext.briefings[gameContext.serverState.world.name] = true;
-				localStorage.setItem('briefings', JSON.stringify(gameContext.briefings));
+				writeStorage('briefings', gameContext.briefings);
 				this.close();
 			},
 			...options,

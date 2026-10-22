@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { theme } from '@vanilla-bean/components';
+import { theme, writeStorage } from '@vanilla-bean/components';
 
 import { rand } from '../../utils';
 import gameContext from '../shared/gameContext';
@@ -419,7 +419,7 @@ export default class GameScene extends Phaser.Scene {
 
 			// Save the auto-detected scale as user preference
 			gameContext.scale = initialScale;
-			localStorage.setItem('scale', JSON.stringify(initialScale));
+			writeStorage('scale', initialScale);
 		}
 
 		this.cameras.main.setZoom(initialScale);

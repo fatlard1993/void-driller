@@ -14,6 +14,7 @@ import {
 	configured,
 	styled,
 	orderBy,
+	writeStorage,
 } from '@vanilla-bean/components';
 import { GET } from '@vanilla-bean/hypertether';
 
@@ -66,7 +67,7 @@ class AlertControl extends Component {
 				onChange: ({ value }) => {
 					gameContext.alert = { ...gameContext.alert, [this.options.key]: parseFloat(value / 100) };
 
-					localStorage.setItem('alert', JSON.stringify(gameContext.alert));
+					writeStorage('alert', gameContext.alert);
 
 					gameContext.dismissedAlerts[this.options.key] = false;
 				},
@@ -93,7 +94,7 @@ class NotifyControl extends Component {
 				value: gameContext.notifySettings.autoDismissTimeout,
 				onChange: ({ value }) => {
 					gameContext.notifySettings = { ...gameContext.notifySettings, autoDismissTimeout: parseInt(value) };
-					localStorage.setItem('notify', JSON.stringify(gameContext.notifySettings));
+					writeStorage('notify', gameContext.notifySettings);
 				},
 			}),
 		);
@@ -123,7 +124,7 @@ class VolumeControl extends Component {
 				onChange: ({ value }) => {
 					gameContext.volume = { ...gameContext.volume, [this.options.key]: parseFloat(value / 100) };
 
-					localStorage.setItem('volume', JSON.stringify(gameContext.volume));
+					writeStorage('volume', gameContext.volume);
 				},
 			}),
 		);
@@ -152,7 +153,7 @@ class ScaleControl extends Component {
 						gameContext.scene.cameras.main.setZoom(newScale);
 					}
 
-					localStorage.setItem('scale', JSON.stringify(newScale));
+					writeStorage('scale', newScale);
 				},
 			}),
 		);
@@ -171,7 +172,7 @@ class DebugControl extends Component {
 				checked: gameContext.debugVisible,
 				onChange: ({ checked }) => {
 					gameContext.debugVisible = checked;
-					localStorage.setItem('debugVisible', JSON.stringify(checked));
+					writeStorage('debugVisible', checked);
 
 					// Update debug log component visibility directly
 					if (window.debugLogComponent) {
@@ -230,7 +231,7 @@ class AutoPathControl extends Component {
 				value: gameContext.autoPath.strategy,
 				onChange: ({ value }) => {
 					gameContext.autoPath.strategy = value;
-					localStorage.setItem('autoPath', JSON.stringify(gameContext.autoPath));
+					writeStorage('autoPath', gameContext.autoPath);
 				},
 			}),
 		);
@@ -248,7 +249,7 @@ class AutoPathControl extends Component {
 				value: gameContext.autoPath.obstacleAvoidanceWeight,
 				onChange: ({ value }) => {
 					gameContext.autoPath.obstacleAvoidanceWeight = parseFloat(value);
-					localStorage.setItem('autoPath', JSON.stringify(gameContext.autoPath));
+					writeStorage('autoPath', gameContext.autoPath);
 				},
 			}),
 		);
@@ -266,7 +267,7 @@ class AutoPathControl extends Component {
 				value: gameContext.autoPath.maxSearchIterations,
 				onChange: ({ value }) => {
 					gameContext.autoPath.maxSearchIterations = parseInt(value, 10);
-					localStorage.setItem('autoPath', JSON.stringify(gameContext.autoPath));
+					writeStorage('autoPath', gameContext.autoPath);
 				},
 			}),
 		);
@@ -281,7 +282,7 @@ class AutoPathControl extends Component {
 				checked: gameContext.autoPath.preferOpenSpaces,
 				onChange: ({ checked }) => {
 					gameContext.autoPath.preferOpenSpaces = checked;
-					localStorage.setItem('autoPath', JSON.stringify(gameContext.autoPath));
+					writeStorage('autoPath', gameContext.autoPath);
 				},
 			}),
 		);

@@ -1,4 +1,4 @@
-import { theme } from '@vanilla-bean/components';
+import { theme, writeStorage } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
 import socket from '@fatlard1993/web-game-framework/client/socket';
@@ -37,7 +37,7 @@ const iconIndex = {
 };
 
 const saveAutoPathOptions = () => {
-	localStorage.setItem('autoPath', JSON.stringify(gameContext.autoPath));
+	writeStorage('autoPath', gameContext.autoPath);
 };
 
 const canDigPosition = (position, player, grid) => {

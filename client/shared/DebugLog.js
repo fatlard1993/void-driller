@@ -1,4 +1,4 @@
-import { styled } from '@vanilla-bean/components';
+import { styled, writeStorage } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 
 export default class DebugLog extends (styled.Component`
@@ -195,7 +195,7 @@ export default class DebugLog extends (styled.Component`
 		`;
 		closeBtn.onclick = () => {
 			gameContext.debugVisible = false;
-			localStorage.setItem('debugVisible', JSON.stringify(false));
+			writeStorage('debugVisible', false);
 		};
 
 		controls.appendChild(clearBtn);
