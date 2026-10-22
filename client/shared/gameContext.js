@@ -32,35 +32,6 @@ gameContext.autoPath = {
 	...readStorage('autoPath', {}),
 };
 
-gameContext.getNearbyPlayers = (position, range = 1) => {
-	const currentPlayer = gameContext.players.currentPlayer;
-	if (!currentPlayer || !position) return [];
-
-	const nearbyPlayers = [];
-
-	// Check all players except the current one
-	gameContext.players.forEach((player, playerId) => {
-		// Skip self
-		if (playerId === currentPlayer.id) return;
-
-		// Skip if player doesn't have position
-		if (!player.position) return;
-
-		// Calculate Manhattan distance (grid-based movement)
-		const distance = Math.abs(player.position.x - position.x) + Math.abs(player.position.y - position.y);
-
-		if (distance <= range) {
-			nearbyPlayers.push({
-				...player,
-				distance: distance,
-			});
-		}
-	});
-
-	// Sort by distance (closest first)
-	return nearbyPlayers.sort((a, b) => a.distance - b.distance);
-};
-
 /**
  * @type {{
  * 	game: Phaser.Game,

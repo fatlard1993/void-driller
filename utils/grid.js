@@ -82,52 +82,6 @@ export const positionIsOccupied = (position, grid) => {
 	return cell.ground?.type || (cell.hazards && cell.hazards.length > 0);
 };
 
-export const findFurthestConnectedPoint = (
-	position,
-	grid,
-	moves = [
-		[-1, 0],
-		[1, 0],
-		[0, -1],
-		[0, 1],
-	],
-) => {
-	const width = grid.length;
-	const depth = grid[0].length;
-	const queue = [[position.x, position.y, 0]];
-	const checked = new Set([`${position.x}_${position.y}`]);
-
-	let furthestPoint = { x: position.x, y: position.y };
-	let maxDistance = 0;
-
-	while (queue.length > 0) {
-		const [x, y, distance] = queue.shift();
-
-		if (distance > maxDistance) {
-			maxDistance = distance;
-			furthestPoint = { x, y };
-		}
-
-		moves.forEach(([xDelta, yDelta]) => {
-			const check = { x: x + xDelta, y: y + yDelta };
-
-			if (
-				check.x >= 0 &&
-				check.x < width &&
-				check.y >= 0 &&
-				check.y < depth &&
-				!grid[check.x][check.y].ground?.type &&
-				!checked.has(`${check.x}_${check.y}`)
-			) {
-				checked.add(`${check.x}_${check.y}`);
-				queue.push([check.x, check.y, distance + 1]);
-			}
-		});
-	}
-
-	return furthestPoint;
-};
-
 /**
  * Checks if a position has proper wheel support for a mining rig
  * @param {object} position - Grid position {x, y}

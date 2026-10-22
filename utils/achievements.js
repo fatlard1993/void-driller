@@ -10,7 +10,7 @@
  * @param {boolean} options.includePrefix - Whether to include "Rewards: " prefix (defaults to false)
  * @returns {string} Formatted rewards string
  */
-export function formatAchievementRewards(awards, options = {}) {
+function formatAchievementRewards(awards, options = {}) {
 	if (!awards || awards.length === 0) return '';
 
 	const { xpLabel = 'GMS', includePrefix = false } = options;
@@ -62,16 +62,5 @@ export function formatPlayerAchievementRewards(awards) {
 export function formatSpacecoAchievementRewards(awards) {
 	return formatAchievementRewards(awards, {
 		xpLabel: 'GMS (Galactic Market Share)',
-	});
-}
-
-/**
- * Format achievement rewards for notifications (uses simple "GMS" label)
- * @param {Array} awards - Array of achievement awards
- * @returns {string} Formatted rewards string
- */
-export function formatNotificationAchievementRewards(awards) {
-	return formatAchievementRewards(awards, {
-		xpLabel: 'GMS',
 	});
 }

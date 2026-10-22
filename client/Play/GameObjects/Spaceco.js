@@ -110,7 +110,6 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 			);
 			gameContext.scene.cameras.main.flash(600);
 			gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
-			// this.destroy();
 		} else {
 			gameContext.scene.sound.play('hurt', { volume: gameContext.volume.effects });
 		}

@@ -103,13 +103,6 @@ export const repairPlayerPosition = async (playerId, options) =>
 		...options,
 	});
 
-export const fixPlayerMovement = async options =>
-	await POST('/games/:gameId/:playerId/fix-movement', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
-		...options,
-	});
-
 export const disarmBomb = async ({ x, y }, options) =>
 	await POST('/games/:gameId/:playerId/disarm-bomb', {
 		invalidates: ['games'],

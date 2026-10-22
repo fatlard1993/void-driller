@@ -610,58 +610,6 @@ const _game = async (request, server) => {
 		}
 	}
 
-	match = requestMatch('POST', '/games/:gameId/:playerId/fix-movement', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		try {
-			const game = server.games[gameId];
-			const player = game.players.get(playerId);
-
-			if (!player) {
-				return Response.json({ message: 'Player not found' }, { status: 404 });
-			}
-
-			// Clear movement state and timeout
-			if (player._movementTimeout) {
-				clearTimeout(player._movementTimeout);
-			}
-
-			game.players.update(playerId, current => ({
-				...current,
-				moving: false,
-				_movementTimeout: null,
-				_lastMoveTime: null,
-			}));
-
-			playerLog.info('Fixed stuck movement state', { playerId });
-
-			// Broadcast the fix to all clients
-			game.broadcast('updatePlayer', {
-				playerId,
-				updates: { moving: false },
-			});
-
-			return Response.json(
-				{
-					success: true,
-					message: 'Movement state fixed successfully',
-				},
-				{ status: 200 },
-			);
-		} catch (fixError) {
-			gameLog.error('Movement fix error', { playerId, error: fixError.message });
-			return Response.json(
-				{
-					message: 'Movement fix system error. Please try again.',
-				},
-				{ status: 500 },
-			);
-		}
-	}
-
 	match = requestMatch('POST', '/games/:gameId/:playerId/disarm-bomb', request);
 	if (match) {
 		const { gameId, playerId, error } = validateGameMatch(match, server, request);

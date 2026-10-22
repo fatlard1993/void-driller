@@ -12,68 +12,6 @@ import {
 import gameContext from '../../shared/gameContext';
 import { playerMove } from '../../api';
 import { minerals, drills, engines } from '../../../constants';
-import TradeDialog from '../TradeDialog';
-import Notify from '../../shared/Notify';
-
-export const checkForNearbyPlayerTrade = () => {
-	const currentPlayer = gameContext.players.currentPlayer;
-	if (!currentPlayer) return;
-
-	// Find players within 1 tile
-	const nearbyPlayers = gameContext.getNearbyPlayers(currentPlayer.position, 1);
-
-	if (nearbyPlayers.length > 0) {
-		// Show trade UI for the closest player
-		const targetPlayer = nearbyPlayers[0]; // Take first nearby player
-
-		// Additional safety check to prevent self-trade
-		if (targetPlayer.id === currentPlayer.id) {
-			return;
-		}
-
-		if (gameContext.openDialog?.elem?.open) {
-			gameContext.openDialog.close();
-		}
-
-		gameContext.openDialog = new TradeDialog({
-			targetPlayer: targetPlayer,
-		});
-	}
-};
-
-// Add this function to handle trade interactions
-export const handleTradeInteraction = targetPlayer => {
-	const currentPlayer = gameContext.players.currentPlayer;
-
-	// Prevent trading with yourself
-	if (!targetPlayer || targetPlayer.id === currentPlayer.id) {
-		return;
-	}
-
-	// Check if players are adjacent
-	const distance =
-		Math.abs(currentPlayer.position.x - targetPlayer.position.x) +
-		Math.abs(currentPlayer.position.y - targetPlayer.position.y);
-
-	if (distance > 1) {
-		new Notify({
-			type: 'error',
-			content: 'Move closer to trade with other players.',
-			timeout: 2000,
-		});
-		return;
-	}
-
-	// Check for existing dialog
-	if (gameContext.openDialog?.elem?.open) {
-		gameContext.openDialog.close();
-	}
-
-	// Open trade dialog
-	gameContext.openDialog = new TradeDialog({
-		targetPlayer,
-	});
-};
 
 const line = [];
 const path = [];
@@ -949,7 +887,7 @@ const createPathDecayAnimation = (pathMarkers, onComplete) => {
 	});
 };
 
-export const submitPath = () => {
+const submitPath = () => {
 	const finalPath = [...path];
 
 	if (finalPath.length === 0) return;
@@ -1441,11 +1379,6 @@ export const onPointerOut = () => {
 };
 
 // Export auto-path configuration functions
-export const setAutoPathStrategy = strategy => {
-	gameContext.autoPath.strategy = strategy;
-	saveAutoPathOptions();
-};
-
 export const toggleAutoPath = () => {
 	gameContext.autoPath.enabled = !gameContext.autoPath.enabled;
 	saveAutoPathOptions();

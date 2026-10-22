@@ -472,7 +472,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		super({
 			header: 'Spaceco',
 			view: gameContext.serverState.world.spaceco.health > 0 ? defaultMenu : 'destroyed',
-			menuExpanded: false,
 			...options,
 		});
 	}

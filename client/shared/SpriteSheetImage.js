@@ -215,9 +215,3 @@ export class PartImage extends SpriteSheetImage {
 		});
 	}
 }
-
-export class SpacecoImage extends SpriteSheetImage {
-	constructor(index, style) {
-		super({ url: 'img/spaceco.png', size: 192, x: index, style });
-	}
-}
