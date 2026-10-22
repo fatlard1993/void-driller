@@ -6,7 +6,18 @@ import { InfoButton } from './InfoButton';
  * Base dialog class that provides common functionality and styling for game dialogs
  */
 const StyledDialog = styled(Dialog)`
+	/* The content's padding, named so whatever bleeds to its edges can follow it */
+	--content-pad-block: ${({ space }) => space.md};
+	--content-pad-inline: ${({ space }) => space.md};
+
+	& .content {
+		padding: var(--content-pad-block) var(--content-pad-inline);
+	}
+
 	@media (max-width: 480px) {
+		--content-pad-block: 0px;
+		--content-pad-inline: 3px;
+
 		box-sizing: border-box;
 		margin: 0;
 		width: 100% !important;
@@ -19,8 +30,6 @@ const StyledDialog = styled(Dialog)`
 		}
 
 		& .content {
-			padding: 0 3px;
-
 			&:before {
 				content: none;
 			}

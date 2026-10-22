@@ -315,7 +315,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		padding: 12px;
 		background: ${({ colors }) => colors.alpha(colors.white, 0.05)};
 		border-bottom: 2px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
-		margin: -12px -18px 12px -18px;
+		margin: calc(-1 * var(--content-pad-block)) calc(-1 * var(--content-pad-inline)) 12px;
 		align-items: center;
 		justify-content: space-between;
 
