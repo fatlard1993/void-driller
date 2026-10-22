@@ -6,7 +6,7 @@
       "name": "void-driller",
       "dependencies": {
         "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#ec2769a",
-        "@vanilla-bean/components": "^5.0.0",
+        "@vanilla-bean/components": "^5.2.0",
         "@vanilla-bean/hypertether": "^1.1.1",
         "argi": "github:fatlard1993/argi#785979e",
         "augmented-ui": "^2.0.0",
@@ -127,7 +127,7 @@
 
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.62.0", "", { "dependencies": { "@typescript-eslint/types": "8.62.0", "eslint-visitor-keys": "^5.0.0" } }, "sha512-CY3uyFSRbcQv3nnSv8S0+lDftMVz6P963PoRlxrV7ew/Md564g9ut60PYzdLM5qW4jFn93GBF+Soi90ISAN+GQ=="],
 
-    "@vanilla-bean/components": ["@vanilla-bean/components@5.0.0", "", { "dependencies": { "@ctrl/tinycolor": "^4.2.0", "@fontsource-variable/kode-mono": "^5.2.8", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "6" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "lowdb": "^7.0.1" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "lowdb"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-8a3BLQCckjwzEU6fWH27xYb59UKq1GjRtYbnxP1ZZ8fHb+6immtmNRPLqhsU+kW8ItoMTMEY3RgLGASKrTR01g=="],
+    "@vanilla-bean/components": ["@vanilla-bean/components@5.2.0", "", { "dependencies": { "@ctrl/tinycolor": "^4.2.0", "@fontsource-variable/kode-mono": "^5.2.8", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "6" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "lowdb": "^7.0.1" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "lowdb"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-wQczKylgvKhUbYXAXlQBSIhUi+0Pe/orYe3SGXpznHXQFsz3V40U6Q24FHzJKz9l2vP8w40ySZrbzmBtsRU0nw=="],
 
     "@vanilla-bean/hypertether": ["@vanilla-bean/hypertether@1.1.1", "", {}, "sha512-zLE3BhEo8kj9A+kDLw4FZkQXrRbrtmorxT/LcB4sGrGlTjyoQdkNw/a5AJnpUq9j0HZ/DbnF5bCnB64IW+A7pg=="],
 

@@ -1385,9 +1385,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				this.renderMenu();
 
 				this[`render_${value.toLowerCase()}`]();
-
-				// A menu's render moves on to its first page by setting view, which isn't applied during the first render
-				if (!this.rendered && this.options.view !== value) this._setOption('view', this.options.view);
 			},
 		},
 	};
