@@ -227,7 +227,8 @@ export default class WatchScene extends Phaser.Scene {
 		// Use shared Notify component positioned around the player
 		new Notify({
 			type: 'success',
-			content: `🏆 ${player.name}\n${achievement.name}`,
+			icon: 'trophy',
+			content: `${player.name}\n${achievement.name}`,
 			timeout: 5000,
 			...(position && { x: position.x, y: position.y }),
 		});

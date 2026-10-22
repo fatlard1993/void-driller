@@ -1,10 +1,10 @@
-import { capitalize, Elem, styled } from '@vanilla-bean/components';
+import { capitalize, Elem, styled, theme } from '@vanilla-bean/components';
 
 import gameContext from './gameContext';
 import PriceDisplay from './PriceDisplay';
 
 export class Achievement extends styled.Popover(
-	({ colors, media }) => `
+	({ colors, media, space, radius }) => `
 		flex-direction: column;
 		top: 100px;
 		left: 32px;
@@ -48,14 +48,14 @@ export class Achievement extends styled.Popover(
 
 			& .title {
 				font-size: 16px;
-				margin-left: 8px;
-				margin-top: 6px;
+				margin-left: ${space.sm};
+				margin-top: ${space.sm};
 			}
 
 			& .summary {
-				margin: 6px 0;
+				margin: ${space.sm} 0;
 				font-size: 0.85em;
-				padding-left: 4px;
+				padding-left: ${space.xs};
 			}
 
 			& .flavor {
@@ -63,13 +63,13 @@ export class Achievement extends styled.Popover(
 			}
 
 			& .rewards {
-				padding: 4px 6px;
-				margin: 6px 0 4px 0;
+				padding: ${space.xs} ${space.sm};
+				margin: ${space.sm} 0 ${space.xs} 0;
 				font-size: 0.85em;
 			}
 
 			& .signature {
-				margin-top: 4px;
+				margin-top: ${space.xs};
 				font-size: 9px;
 			}
 		}
@@ -107,7 +107,7 @@ export class Achievement extends styled.Popover(
 			position: absolute;
 			top: 0;
 			right: 0;
-			padding: 3px;
+			padding: ${space.xs};
 			background: ${colors.lighter(colors.blue)};
 			color: ${colors.black};
 
@@ -122,15 +122,15 @@ export class Achievement extends styled.Popover(
 			right: 30px;
 			display: flex;
 			flex-direction: column;
-			gap: 4px;
+			gap: ${space.xs};
 			align-items: flex-end;
 		}
 
 		& .reward-item {
-			background: ${colors.green};
+			background: ${colors.success};
 			color: ${colors.white};
-			padding: 4px 10px;
-			border-radius: 4px;
+			padding: ${space.xs} ${space.md};
+			border-radius: ${radius.sm};
 			font-size: 13px;
 			font-weight: bold;
 			white-space: nowrap;
@@ -155,17 +155,17 @@ export class Achievement extends styled.Popover(
 			display: inline-block;
 			font-weight: bold;
 			font-size: 18px;
-			margin-left: 12px;
-			margin-top: 9px;
+			margin-left: ${space.md};
+			margin-top: ${space.md};
 			padding-right: 120px;
 			flex: 1;
 		}
 
 		& .summary {
-			color: ${colors.lighter(colors.green)};
-			border-left: 3px solid ${colors.green};
-			padding-left: 6px;
-			margin: 9px 0;
+			color: ${colors.lighter(colors.success)};
+			border-left: 3px solid ${colors.success};
+			padding-left: ${space.sm};
+			margin: ${space.md} 0;
 			word-wrap: break-word;
 			font-size: 0.9em;
 		}
@@ -181,7 +181,7 @@ export class Achievement extends styled.Popover(
 		}
 
 		& .signature {
-			margin-top: 6px;
+			margin-top: ${space.sm};
 			text-indent: 6px;
 			font-size: 10px;
 		}
@@ -285,7 +285,7 @@ export class Achievement extends styled.Popover(
 						return new Elem(
 							{
 								className: 'reward-item',
-								style: { display: 'flex', alignItems: 'center', gap: '4px' },
+								style: { display: 'flex', alignItems: 'center', gap: theme.space.xs },
 							},
 							new Elem({ content: '+' }),
 							new PriceDisplay({
