@@ -1,4 +1,4 @@
-import { Elem, styled } from '@vanilla-bean/components';
+import { capitalize, Elem, styled } from '@vanilla-bean/components';
 
 import gameContext from './gameContext';
 import PriceDisplay from './PriceDisplay';
@@ -297,7 +297,7 @@ export class Achievement extends styled.Popover(
 					} else {
 						return new Elem({
 							className: 'reward-item',
-							textContent: `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`,
+							textContent: `+${amount} ${capitalize(type.replaceAll('_', ' '))}`,
 						});
 					}
 				});

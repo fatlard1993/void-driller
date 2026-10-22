@@ -1,4 +1,4 @@
-import { Elem, styled, Button } from '@vanilla-bean/components';
+import { Elem, styled, Button, delay } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 import bookendConfig from './bookendConfig.js';
 
@@ -324,7 +324,7 @@ class AudioPlayer extends styled.Component(
 		// Play audio (with optional delay)
 		try {
 			if (delayBeforePlay > 0) {
-				await new Promise(resolve => setTimeout(resolve, delayBeforePlay));
+				await delay(delayBeforePlay);
 			}
 			await this.currentAudio.play();
 			this.updateUI();

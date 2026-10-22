@@ -1,9 +1,9 @@
-import { styled, theme, Elem, Button, Component, copyToClipboard } from '@vanilla-bean/components';
+import { styled, theme, Elem, Button, Component, copyToClipboard, capitalize } from '@vanilla-bean/components';
 
 import { minerals } from '../../constants/minerals';
 
 const getMineralLabel = (colorKey, mineral) => {
-	const colorName = colorKey.charAt(0).toUpperCase() + colorKey.slice(1);
+	const colorName = capitalize(colorKey);
 	return `${mineral.name} (${colorName})`;
 };
 

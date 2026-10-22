@@ -1,3 +1,5 @@
+import { capitalize } from '@vanilla-bean/components/utils';
+
 /**
  * Shared achievement utilities for consistent formatting across the application
  */
@@ -24,9 +26,9 @@ function formatAchievementRewards(awards, options = {}) {
 				case 'credits':
 					return `+$${amount}`;
 				case 'item':
-					return `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`;
+					return `+${amount} ${capitalize(type.replaceAll('_', ' '))}`;
 				default:
-					return `+${amount} ${type.charAt(0).toUpperCase() + type.slice(1).replaceAll('_', ' ')}`;
+					return `+${amount} ${capitalize(type.replaceAll('_', ' '))}`;
 			}
 		});
 
