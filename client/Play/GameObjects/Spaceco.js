@@ -31,7 +31,7 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 		this.tradeButton.setInteractive({ draggable: false, cursor: 'pointer' });
 
 		this.tradeButton.on('pointerover', () => {
-			gameContext.cursor.visible = false;
+			if (gameContext.cursor) gameContext.cursor.visible = false;
 			// Simulate button hover effect with slight position shift
 			this.tradeButton.y = this.tradeButton.y - 1;
 		});

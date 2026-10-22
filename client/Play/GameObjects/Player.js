@@ -294,7 +294,7 @@ export class Player extends Drill {
 		this.bombButton.setInteractive({ cursor: 'pointer' });
 
 		this.bombButton.on('pointerover', () => {
-			gameContext.cursor.visible = false;
+			if (gameContext.cursor) gameContext.cursor.visible = false;
 			this.bombButton.y = this.bombButton.y - 1;
 		});
 		this.bombButton.on('pointerout', () => {
@@ -324,7 +324,7 @@ export class Player extends Drill {
 		this.teleportButton.setInteractive({ cursor: 'pointer' });
 
 		this.teleportButton.on('pointerover', () => {
-			gameContext.cursor.visible = false;
+			if (gameContext.cursor) gameContext.cursor.visible = false;
 			this.teleportButton.y = this.teleportButton.y - 1;
 		});
 		this.teleportButton.on('pointerout', () => {
