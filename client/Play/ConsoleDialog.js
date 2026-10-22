@@ -80,7 +80,7 @@ class NotifyControl extends Component {
 		new Label(
 			{
 				appendTo: this,
-				label: gameContext.subscriber('notify', notify => {
+				label: gameContext.subscriber('notifySettings', notify => {
 					const seconds = notify.autoDismissTimeout / 1000;
 					return `Auto-dismiss timeout (${seconds}s)`;
 				}),
