@@ -42,6 +42,20 @@ import {
 
 const CollapsibleLabel = configured(Label, { variant: 'collapsible' });
 
+// What placing a charge or a beacon leaves in the inventory, its key carrying the position: detonator_x_y,
+// void_detonator_x_y, activated_teleporter_x_y. Each shows as the item it came from, unless its own text is given here.
+const placedItems = {
+	detonator: { item: 'detonator', at: 'Armed at' },
+	void_detonator: { item: 'void_detonator', at: 'Armed at' },
+	activated_teleporter: {
+		item: 'advanced_teleporter',
+		at: 'Anchored at',
+		summary: 'Beacon placed. Use to return to it.',
+		description:
+			'Return jump locked to your deployed beacon. Activation transports you to the beacon and recovers the teleporter for redeployment.',
+	},
+};
+
 class AlertControl extends Component {
 	static schema = {
 		key: {},
@@ -1046,15 +1060,14 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
-				// A detonator for a charge already placed carries the charge's position: detonator_x_y, void_detonator_x_y
-				const [, placedItem, placedX, placedY] = key.match(/^((?:void_)?detonator)_(\d+)_(\d+)$/) || [];
-				const itemKey = placedItem || key;
+				const [, placedKey, placedX, placedY] = key.match(/^(\w+?)_(\d+)_(\d+)$/) || [];
+				const placed = placedItems[placedKey];
+				const itemKey = placed?.item || key;
 				const itemName = items[itemKey]?.name || capitalize(itemKey.replaceAll('_', ' '), true);
+				const summary = placed?.summary || items[itemKey]?.summary || '';
+				const description = placed?.description || items[itemKey]?.description || 'No description available.';
 
-				let imageName = itemKey;
-
-				if (key === 'advanced_teleporter') imageName = 'teleport_station';
-				else if (key.startsWith('activated_teleporter')) imageName = 'advanced_teleporter';
+				const imageName = key === 'advanced_teleporter' ? 'teleport_station' : itemKey;
 
 				// Check if player can use item
 				const canUse = this.canUseItem(key, player);
@@ -1076,14 +1089,14 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							append: [
 								new ItemImage(imageName, { displaySize: 96 }),
 								new DescriptionText({
-									summary: items[itemKey]?.summary || '',
-									description: items[itemKey]?.description || 'No description available.',
+									summary,
+									description,
 									title: itemName,
 								}),
-								placedItem &&
+								placed &&
 									new Elem({
 										tag: 'p',
-										content: `Armed at ${placedX}, ${placedY}`,
+										content: `${placed.at} ${placedX}, ${placedY}`,
 										style: { margin: '4px 0 0', fontSize: '13px', textAlign: 'center' },
 									}),
 								new Elem({
