@@ -1,6 +1,7 @@
 import {
 	Button,
 	Elem,
+	Icon,
 	Input,
 	Label,
 	Select,
@@ -21,11 +22,11 @@ import Notify from '../shared/Notify';
 const TradeItemRow = styled.Component`
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 6px;
+	gap: ${({ space }) => space.md};
+	padding: ${({ space }) => space.sm};
 	background: ${({ colors }) => colors.alpha(colors.white, 0.02)};
-	border-radius: 3px;
-	margin-bottom: 6px;
+	border-radius: ${({ radius }) => radius.sm};
+	margin-bottom: ${({ space }) => space.sm};
 
 	& .item-image {
 		width: 32px;
@@ -45,14 +46,14 @@ const TradeItemRow = styled.Component`
 
 	& .item-available {
 		font-size: 0.8em;
-		color: ${({ colors }) => colors.lighter(colors.gray)};
-		margin-top: 2px;
+		color: ${({ colors }) => colors.muted};
+		margin-top: ${({ space }) => space.xs};
 	}
 
 	& .quantity-controls {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: ${({ space }) => space.sm};
 		flex-shrink: 0;
 	}
 
@@ -76,13 +77,13 @@ class TradeItemsList extends (styled.Component`
 	flex: 1;
 	max-height: 280px;
 	overflow-y: auto;
-	margin-bottom: 12px;
+	margin-bottom: ${({ space }) => space.md};
 
 	& .empty-trade {
-		color: ${({ colors }) => colors.lighter(colors.gray)};
+		color: ${({ colors }) => colors.muted};
 		text-align: center;
 		font-style: italic;
-		padding: 24px 12px;
+		padding: ${({ space }) => `${space.xl} ${space.md}`};
 	}
 `) {
 	build() {
@@ -221,7 +222,7 @@ class TradeItemsList extends (styled.Component`
 export default class TradeDialog extends (styled(BaseDialog)`
 	& .trade-container {
 		display: flex;
-		gap: 12px;
+		gap: ${({ space }) => space.md};
 		min-height: 400px;
 
 		@media ${({ media }) => media.phone} {
@@ -231,9 +232,9 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	& .trade-side {
 		flex: 1;
-		border: 2px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
-		border-radius: 6px;
-		padding: 12px;
+		border: 2px solid ${({ colors }) => colors.border};
+		border-radius: ${({ radius }) => radius.md};
+		padding: ${({ space }) => space.md};
 		background: ${({ colors }) => colors.alpha(colors.white, 0.02)};
 		display: flex;
 		flex-direction: column;
@@ -249,29 +250,29 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	& .trade-header {
 		font-weight: bold;
-		margin-bottom: 12px;
-		padding-bottom: 6px;
-		border-bottom: 1px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
+		margin-bottom: ${({ space }) => space.md};
+		padding-bottom: ${({ space }) => space.sm};
+		border-bottom: 1px solid ${({ colors }) => colors.border};
 	}
 
 	& .trade-items {
 		flex: 1;
 		max-height: 280px;
 		overflow-y: auto;
-		margin-bottom: 12px;
+		margin-bottom: ${({ space }) => space.md};
 	}
 
 	& .add-item-section {
-		border-top: 1px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
-		padding-top: 12px;
+		border-top: 1px solid ${({ colors }) => colors.border};
+		padding-top: ${({ space }) => space.md};
 		margin-top: auto;
 	}
 
 	& .credits-section {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		margin-bottom: 12px;
+		gap: ${({ space }) => space.sm};
+		margin-bottom: ${({ space }) => space.md};
 	}
 
 	& .credits-input {
@@ -281,41 +282,41 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	& .menu {
 		display: flex;
-		gap: 6px;
-		margin: 6px;
+		gap: ${({ space }) => space.sm};
+		margin: ${({ space }) => space.sm};
 		justify-content: space-between;
 		align-items: center;
 
 		& .left-buttons {
 			display: flex;
-			gap: 6px;
+			gap: ${({ space }) => space.sm};
 		}
 
 		& .right-buttons {
 			display: flex;
-			gap: 6px;
+			gap: ${({ space }) => space.sm};
 		}
 	}
 
 	& .menuBody {
 		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
-		padding: 9px 18px;
+		padding: ${({ space }) => `${space.md} ${space.lg}`};
 	}
 
 	& .empty-trade {
-		color: ${({ colors }) => colors.lighter(colors.gray)};
+		color: ${({ colors }) => colors.muted};
 		text-align: center;
 		font-style: italic;
-		padding: 24px 12px;
+		padding: ${({ space }) => `${space.xl} ${space.md}`};
 	}
 
 	& .acceptance-bar {
 		display: flex;
-		gap: 12px;
-		padding: 12px;
+		gap: ${({ space }) => space.md};
+		padding: ${({ space }) => space.md};
 		background: ${({ colors }) => colors.alpha(colors.white, 0.05)};
-		border-bottom: 2px solid ${({ colors }) => colors.alpha(colors.white, 0.1)};
-		margin: calc(-1 * var(--content-pad-block)) calc(-1 * var(--content-pad-inline)) 12px;
+		border-bottom: 2px solid ${({ colors }) => colors.border};
+		margin: calc(-1 * var(--content-pad-block)) calc(-1 * var(--content-pad-inline)) ${({ space }) => space.md};
 		align-items: center;
 		justify-content: space-between;
 
@@ -328,7 +329,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		flex: 1;
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: ${({ space }) => space.sm};
 	}
 
 	& .player-name {
@@ -337,24 +338,27 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	}
 
 	& .accept-indicator {
-		padding: 4px 12px;
-		border-radius: 4px;
+		display: inline-flex;
+		align-items: center;
+		gap: ${({ space }) => space.xs};
+		padding: ${({ space }) => `${space.xs} ${space.md}`};
+		border-radius: ${({ radius }) => radius.sm};
 		font-size: 0.85em;
 		font-weight: bold;
 	}
 
 	& .accept-indicator.accepted {
-		background: ${({ colors }) => colors.green};
+		background: ${({ colors }) => colors.success};
 		color: ${({ colors }) => colors.black};
 	}
 
 	& .accept-indicator.waiting {
 		background: ${({ colors }) => colors.alpha(colors.gray, 0.3)};
-		color: ${({ colors }) => colors.lighter(colors.gray)};
+		color: ${({ colors }) => colors.muted};
 	}
 
 	& .accept-button {
-		padding: 6px 16px;
+		padding: ${({ space }) => `${space.sm} ${space.lg}`};
 
 		@media ${({ media }) => media.phone} {
 			/* Improve button rendering on mobile by using simpler styles */
@@ -478,16 +482,18 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	}
 
 	renderAcceptanceBar() {
-		this.theirAcceptIndicator = new Elem({
+		this.theirAcceptIndicator = new Icon({
 			className: `accept-indicator ${this.theyAccepted ? 'accepted' : 'waiting'}`,
-			content: this.theyAccepted ? '✓ Accepted' : 'Not Accepted',
+			icon: this.theyAccepted ? 'check' : undefined,
+			textContent: this.theyAccepted ? 'Accepted' : 'Not Accepted',
 		});
 
 		this.myAcceptButton = new Button({
 			className: 'accept-button',
-			content: this.iAccepted ? '✓ You Accepted' : 'Accept Trade',
+			icon: this.iAccepted ? 'check' : undefined,
+			textContent: this.iAccepted ? 'You Accepted' : 'Accept Trade',
 			style: {
-				backgroundColor: this.iAccepted ? theme.colors.green : theme.colors.blue,
+				backgroundColor: this.iAccepted ? theme.colors.success : '',
 			},
 			onPointerPress: async () => {
 				if (!this.iAccepted) {
@@ -526,15 +532,16 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		});
 
 		if (this.theirAcceptIndicator) {
-			this.theirAcceptIndicator.elem.className = `accept-indicator ${this.theyAccepted ? 'accepted' : 'waiting'}`;
-			this.theirAcceptIndicator.elem.textContent = this.theyAccepted ? '✓ Accepted' : 'Not Accepted';
+			this.theirAcceptIndicator.elem.classList.toggle('accepted', this.theyAccepted);
+			this.theirAcceptIndicator.elem.classList.toggle('waiting', !this.theyAccepted);
+			this.theirAcceptIndicator.options.icon = this.theyAccepted ? 'check' : undefined;
+			this.theirAcceptIndicator.options.textContent = this.theyAccepted ? 'Accepted' : 'Not Accepted';
 		}
 
 		if (this.myAcceptButton) {
-			this.myAcceptButton.elem.textContent = this.iAccepted ? '✓ You Accepted' : 'Accept Trade';
-			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted
-				? theme.colors.green.toRgbString()
-				: theme.colors.blue.toRgbString();
+			this.myAcceptButton.options.icon = this.iAccepted ? 'check' : undefined;
+			this.myAcceptButton.options.textContent = this.iAccepted ? 'You Accepted' : 'Accept Trade';
+			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted ? theme.colors.success.toRgbString() : '';
 			this.myAcceptButton.elem.disabled = this.iAccepted;
 		}
 
