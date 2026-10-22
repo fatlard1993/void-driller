@@ -24,6 +24,7 @@ export * from './PsykickScout';
 export * from './PsykickWarrior';
 export * from './ResourceSeeker';
 export * from './RockMite';
+export * from './ScreenLayer';
 export * from './Spaceco';
 export * from './SpawnMother';
 export * from './TunnelChomper';

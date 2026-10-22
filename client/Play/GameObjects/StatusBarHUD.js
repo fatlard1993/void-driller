@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { theme } from '@vanilla-bean/components';
 import { engines } from '../../../constants';
+import { ScreenLayer } from './ScreenLayer';
 
 export default class StatusBarHUD {
 	constructor(scene) {
@@ -23,8 +24,6 @@ export default class StatusBarHUD {
 		// Create health bar
 		this.healthFrame = scene.add.rectangle(startX, topMargin, barWidth + 4, barHeight + 4, 0x000000);
 		this.healthFrame.setOrigin(0, 0);
-		this.healthFrame.setScrollFactor(0);
-		this.healthFrame.setDepth(1000);
 
 		this.healthBar = scene.add.rectangle(
 			startX + 2,
@@ -34,8 +33,6 @@ export default class StatusBarHUD {
 			Phaser.Display.Color.ValueToColor(theme.colors.red.toRgbString()).color,
 		);
 		this.healthBar.setOrigin(0, 0);
-		this.healthBar.setScrollFactor(0);
-		this.healthBar.setDepth(1001);
 
 		this.healthText = scene.add.text(startX + barWidth / 2 + 2, topMargin + 4, 'HEALTH', {
 			fontSize: '12px',
@@ -43,14 +40,10 @@ export default class StatusBarHUD {
 			fontFamily: 'monospace',
 		});
 		this.healthText.setOrigin(0.5, 0);
-		this.healthText.setScrollFactor(0);
-		this.healthText.setDepth(1002);
 
 		// Create fuel bar
 		this.fuelFrame = scene.add.rectangle(startX + barWidth + 4, topMargin, barWidth + 4, barHeight + 4, 0x000000);
 		this.fuelFrame.setOrigin(0, 0);
-		this.fuelFrame.setScrollFactor(0);
-		this.fuelFrame.setDepth(1000);
 
 		this.fuelBar = scene.add.rectangle(
 			startX + barWidth + 4 + 2,
@@ -60,8 +53,6 @@ export default class StatusBarHUD {
 			Phaser.Display.Color.ValueToColor(theme.colors.yellow.toRgbString()).color,
 		);
 		this.fuelBar.setOrigin(0, 0);
-		this.fuelBar.setScrollFactor(0);
-		this.fuelBar.setDepth(1001);
 
 		this.fuelText = scene.add.text(startX + barWidth + 4 + barWidth / 2 + 2, topMargin + 4, 'FUEL', {
 			fontSize: '12px',
@@ -69,8 +60,6 @@ export default class StatusBarHUD {
 			fontFamily: 'monospace',
 		});
 		this.fuelText.setOrigin(0.5, 0);
-		this.fuelText.setScrollFactor(0);
-		this.fuelText.setDepth(1002);
 
 		// Create cargo bar
 		this.cargoFrame = scene.add.rectangle(
@@ -81,8 +70,6 @@ export default class StatusBarHUD {
 			0x000000,
 		);
 		this.cargoFrame.setOrigin(0, 0);
-		this.cargoFrame.setScrollFactor(0);
-		this.cargoFrame.setDepth(1000);
 
 		this.cargoBar = scene.add.rectangle(
 			startX + (barWidth + 4) * 2 + 2,
@@ -92,8 +79,6 @@ export default class StatusBarHUD {
 			Phaser.Display.Color.ValueToColor(theme.colors.green.toRgbString()).color,
 		);
 		this.cargoBar.setOrigin(0, 0);
-		this.cargoBar.setScrollFactor(0);
-		this.cargoBar.setDepth(1001);
 
 		this.cargoText = scene.add.text(startX + (barWidth + 4) * 2 + barWidth / 2 + 2, topMargin + 4, 'CARGO', {
 			fontSize: '12px',
@@ -101,8 +86,19 @@ export default class StatusBarHUD {
 			fontFamily: 'monospace',
 		});
 		this.cargoText.setOrigin(0.5, 0);
-		this.cargoText.setScrollFactor(0);
-		this.cargoText.setDepth(1002);
+
+		this.layer = new ScreenLayer(scene, 1000);
+		this.layer.add([
+			this.healthFrame,
+			this.healthBar,
+			this.healthText,
+			this.fuelFrame,
+			this.fuelBar,
+			this.fuelText,
+			this.cargoFrame,
+			this.cargoBar,
+			this.cargoText,
+		]);
 
 		// Store bar width for updates
 		this.barWidth = barWidth;
@@ -139,14 +135,6 @@ export default class StatusBarHUD {
 	}
 
 	destroy() {
-		this.healthFrame.destroy();
-		this.healthBar.destroy();
-		this.healthText.destroy();
-		this.fuelFrame.destroy();
-		this.fuelBar.destroy();
-		this.fuelText.destroy();
-		this.cargoFrame.destroy();
-		this.cargoBar.destroy();
-		this.cargoText.destroy();
+		this.layer.destroy();
 	}
 }

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 import QRCode from '@fatlard1993/web-game-framework/ui/QRCode';
 import gameContext from '../shared/gameContext';
-import { Ground, Item, Spaceco, Drill, Lava, Gas } from '../Play/GameObjects';
+import { Ground, Item, Spaceco, Drill, Lava, Gas, ScreenLayer } from '../Play/GameObjects';
 import { createAlien } from '../Play/GameObjects/aliens';
 import { vehicles, drills } from '../../constants';
 import Notify from '../shared/Notify';
@@ -256,10 +256,10 @@ export default class WatchScene extends Phaser.Scene {
 		const screenWidth = this.cameras.main.width;
 		const screenHeight = this.cameras.main.height;
 		const ship = this.add.image(-400, screenHeight / 2, 'transport');
-		ship.setDepth(10000);
-		ship.setScale(1.5); // Much bigger ship for Watch mode visibility
+		ship.setScale(1.5 * this.cameras.main.zoom); // Much bigger ship for Watch mode visibility, as big as the world is drawn
 		ship.setAlpha(0);
-		ship.setScrollFactor(0);
+		const shipLayer = new ScreenLayer(this, 10000);
+		shipLayer.add(ship);
 
 		// Fade in the ship (matching Play mode: 1000ms)
 		this.tweens.add({
@@ -278,7 +278,7 @@ export default class WatchScene extends Phaser.Scene {
 			ease: 'Sine.easeInOut',
 			onComplete: () => {
 				clearInterval(bobInterval);
-				ship.destroy();
+				shipLayer.destroy();
 			},
 		});
 

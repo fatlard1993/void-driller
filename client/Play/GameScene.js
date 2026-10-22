@@ -8,7 +8,7 @@ import { gameLog, clientLog } from '../../utils/logger.js';
 import { repairPlayerPosition } from '../api';
 import MusicManager from '../shared/MusicManager.js';
 import musicConfig from '../shared/musicConfig.js';
-import { Ground, Item, Mineral, Spaceco, Drill, Lava, Gas, Player } from './GameObjects';
+import { Ground, Item, Mineral, Spaceco, Drill, Lava, Gas, Player, ScreenLayer } from './GameObjects';
 import { createAlien } from './GameObjects/aliens';
 import BriefingDialog from './BriefingDialog';
 import StatusBarHUD from './GameObjects/StatusBarHUD';
@@ -709,10 +709,10 @@ export default class GameScene extends Phaser.Scene {
 		const screenWidth = this.cameras.main.width;
 		const screenHeight = this.cameras.main.height;
 		const ship = this.add.image(-400, screenHeight / 2, 'transport');
-		ship.setDepth(10000); // Above everything
-		ship.setScale(0.6); // Smaller - 60% of original size
+		ship.setScale(0.6 * this.cameras.main.zoom); // Smaller - 60% of original size, as big as the world is drawn
 		ship.setAlpha(0);
-		ship.setScrollFactor(0); // Stay in camera view (screen coordinates)
+		const shipLayer = new ScreenLayer(this, 10000); // Above everything, in screen coordinates
+		shipLayer.add(ship);
 
 		console.log('🚀 Transport ship created:', {
 			screenWidth,
@@ -740,7 +740,7 @@ export default class GameScene extends Phaser.Scene {
 			ease: 'Sine.easeInOut',
 			onComplete: () => {
 				clearInterval(bobInterval);
-				ship.destroy();
+				shipLayer.destroy();
 				console.log('🚀 Transport ship animation complete');
 			},
 		});
