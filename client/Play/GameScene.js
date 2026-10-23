@@ -88,8 +88,6 @@ export default class GameScene extends Phaser.Scene {
 			return;
 		}
 
-		console.log(`[GameScene] Loading music on-demand: ${musicKey}`);
-
 		// Load the music file
 		return new Promise((resolve, reject) => {
 			this.load.audio(musicKey, `audio/${musicKey}.wav`);
@@ -97,7 +95,6 @@ export default class GameScene extends Phaser.Scene {
 			this.load.once('complete', () => {
 				// Add to gameContext.sounds for consistency
 				gameContext.sounds[musicKey] = this.sound.add(musicKey);
-				console.log(`[GameScene] Music loaded: ${musicKey}`);
 				resolve();
 			});
 
@@ -430,24 +427,13 @@ export default class GameScene extends Phaser.Scene {
 		if (window.debugLog) window.debugLog('Scene create() started');
 
 		try {
-			console.log('🎮 CHECKPOINT 1: Starting GameScene.create()');
 			essentialSounds.forEach(sound => {
 				gameContext.sounds[sound] = this.sound.add(sound);
 			});
 
-			console.log('🎮 CHECKPOINT 2: Sounds loaded, starting grid iteration');
-			console.log(
-				'🎮 Grid dimensions:',
-				gameContext.serverState.world.grid.length,
-				'x',
-				gameContext.serverState.world.grid[0]?.length,
-			);
-
 			gameContext.serverState.world.grid.forEach((layer, x) => {
-				if (x % 10 === 0) console.log(`🎮 Processing column ${x}/${gameContext.serverState.world.grid.length}`);
 				layer.forEach((gridConfig = { ground: {}, items: [], hazards: [] }, y) => {
 					if (gridConfig.ground?.type) {
-						if (x === 0 && y < 5) console.log(`🎮 Creating ground sprite at (${x},${y}) type:`, gridConfig.ground.type);
 						try {
 							gameContext.serverState.world.grid[x][y].ground.sprite = new Ground(this, x, y, gridConfig.ground.type);
 							gameContext.sceneLayers.ground.add(gameContext.serverState.world.grid[x][y].ground.sprite);
@@ -510,8 +496,6 @@ export default class GameScene extends Phaser.Scene {
 				});
 			});
 
-			console.log('🎮 CHECKPOINT 3: Grid iteration complete, creating Spaceco');
-
 			gameContext.spaceco = new Spaceco(
 				this,
 				gameContext.serverState.world.spaceco.position.x,
@@ -519,11 +503,7 @@ export default class GameScene extends Phaser.Scene {
 				gameContext.serverState.world.spaceco.variant,
 			);
 
-			console.log('🎮 CHECKPOINT 4: Spaceco created, adding to scene');
-
 			gameContext.sceneLayers.hazards.add(gameContext.spaceco);
-
-			console.log('🎮 CHECKPOINT 5: Processing players');
 
 			gameContext.serverState.players.forEach(player => {
 				// Validate player data before creating sprites
@@ -601,13 +581,10 @@ export default class GameScene extends Phaser.Scene {
 				}
 			});
 
-			console.log('🎮 CHECKPOINT 6: All sprites created, setting up camera and completion');
-
 			// Hide loading UI and show completion
 			setTimeout(() => {
 				this.updateLoadingProgress(100, 'Mining rig systems online - Welcome to the void!');
 				setTimeout(() => {
-					console.log('🎮 CHECKPOINT 7: Hiding loading UI');
 					this.hideLoadingUI();
 
 					// Initialize music manager
@@ -624,15 +601,12 @@ export default class GameScene extends Phaser.Scene {
 						// Start level music after briefing shows (or immediately if briefing was seen)
 						const worldName = gameContext.serverState.world.name;
 						const musicKey = worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_');
-						console.log('[GameScene] World name:', worldName, '-> Music key:', musicKey);
 
 						const config = musicConfig[musicKey];
-						console.log('[GameScene] Music config found:', !!config);
 
 						if (config) {
 							setTimeout(
 								() => {
-									console.log('[GameScene] Starting music for:', musicKey);
 									gameContext.musicManager.play(musicKey, config);
 								},
 								gameContext.briefings[worldName] ? 0 : 1000,
@@ -695,8 +669,6 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	startWorldTransition(newWorldState) {
-		console.log('🌍 Starting world transition with transport ship:', newWorldState);
-
 		// Disable input during transition
 		gameContext.transitioning = true;
 
@@ -713,15 +685,6 @@ export default class GameScene extends Phaser.Scene {
 		ship.setAlpha(0);
 		const shipLayer = new ScreenLayer(this, 10000); // Above everything, in screen coordinates
 		shipLayer.add(ship);
-
-		console.log('🚀 Transport ship created:', {
-			screenWidth,
-			screenHeight,
-			shipY: ship.y,
-			texture: ship.texture.key,
-			textureExists: this.textures.exists('transport'),
-			spacecoExists: !!gameContext.spaceco,
-		});
 
 		// Fade in the ship
 		this.tweens.add({
@@ -741,7 +704,6 @@ export default class GameScene extends Phaser.Scene {
 			onComplete: () => {
 				clearInterval(bobInterval);
 				shipLayer.destroy();
-				console.log('🚀 Transport ship animation complete');
 			},
 		});
 
@@ -802,8 +764,6 @@ export default class GameScene extends Phaser.Scene {
 
 		// After fade completes, rebuild the world
 		setTimeout(() => {
-			console.log('📺 Layers faded out, rebuilding world...');
-
 			// Destroy all existing sprites
 			Object.values(gameContext.sceneLayers).forEach(layer => {
 				layer.removeAll(true); // Remove and destroy all children
@@ -829,14 +789,10 @@ export default class GameScene extends Phaser.Scene {
 
 			// Recreate the world
 			this.createWorldFromState();
-
-			console.log('✅ World rebuilt, waiting for music to finish...');
 		}, fadeDuration);
 	}
 
 	fadeInWorld() {
-		console.log('🎨 Fading in new world...');
-
 		// Re-enable input
 		gameContext.transitioning = false;
 
@@ -872,8 +828,6 @@ export default class GameScene extends Phaser.Scene {
 		}
 
 		setTimeout(() => {
-			console.log('✅ World transition complete!');
-
 			// Show briefing dialog if not yet seen for this world
 			if (!gameContext.briefings[gameContext.serverState.world.name]) {
 				gameContext.openDialog = new BriefingDialog();
@@ -882,14 +836,12 @@ export default class GameScene extends Phaser.Scene {
 			// Start level music after transition
 			const worldName = gameContext.serverState.world.name;
 			const musicKey = worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_');
-			console.log('[GameScene] Post-transport: Starting music for:', musicKey);
 
 			const config = musicConfig[musicKey];
 
 			if (config && gameContext.musicManager) {
 				setTimeout(
 					() => {
-						console.log('[GameScene] Starting music for:', musicKey);
 						gameContext.musicManager.play(musicKey, config);
 					},
 					gameContext.briefings[worldName] ? 0 : 1000,
@@ -901,8 +853,6 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	createWorldFromState() {
-		console.log('🎮 Creating world from state...');
-
 		// Recreate ground, hazards, and items
 		for (let x = 0; x < gameContext.serverState.world.grid.length; x++) {
 			for (let y = 0; y < gameContext.serverState.world.grid[x].length; y++) {
@@ -1036,7 +986,5 @@ export default class GameScene extends Phaser.Scene {
 			gameContext.players.set(player.id, { ...player, sprite });
 			gameContext.sceneLayers.players.add(sprite);
 		});
-
-		console.log('✅ World creation complete');
 	}
 }

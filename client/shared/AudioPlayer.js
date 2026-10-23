@@ -569,12 +569,9 @@ class AudioPlayer extends styled.Component(
 		// Clamp to valid range
 		const clampedTime = Math.max(0, Math.min(newTime, duration));
 
-		console.log('[AudioPlayer] Skip from', currentTime, 'to', clampedTime, 'readyState:', audioElement.readyState);
-
 		// Simply set the time - it should work if the audio is fully loaded
 		try {
 			audioElement.currentTime = clampedTime;
-			console.log('[AudioPlayer] After setting, currentTime is:', audioElement.currentTime);
 		} catch (e) {
 			console.error('[AudioPlayer] Error setting currentTime:', e);
 		}
@@ -647,8 +644,6 @@ class AudioPlayerManager {
 	}
 
 	async play(worldName, type, options = {}) {
-		console.log('[AudioPlayer] play called', { worldName, type, options });
-
 		// Remove existing player if present
 		if (this.player) {
 			this.player.elem.remove();
@@ -656,11 +651,9 @@ class AudioPlayerManager {
 
 		// Create new player and render to document body
 		this.player = new AudioPlayer({ appendTo: document.body });
-		console.log('[AudioPlayer] player created', this.player);
 
 		// Start playback
 		const result = await this.player.play(worldName, type, options);
-		console.log('[AudioPlayer] play result', result);
 		return result;
 	}
 

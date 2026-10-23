@@ -165,9 +165,8 @@ export class Player extends Drill {
 				} else {
 					// Start a new trade session
 					try {
-						const result = await initiateTrade({ targetPlayerId: targetPlayer.id });
+						await initiateTrade({ targetPlayerId: targetPlayer.id });
 						// Dialog will open automatically via socket event for initiator
-						console.log('Trade initiated:', result);
 					} catch (error) {
 						console.error('Trade initiation error:', error);
 						// If error is "already have active trade", try to cancel and retry

@@ -28,15 +28,11 @@ export default class MusicManager {
 	 * @param {object} config - Music timing configuration
 	 */
 	async play(levelName, config) {
-		console.log('[MusicManager] play() called:', levelName, config);
-
 		// Stop any currently playing music
 		this.stop();
 
 		this.currentTrack = levelName;
 		const soundKey = `music/${levelName}`;
-
-		console.log('[MusicManager] Looking for sound key:', soundKey);
 
 		// Load music on-demand if needed
 		try {
@@ -49,7 +45,6 @@ export default class MusicManager {
 		// Check if sound exists
 		if (!this.scene.sound.get(soundKey)) {
 			console.warn(`[MusicManager] Music track not found: ${soundKey}`);
-			console.log('[MusicManager] Available sounds:', Object.keys(gameContext.sounds));
 			return;
 		}
 
@@ -57,8 +52,6 @@ export default class MusicManager {
 		this.currentSound = this.scene.sound.add(soundKey);
 		this.isPlaying = true;
 		this.queuedOutro = false;
-
-		console.log('[MusicManager] Starting intro, config:', this.config.intro);
 
 		// Start with intro
 		this._playIntro();
@@ -178,13 +171,7 @@ export default class MusicManager {
 	 * Play the outro section
 	 */
 	_playOutro() {
-		console.log('[MusicManager] _playOutro called', {
-			hasOutro: !!this.config?.outro,
-			outroConfig: this.config?.outro,
-		});
-
 		if (!this.config.outro) {
-			console.log('[MusicManager] No outro config, stopping');
 			this.stop();
 			return;
 		}
@@ -192,10 +179,7 @@ export default class MusicManager {
 		this.currentSection = 'outro';
 		const { start, end } = this.config.outro;
 
-		console.log('[MusicManager] Playing outro section', { start, end });
-
 		if (this.currentSound.isPlaying) {
-			console.log('[MusicManager] Stopping current sound before outro');
 			this.currentSound.stop();
 		}
 
@@ -203,8 +187,6 @@ export default class MusicManager {
 			volume: gameContext.volume.music,
 			seek: start / 1000,
 		});
-
-		console.log('[MusicManager] Outro started playing');
 
 		// If end is undefined/null, play until audio ends naturally
 		if (end === null || end === undefined) {
@@ -293,12 +275,6 @@ export default class MusicManager {
 	 * @param callback
 	 */
 	async playTransportTransition(callback) {
-		console.log('[MusicManager] playTransportTransition called', {
-			isPlaying: this.isPlaying,
-			currentSection: this.currentSection,
-			hasOutro: !!this.config?.outro,
-		});
-
 		// Load transition music if needed
 		try {
 			await this.scene.loadMusicIfNeeded('music/transport_transition');
@@ -313,9 +289,7 @@ export default class MusicManager {
 		let callbackCalled = false;
 
 		const checkBothComplete = () => {
-			console.log('[MusicManager] Checking completion', { outroCompleted, transitionCompleted, callbackCalled });
 			if (outroCompleted && transitionCompleted && !callbackCalled) {
-				console.log('[MusicManager] Both sounds completed, calling callback');
 				callbackCalled = true;
 				callback();
 			}
@@ -323,8 +297,6 @@ export default class MusicManager {
 
 		// Immediately stop current music and play outro (don't just queue it)
 		if (this.isPlaying && this.config?.outro) {
-			console.log('[MusicManager] Stopping current loop and playing level outro');
-
 			// Cancel any pending timers
 			if (this.updateTimer) {
 				this.updateTimer.destroy();
@@ -333,14 +305,12 @@ export default class MusicManager {
 
 			// Force stop the current sound immediately
 			if (this.currentSound && this.currentSound.isPlaying) {
-				console.log('[MusicManager] Force stopping current sound');
 				this.currentSound.stop();
 			}
 
 			// Store original stop function and replace with completion tracker
 			const originalStop = this.stop.bind(this);
 			this.stop = () => {
-				console.log('[MusicManager] Outro completed');
 				outroCompleted = true;
 				originalStop();
 				checkBothComplete();
@@ -352,7 +322,6 @@ export default class MusicManager {
 			this._playOutro();
 		} else {
 			// No outro, just stop current music
-			console.log('[MusicManager] No outro, stopping music');
 			this.stop();
 			outroCompleted = true; // No outro to wait for
 		}
@@ -362,7 +331,6 @@ export default class MusicManager {
 
 		// Use event listener to ensure we wait for the actual sound to complete
 		transitionSound.once('complete', () => {
-			console.log('[MusicManager] Transport transition sound completed');
 			transitionCompleted = true;
 			checkBothComplete();
 		});
@@ -371,13 +339,10 @@ export default class MusicManager {
 			volume: gameContext.volume.music,
 		});
 
-		console.log('[MusicManager] Transport transition sound started, duration:', transitionSound.duration);
-
 		// Call callback 5 seconds before transition sound ends to start fade-in early
 		if (transitionSound.duration > 5) {
 			const earlyCallbackTime = (transitionSound.duration - 5) * 1000; // Convert to ms
 			setTimeout(() => {
-				console.log('[MusicManager] Early callback - starting fade-in 5s before music ends');
 				if (callback && !callbackCalled) {
 					callbackCalled = true;
 					callback();

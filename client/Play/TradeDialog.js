@@ -106,8 +106,6 @@ class TradeItemsList extends (styled.Component`
 	};
 
 	renderContent(offer, editable, tradeDialog) {
-		console.log(`🎨 TradeItemsList renderContent:`, offer);
-
 		let hasItems = false;
 
 		// Credits
@@ -429,14 +427,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	}
 
 	updateFromSocketEvent(trade) {
-		console.log('🔄 TradeDialog.updateFromSocketEvent called:', {
-			isPlayer1: this.isPlayer1,
-			oldMyOffer: this.myOffer,
-			oldTheirOffer: this.theirOffer,
-			newPlayer1Offer: trade.player1Offer,
-			newPlayer2Offer: trade.player2Offer,
-		});
-
 		// Update trade session data
 		this.tradeSession = trade;
 		this.myOffer = this.isPlayer1 ? trade.player1Offer : trade.player2Offer;
@@ -444,28 +434,11 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		this.iAccepted = this.isPlayer1 ? trade.player1Accepted : trade.player2Accepted;
 		this.theyAccepted = this.isPlayer1 ? trade.player2Accepted : trade.player1Accepted;
 
-		console.log('🔄 After update:', {
-			myOffer: this.myOffer,
-			theirOffer: this.theirOffer,
-		});
-
-		console.log('📝 About to update context with:', {
-			myOffer: { ...this.myOffer },
-			theirOffer: { ...this.theirOffer },
-		});
-
 		// Update context to trigger re-render - must be new object reference
 		this.tradeContext.myOffer = { ...this.myOffer };
 		this.tradeContext.theirOffer = { ...this.theirOffer };
 		this.tradeContext.iAccepted = this.iAccepted;
 		this.tradeContext.theyAccepted = this.theyAccepted;
-
-		console.log('✅ Context updated. Current context values:', {
-			myOffer: this.tradeContext.myOffer,
-			theirOffer: this.tradeContext.theirOffer,
-			iAccepted: this.tradeContext.iAccepted,
-			theyAccepted: this.tradeContext.theyAccepted,
-		});
 
 		// Manually update the list components
 		if (this.myOfferList) {
@@ -477,8 +450,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 		// Update acceptance bar
 		this.updateAcceptanceBar();
-
-		console.log('🔄 Updated list components');
 	}
 
 	renderAcceptanceBar() {
@@ -526,11 +497,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	}
 
 	updateAcceptanceBar() {
-		console.log('🔄 Updating acceptance bar:', {
-			iAccepted: this.iAccepted,
-			theyAccepted: this.theyAccepted,
-		});
-
 		if (this.theirAcceptIndicator) {
 			this.theirAcceptIndicator.elem.classList.toggle('accepted', this.theyAccepted);
 			this.theirAcceptIndicator.elem.classList.toggle('waiting', !this.theyAccepted);
@@ -544,8 +510,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted ? theme.colors.success.toRgbString() : '';
 			this.myAcceptButton.elem.disabled = this.iAccepted;
 		}
-
-		console.log('✅ Acceptance bar updated');
 	}
 
 	render_trade() {

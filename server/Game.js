@@ -4347,18 +4347,7 @@ export default class Game extends BaseGame {
 			// Skip players who are dead
 			if (player.health <= 0) return;
 
-			console.log('[checkForPlayerFalls] Checking player:', {
-				playerId,
-				position: player.position,
-				moving: player.moving,
-			});
-
 			const hasSupport = hasWheelSupport(player.position, this.world.grid);
-			console.log('[checkForPlayerFalls] Support check result:', {
-				playerId,
-				hasSupport: hasSupport.hasSupport,
-				supportDetails: hasSupport,
-			});
 
 			if (!hasSupport.hasSupport) {
 				playerLog.info('Player lost wheel support, triggering fall', { playerId });
@@ -4449,20 +4438,8 @@ export default class Game extends BaseGame {
 	playerFall(playerId, falling = false) {
 		const player = this.players.get(playerId);
 
-		console.log('[playerFall] Called for player:', {
-			playerId,
-			position: player.position,
-			falling,
-		});
-
 		const supportCheck = hasWheelSupport(player.position, this.world.grid);
 		const playerShouldFall = !supportCheck.hasSupport;
-
-		console.log('[playerFall] Should fall?', {
-			playerId,
-			playerShouldFall,
-			supportCheck,
-		});
 
 		if (playerShouldFall) {
 			// Find the nearest supported position below the player

@@ -304,13 +304,9 @@ export class LevelEditor extends Component {
 
 		select.elem.addEventListener('change', () => {
 			const world = worlds.find(w => w.id === select.elem.value);
-			console.log('World changed to:', world.id);
-			console.log('World veins:', world.ground?.veins);
-			console.log('World aliens:', world.aliens);
 			this.state.selectedWorld = world.id;
 			this.state.worldConfig = JSON.parse(JSON.stringify(world));
 			this.state.asteroid = null;
-			console.log('Calling refresh and generate after world change...');
 			this.refresh();
 			this.handleGenerate();
 		});
@@ -869,9 +865,6 @@ export class LevelEditor extends Component {
 		// Guard: ensure items.types exists
 		if (!worldConfig.items) worldConfig.items = {};
 		if (!worldConfig.items.types) worldConfig.items.types = {};
-
-		console.log('renderItemTypesSection - items.types:', worldConfig.items.types);
-		console.log('Is array?', Array.isArray(worldConfig.items.types));
 
 		const section = new Section({
 			appendTo: parent,
@@ -1555,10 +1548,8 @@ export class LevelEditor extends Component {
 
 	renderStats(parent) {
 		const { asteroid } = this.state;
-		console.log('renderStats called, asteroid:', !!asteroid);
 
 		if (!asteroid) {
-			console.log('renderStats: no asteroid, exiting');
 			return;
 		}
 

@@ -10,6 +10,7 @@
 
 import { randFromArray, randInt, shuffleArray, weightedChance } from '../utils/index.js';
 import { worlds } from '../constants/index.js';
+import { worldLog } from '../utils/logger.js';
 
 /**
  * Calculate asteroid dimensions based on size and shape
@@ -86,8 +87,6 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 		},
 	};
 
-	console.log(`🏗️  Generating ${world.name} (${width}x${depth}) - ${shape} shape`);
-
 	// =================================================================
 	// PHASE 1: SHAPE & STRUCTURE
 	// =================================================================
@@ -127,7 +126,6 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 
 	// 4.3: Generate pure mineral crystals from veins (if using vein-based ground)
 	const groundFormat = worldConfig.groundFormat || 'veins';
-	console.log('🔍 CRYSTAL CHECK: groundFormat =', groundFormat);
 	if (groundFormat === 'veins') {
 		const pureMineralCrystals = generatePureMineralCrystals(world, worldConfig.ground);
 		// Group crystals by location and type for efficient placement
@@ -146,7 +144,6 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 		// Place grouped crystals as items in the world
 		Object.entries(crystalsByLocation).forEach(([locationKey, crystalTypes]) => {
 			const [x, y] = locationKey.split(',').map(Number);
-			console.log(`💎 PLACEMENT: Adding crystals at (${x},${y}):`, crystalTypes);
 			if (world.grid[x] && world.grid[x][y]) {
 				if (!world.grid[x][y].items) {
 					world.grid[x][y].items = [];
@@ -158,29 +155,10 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 							name: crystalType,
 						});
 					}
-					console.log(
-						`💎 PLACEMENT: Added ${count} ${crystalType} to (${x},${y}) - total items: ${world.grid[x][y].items.length}`,
-					);
 				});
-			} else {
-				console.log(`💎 PLACEMENT ERROR: Invalid grid location (${x},${y})`);
 			}
 		});
-		if (pureMineralCrystals.length > 0) {
-			console.log(`💎 Placed ${pureMineralCrystals.length} pure mineral crystals`);
-		}
 	}
-
-	// Final debug: check if hazards are still in the grid before returning
-	let hazardCount = 0;
-	for (let x = 0; x < world.width; x++) {
-		for (let y = 0; y < world.depth; y++) {
-			if (world.grid[x] && world.grid[x][y] && world.grid[x][y].hazards && world.grid[x][y].hazards.length > 0) {
-				hazardCount += world.grid[x][y].hazards.length;
-			}
-		}
-	}
-	console.log(`🔧 FINAL DEBUG: Found ${hazardCount} hazards in grid before returning`);
 
 	// Find safe surface position for spaceco (3x3 sprite with bottom-middle anchor)
 	let spacecoPosition = null;
@@ -230,11 +208,10 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 	// Fallback if no safe position found
 	if (!spacecoPosition) {
 		spacecoPosition = { x: centerX, y: world.airGap + 3 };
-		console.log('⚠️  No safe spaceco position found, using fallback:', spacecoPosition);
+		worldLog.warn('No safe SpaceCo position found, using fallback', { position: spacecoPosition });
 	}
 
 	world.spaceco.position = spacecoPosition;
-	console.log(`🏢 Spaceco positioned at (${spacecoPosition.x}, ${spacecoPosition.y})`);
 
 	// Remove debug/temporary fields before returning
 	delete world.veinPathCoords;
@@ -538,9 +515,6 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 
 		for (let i = 0; i < Math.min(lavaCount, lavaEligibleCaves.length); i++) {
 			lavaEligibleCaves[i].hasLava = true;
-			console.log(
-				`🌋 Marked ${lavaEligibleCaves[i].size} cave at (${lavaEligibleCaves[i].centerX}, ${lavaEligibleCaves[i].centerY}) for lava`,
-			);
 		}
 	}
 
@@ -557,26 +531,14 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 
 		for (let i = 0; i < Math.min(gasCount, gasEligibleCaves.length); i++) {
 			gasEligibleCaves[i].hasGas = true;
-			console.log(
-				`💨 Marked ${gasEligibleCaves[i].size} cave at (${gasEligibleCaves[i].centerX}, ${gasEligibleCaves[i].centerY}) for gas`,
-			);
 		}
 	}
 
 	// Cave data will be attached to the returned function
 
-	console.log(`🕳️ Generated ${holes.length} total holes: ${holes.map(h => h.type).join(', ')}`);
-
 	// Caves are now handled by the configurable system above
 
-	let debugCallCount = 0;
 	return (x, y) => {
-		debugCallCount++;
-		// Debug first few calls
-		if (debugCallCount <= 5) {
-			console.log(`🔍 Checking hole pattern at (${x},${y}) with ${holes.length} holes`);
-		}
-
 		// Check if point is inside any hole system
 		for (const hole of holes) {
 			const dx = x - hole.centerX;
@@ -659,9 +621,6 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 			}
 
 			if (isInCrater) {
-				if (debugCallCount <= 5) {
-					console.log(`💥 HOLE DETECTED at (${x},${y}) in ${hole.type} at (${hole.centerX},${hole.centerY})`);
-				}
 				return true;
 			}
 		}
@@ -758,9 +717,6 @@ function generateTunnelSystems(width, depth, tunnelConfig) {
  * @param tunnelPositions
  */
 function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern, tunnelPositions) {
-	console.log('🎯 Generating vein-based ground patterns');
-	console.log('🔍 DEBUG: tunnelPositions type:', typeof tunnelPositions, 'length:', tunnelPositions?.length);
-
 	const { base, veins } = worldConfig.ground;
 
 	// Handle tunnelPositions safely - ensure it's an array
@@ -772,9 +728,6 @@ function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern,
 	veins.forEach(vein => {
 		world.veinPathCoords[vein.color] = [];
 	});
-
-	console.log(`   Base color: ${base}`);
-	console.log(`   Veins: ${veins.length} vein types`);
 
 	// Step 1: Initialize grid and apply terrain (solid/space) and base ground color
 	for (let y = 0; y < world.depth; y++) {
@@ -804,24 +757,17 @@ function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern,
 
 	// Step 2: Generate and place veins based on density/size parameters
 	veins.forEach((vein, index) => {
-		console.log(`   🔥 Generating ${vein.color} veins (density: ${vein.density}, size: ${vein.size})`);
 		// Store vein info for later crystal generation
 		if (!world.veinData) world.veinData = [];
 		world.veinData[index] = { ...vein, veinIndex: index };
-		console.log(`🔍 VEIN DATA: Stored vein[${index}] =`, world.veinData[index]);
 		generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, index);
 	});
 
-	console.log('✅ Vein-based ground generation complete');
-
-	console.log('🔍 CHECKING VEIN PATH STORAGE...');
 	// Store vein paths for pure mineral generation (maintain backwards compatibility)
 	world.veinPaths = [];
 	veins.forEach(vein => {
-		console.log(`💎 YIELD DEBUG: ${vein.color} - yield: ${vein.yield} (type: ${typeof vein.yield})`);
 		if (vein.yield && vein.yield > 0) {
 			const pathCoords = world.veinPathCoords?.[vein.color] || [];
-			console.log(`💎 DEBUG: ${vein.color} has ${pathCoords.length} recorded paths`);
 			world.veinPaths.push({
 				color: vein.color,
 				pattern: vein.pattern,
@@ -830,8 +776,6 @@ function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern,
 				yield: vein.yield, // Keep yield for legacy compatibility
 				actualPaths: pathCoords, // Store actual path coordinates
 			});
-		} else {
-			console.log(`💎 SKIPPED: ${vein.color} - yield check failed`);
 		}
 	});
 }
@@ -847,20 +791,13 @@ function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern,
  */
 function generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, veinIndex) {
 	try {
-		console.log(`🔄 ENTRY: generateVeinPaths called for ${vein.color}`);
 		const { density, size, color, pattern = 'organic' } = vein;
 
 		// Calculate number of vein starting points based on density
 		const worldArea = world.width * world.depth;
 		const numVeins = Math.max(1, Math.round((density * worldArea) / 1000)); // Scale density to world size
 
-		console.log(`     Starting ${numVeins} ${color} vein paths (pattern: ${pattern}, size: ${size})`);
-		console.log(`🔄 CHECKPOINT 1: After logging, about to route patterns`);
-
 		// Route to different generation functions based on pattern
-		console.log(`🔄 PATTERN DEBUG: About to generate ${pattern} veins for ${color}`);
-		console.log(`🔄 SWITCH ENTERING: pattern="${pattern}", color="${color}"`);
-		console.log(`🔄 CHECKPOINT 2: About to enter switch statement`);
 		switch (pattern) {
 			case 'fractal':
 				generateFractalVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
@@ -910,9 +847,7 @@ function generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, v
 				break;
 		}
 	} catch (error) {
-		console.log(`🚨 ERROR in generateVeinPaths for ${vein.color}: ${error.message}`);
-		console.log(`🚨 Stack: ${error.stack}`);
-		console.log(`🚨 Falling back to organic pattern`);
+		worldLog.warn('Vein pattern failed, falling back to organic', { color: vein.color, error: error.message });
 		generateOrganicVeins(
 			world,
 			vein.color,
@@ -1239,8 +1174,6 @@ function generateRadialVeins(world, color, size, numVeins, asteroidShape, holePa
  * @param veinIndex
  */
 function generateScatteredVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex) {
-	console.log(`🔍 SCATTERED DEBUG: Generating scattered veins for ${color} (${numVeins} veins, size ${size})`);
-
 	// Small scattered clusters
 	const numClusters = Math.max(1, Math.round(numVeins * 2));
 	const clusterSize = Math.max(2, Math.round(4 * size));
@@ -1285,8 +1218,6 @@ function generateScatteredVeins(world, color, size, numVeins, asteroidShape, hol
 			world.veinPathCoords[color].push(clusterPath);
 		}
 	}
-
-	console.log(`🔍 SCATTERED RESULT: ${color} recorded ${world.veinPathCoords[color].length} cluster paths`);
 }
 
 /**
@@ -1444,14 +1375,10 @@ function generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePa
 function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
 	// Fault pattern - ultra-subtle traces, mostly empty at low density
 
-	console.log(`     Fault debug: numVeins=${numVeins}, checking density threshold`);
-
 	// Only show faults at moderate to high densities, nearly empty at low density
 	if (numVeins < 8) {
-		console.log(`     Fault debug: numVeins=${numVeins} below threshold - generating ultra-minimal traces`);
 		// For low vein counts, place very few scattered pixels
 		const scatteredPixels = Math.max(0, Math.round(numVeins * 0.02)); // Even fewer
-		console.log(`     Fault debug: Will attempt ${scatteredPixels} scattered pixels`);
 
 		for (let i = 0; i < scatteredPixels; i++) {
 			const x = Math.floor(Math.random() * world.width);
@@ -1460,7 +1387,6 @@ function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePat
 			if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.001) {
 				// Ultra-extremely rare
 				world.grid[x][y].ground = { type: color };
-				console.log(`     Fault debug: Placed minimal pixel at (${x},${y})`);
 			}
 		}
 		return;
@@ -1471,8 +1397,6 @@ function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePat
 
 	// Scale based on vein count with threshold
 	const numFaults = Math.max(1, Math.min(maxFaults, Math.round(numVeins / 10)));
-
-	console.log(`     Fault debug: numVeins=${numVeins}, numFaults=${numFaults}, faultLength=${faultLength}`);
 
 	for (let i = 0; i < numFaults; i++) {
 		// Random starting point
@@ -1882,36 +1806,10 @@ function generateNoiseBandVeins(world, color, size, numVeins, asteroidShape, hol
 function generatePureMineralCrystals(world) {
 	const crystals = [];
 
-	// Handle vein crystals (existing functionality)
-	console.log(`💎 VEIN PATHS DEBUG:`, {
-		hasVeinPaths: !!world.veinPaths,
-		veinPathsType: typeof world.veinPaths,
-		veinPathsLength: world.veinPaths ? world.veinPaths.length : 'N/A',
-		veinPaths: world.veinPaths,
-	});
-
-	console.log('🔍 EXECUTION CHECKPOINT: About to check world.veinData');
-	console.log('💎 CRYSTAL DEBUG: world.veinData =', world.veinData ? world.veinData.length : 'undefined');
-
-	// Enhanced debugging for conditional check
-	const hasVeinData = !!world.veinData;
-	const veinDataLength = world.veinData ? world.veinData.length : 0;
-	const lengthGreaterThanZero = veinDataLength > 0;
-	console.log('🔍 CONDITIONAL DEBUG:', {
-		hasVeinData,
-		veinDataLength,
-		lengthGreaterThanZero,
-		condition: hasVeinData && lengthGreaterThanZero,
-	});
-
 	if (world.veinData && world.veinData.length > 0) {
-		console.log(`💎 Generating pure mineral crystals from ${world.veinData.length} vein instances`);
-
 		// Process each vein instance individually (not grouped by color)
 		world.veinData.forEach((veinInfo, index) => {
 			if (!veinInfo || !veinInfo.yield || veinInfo.yield <= 0) return;
-
-			console.log(`💎 Generating crystals for ${veinInfo.color} vein[${index}] (yield: ${veinInfo.yield})`);
 
 			// Find all ground cells that were placed by THIS SPECIFIC vein instance
 			const matchingCells = [];
@@ -1932,14 +1830,10 @@ function generatePureMineralCrystals(world) {
 			}
 
 			if (matchingCells.length === 0) {
-				console.log(`   No ${veinInfo.color} ground cells found`);
 				return;
 			}
 
-			console.log(`   Found ${matchingCells.length} ${veinInfo.color} ground cells`);
-
 			// Generate crystals in matching cells based on yield
-			let crystalsPlaced = 0;
 			matchingCells.forEach(cell => {
 				const yieldValue = veinInfo.yield; // Use this vein instance's specific yield
 
@@ -1954,11 +1848,8 @@ function generatePureMineralCrystals(world) {
 						type: `mineral_${veinInfo.color}`,
 						color: veinInfo.color,
 					});
-					crystalsPlaced++;
 
 					// Higher yield = higher chance of additional crystals
-					let additionalCrystals = 0;
-
 					// Each 1.0 yield gives ~50% chance of one more crystal
 					for (let i = 1; i < 4; i++) {
 						// Max 3 additional (4 total)
@@ -1970,18 +1861,10 @@ function generatePureMineralCrystals(world) {
 								type: `mineral_${veinInfo.color}`,
 								color: veinInfo.color,
 							});
-							additionalCrystals++;
-							crystalsPlaced++;
 						}
-					}
-
-					if (additionalCrystals > 0) {
-						console.log(`   🌟 Cell (${cell.x},${cell.y}) got ${additionalCrystals + 1} ${veinInfo.color} crystals`);
 					}
 				}
 			});
-
-			console.log(`   Placed ${crystalsPlaced} ${veinInfo.color} crystals in ${matchingCells.length} possible cells`);
 		});
 	}
 
@@ -1999,13 +1882,9 @@ function generatePureMineralCrystals(world) {
  * @param tunnelPositions
  */
 function generateGeologicalFormations(world, worldConfig, asteroidShape, holePattern, tunnelPositions) {
-	console.log('🏔️  Generating unified geological formations...');
-
 	// Default to vein-based ground format if not specified
 	const groundFormat = worldConfig.groundFormat || 'veins';
-	console.log('🔍 DEBUG: Using ground format:', groundFormat);
 	if (groundFormat === 'veins') {
-		console.log('🎯 Using vein-based ground generation!');
 		return generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern, tunnelPositions);
 	}
 
@@ -2016,7 +1895,6 @@ function generateGeologicalFormations(world, worldConfig, asteroidShape, holePat
 	console.error('🔧 Expected format: { base: "color", veins: [{ density: X, yield: Y, size: Z, color: "color" }] }');
 
 	// Fallback: create a simple white base if no valid format is found
-	console.log('⚠️  Applying fallback: white ground base');
 	for (let x = 0; x < world.width; x++) {
 		for (let y = 0; y < world.depth; y++) {
 			if (!world.grid[x]) world.grid[x] = {};
@@ -2030,10 +1908,6 @@ function generateGeologicalFormations(world, worldConfig, asteroidShape, holePat
 			const airGapResult = y <= world.airGap;
 
 			if (!shapeResult || holeResult || airGapResult) {
-				if (x === 30 && y === 30) {
-					// Debug single point
-					console.log(`🎯 Grid (30,30): shape=${shapeResult}, hole=${holeResult}, airGap=${airGapResult} → SPACE`);
-				}
 				world.grid[x][y].terrain = 'space';
 				world.grid[x][y].ground = null;
 			} else {
@@ -2055,13 +1929,11 @@ function generateGeologicalFormations(world, worldConfig, asteroidShape, holePat
 function placeAliens(world, worldConfig) {
 	const alienConfig = worldConfig.aliens;
 	if (!alienConfig || !alienConfig.budget || alienConfig.budget[0] === 0) {
-		console.log('👾 Placing 0 aliens...');
 		world.aliens = {}; // Initialize empty aliens object
 		return;
 	}
 
 	const budget = randInt(alienConfig.budget[0], alienConfig.budget[1]);
-	console.log(`👾 Placing ${budget} aliens...`);
 
 	// Initialize aliens object for level editor and other systems
 	world.aliens = {};
@@ -2102,7 +1974,6 @@ function placeAliens(world, worldConfig) {
 	}
 
 	if (validLocations.length === 0) {
-		console.log('  ⚠️  No valid placement locations for aliens');
 		return;
 	}
 
@@ -2145,7 +2016,7 @@ function placeAliens(world, worldConfig) {
 
 		// Check if alien type exists
 		if (!aliens[alienType]) {
-			console.log(`  ⚠️  Unknown alien type: ${alienType}, skipping`);
+			worldLog.warn('Unknown alien type, skipping', { alienType });
 			continue;
 		}
 
@@ -2181,7 +2052,6 @@ function placeAliens(world, worldConfig) {
 		}
 
 		if (!location) {
-			console.log(`  ⚠️  Could not find spread-out location for ${alienType}`);
 			continue;
 		}
 
@@ -2207,11 +2077,7 @@ function placeAliens(world, worldConfig) {
 
 		placedAlienLocations.push(location); // Track for distance checking
 		placedCount++;
-
-		console.log(`  👾 Placed ${alienType} at (${location.x}, ${location.y})`);
 	}
-
-	console.log(`  ✅ Placed ${placedCount}/${budget} aliens successfully`);
 }
 
 /**
@@ -2222,12 +2088,10 @@ function placeAliens(world, worldConfig) {
 function placeItems(world, worldConfig) {
 	const itemConfig = worldConfig.items;
 	if (!itemConfig || !itemConfig.budget || itemConfig.budget[0] === 0) {
-		console.log('📦 Placing 0 items...');
 		return;
 	}
 
 	const budget = randInt(itemConfig.budget[0], itemConfig.budget[1]);
-	console.log(`📦 Placing ${budget} items...`);
 
 	// Find valid placement locations (empty space cells with supporting ground below)
 	const validLocations = [];
@@ -2252,7 +2116,6 @@ function placeItems(world, worldConfig) {
 	}
 
 	if (validLocations.length === 0) {
-		console.log('  ⚠️ No valid locations found for item placement');
 		return;
 	}
 
@@ -2267,7 +2130,7 @@ function placeItems(world, worldConfig) {
 
 		// Validate that itemTypes is a proper object with valid weights
 		if (!itemTypes || typeof itemTypes !== 'object' || Object.keys(itemTypes).length === 0) {
-			console.log('⚠️  Invalid item types, using default oil:', itemTypes);
+			worldLog.warn('Invalid item types, using default oil', { itemTypes });
 			itemTypes = { oil: 100 };
 		} else {
 			// Check if weights sum to 100 and all keys are valid
@@ -2278,7 +2141,7 @@ function placeItems(world, worldConfig) {
 			);
 
 			if (sum !== 100 || hasInvalidKeys) {
-				console.log('⚠️  Invalid item weights or keys, using default oil:', itemTypes, 'sum:', sum);
+				worldLog.warn('Invalid item weights or keys, using default oil', { itemTypes, sum });
 				itemTypes = { oil: 100 };
 			}
 		}
@@ -2315,7 +2178,6 @@ function placeItems(world, worldConfig) {
 		}
 
 		if (!location) {
-			console.log(`  ⚠️ Could not find spread-out location for ${itemType}`);
 			break;
 		}
 
@@ -2327,9 +2189,6 @@ function placeItems(world, worldConfig) {
 
 		remainingBudget--;
 		placedItems.push(location);
-		console.log(
-			`  Placed ${itemType} at (${location.x}, ${location.y}) - Ground: [${world.grid[location.x][location.y].ground?.type}]`,
-		);
 	}
 }
 
@@ -2412,8 +2271,6 @@ function isEnclosedCave(world, x, y, asteroidShape) {
  * @param holePattern
  */
 function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePattern) {
-	console.log('🌋 Starting spot-based hazard placement');
-
 	// Step 1: Find all cave spaces (inside asteroid shape AND in holes/caves AND below air gap)
 	const caveSpaces = [];
 	for (let x = 0; x < world.width; x++) {
@@ -2434,7 +2291,6 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 	}
 
 	if (caveSpaces.length === 0) {
-		console.log('⚠️  No cave spaces found for hazard placement');
 		return;
 	}
 
@@ -2448,8 +2304,6 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 				Math.floor(Math.random() * (worldConfig.lava_pools.count[1] - worldConfig.lava_pools.count[0] + 1))
 			: worldConfig.lava_pools.count || 1;
 
-		console.log(`🌋 Placing ${lavaCount} lava pools using spot-picking`);
-
 		for (let i = 0; i < lavaCount; i++) {
 			let newlyFilled = [];
 			let attempts = 0;
@@ -2462,7 +2316,6 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 				if (availableSpaces.length === 0) break;
 
 				const startSpot = randFromArray(availableSpaces);
-				console.log(`🔥 Lava pool ${i + 1}, attempt ${attempts + 1}: Starting at (${startSpot.x}, ${startSpot.y})`);
 
 				// Fill outward and down from this spot
 				newlyFilled = fillDirectional(
@@ -2481,9 +2334,6 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 
 			if (newlyFilled.length > 0) {
 				newlyFilled.forEach(coord => allFilledSpaces.add(coord));
-				console.log(`   Filled ${newlyFilled.length} lava spaces`);
-			} else {
-				console.log(`⚠️  Could not find valid spot for lava pool ${i + 1} after ${maxAttempts} attempts`);
 			}
 		}
 	}
@@ -2494,8 +2344,6 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 			? worldConfig.gas_pockets.count[0] +
 				Math.floor(Math.random() * (worldConfig.gas_pockets.count[1] - worldConfig.gas_pockets.count[0] + 1))
 			: worldConfig.gas_pockets.count || 1;
-
-		console.log(`💨 Placing ${gasCount} gas pockets using spot-picking`);
 
 		for (let i = 0; i < gasCount; i++) {
 			let newlyFilled = [];
@@ -2509,7 +2357,6 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 				if (availableSpaces.length === 0) break;
 
 				const startSpot = randFromArray(availableSpaces);
-				console.log(`💨 Gas pocket ${i + 1}, attempt ${attempts + 1}: Starting at (${startSpot.x}, ${startSpot.y})`);
 
 				// Fill outward and up from this spot
 				newlyFilled = fillDirectional(
@@ -2528,27 +2375,12 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 
 			if (newlyFilled.length > 0) {
 				newlyFilled.forEach(coord => allFilledSpaces.add(coord));
-				console.log(`   Filled ${newlyFilled.length} gas spaces`);
-			} else {
-				console.log(`⚠️  Could not find valid spot for gas pocket ${i + 1} after ${maxAttempts} attempts`);
 			}
 		}
 	}
 
 	// Apply physics-based layering: gas should never be below lava
 	applyPhysicsLayering(world);
-
-	// Debug: Check for hazards near bottom
-	for (let x = 0; x < world.width; x++) {
-		for (let y = world.depth - 6; y < world.depth; y++) {
-			const cell = world.grid[x] && world.grid[x][y];
-			if (cell && cell.hazards && cell.hazards.length > 0) {
-				console.log(
-					`⚠️  BOTTOM HAZARD: Found ${cell.hazards[0].type} at (${x}, ${y}) near bottom (depth: ${world.depth})`,
-				);
-			}
-		}
-	}
 
 	// Step 4: Place lava/gas bubbles in solid ground
 	if (worldConfig.lava_bubbles) {
@@ -2607,7 +2439,6 @@ function placeBubbles(world, hazardType, count, asteroidShape) {
 	}
 
 	if (validCells.length === 0) {
-		console.log(`⚠️  No valid cells for ${hazardType} bubbles`);
 		return;
 	}
 
@@ -2634,11 +2465,6 @@ function placeBubbles(world, hazardType, count, asteroidShape) {
  * @param world
  */
 function applyPhysicsLayering(world) {
-	console.log('🌡️ Applying physics-based layering (gas floats above lava)');
-
-	let removedGas = 0;
-	let removedLava = 0;
-
 	// Multiple passes to handle complex interactions
 	for (let pass = 0; pass < 3; pass++) {
 		// Pass 1: Remove any gas that has lava below it (gas should float up)
@@ -2663,7 +2489,6 @@ function applyPhysicsLayering(world) {
 				// If lava is below gas, remove the gas (it should have floated up)
 				if (lavaBelow) {
 					world.grid[x][y].hazards = world.grid[x][y].hazards.filter(h => h.type !== 'gas');
-					removedGas++;
 				}
 			}
 		}
@@ -2690,15 +2515,10 @@ function applyPhysicsLayering(world) {
 				// If gas is above lava, remove the lava (it should have sunk down)
 				if (gasAbove) {
 					world.grid[x][y].hazards = world.grid[x][y].hazards.filter(h => h.type !== 'lava');
-					removedLava++;
 				}
 			}
 		}
 	}
-
-	console.log(
-		`✅ Physics layering applied - removed ${removedGas} misplaced gas cells, ${removedLava} misplaced lava cells`,
-	);
 }
 
 /**
@@ -2757,7 +2577,6 @@ function fillDirectional(world, startX, startY, hazardType, direction, filledSpa
 
 	if (direction === 'down') {
 		// LAVA PHYSICS: Find the actual lowest point in the cave area
-		console.log('🔥 LAVA: Finding actual lowest point in cave area');
 
 		// Step 1: Flood fill to find all connected cave spaces
 		const caveSpaces = [];
@@ -2889,7 +2708,6 @@ function fillDirectional(world, startX, startY, hazardType, direction, filledSpa
 		}
 	} else if (direction === 'up') {
 		// GAS PHYSICS: Find the actual highest point in the cave area
-		console.log('💨 GAS: Finding actual highest point in cave area');
 
 		// Step 1: Flood fill to find all connected cave spaces
 		const caveSpaces = [];

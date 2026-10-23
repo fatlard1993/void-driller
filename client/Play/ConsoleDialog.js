@@ -1333,7 +1333,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
-						console.log('[ConsoleDialog] Play All button clicked');
 						audioPlayer.play(worldName, 'briefing', { autoQueue: true, useBookends: true });
 					},
 				});
@@ -1346,7 +1345,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
-						console.log('[ConsoleDialog] Briefing button clicked');
 						audioPlayer.play(worldName, 'briefing');
 					},
 				});
@@ -1359,7 +1357,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
-						console.log('[ConsoleDialog] Bulletin button clicked');
 						audioPlayer.play(worldName, 'bulletin', { useBookends: true });
 					},
 				});

@@ -177,8 +177,6 @@ export function setupEventRouter() {
 	});
 
 	router.on('addPlayer', data => {
-		console.log('🎮 addPlayer event received:', data.newPlayer);
-
 		const sprite = new Drill(
 			gameContext.scene,
 			data.newPlayer.position.x,
@@ -401,7 +399,6 @@ export function setupEventRouter() {
 
 		if (gameContext.musicManager) {
 			gameContext.musicManager.playTransportTransition(() => {
-				console.log('🎵 Music transition complete, fading in world');
 				if (gameContext.scene?.fadeInWorld) {
 					gameContext.scene.fadeInWorld();
 				}
@@ -1039,8 +1036,6 @@ export function setupEventRouter() {
 			gameContext.openDialog.close();
 		}
 	});
-
-	console.log('✅ EventRouter configured with', router.listEvents().length, 'event handlers');
 
 	return router;
 }

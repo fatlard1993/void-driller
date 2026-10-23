@@ -1,4 +1,4 @@
-import { describe, expect, spyOn, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 
 import { worlds } from '../constants/index.js';
 import { generateAsteroid } from './generateAsteroid.js';
@@ -10,12 +10,10 @@ const alienTypes = world =>
 
 describe('generateAsteroid', () => {
 	test('aliens listed as an array of types are placed from that list', () => {
-		const quiet = spyOn(console, 'log').mockImplementation(() => {});
 		const asteroid = generateAsteroid({
 			...worlds[3],
 			aliens: { ...worlds[3].aliens, budget: [4, 4], types: ['rock_mite', 'hive_drone'] },
 		});
-		quiet.mockRestore();
 
 		const placed = alienTypes(asteroid);
 

@@ -32,9 +32,6 @@ export default class WatchScene extends Phaser.Scene {
 	}
 
 	create() {
-		console.log('[WatchScene] Create called');
-		console.log('[WatchScene] gameContext.serverState:', gameContext.serverState);
-
 		// Create layers for rendering organization
 		gameContext.sceneLayers = {
 			ground: this.add.layer(),
@@ -48,9 +45,6 @@ export default class WatchScene extends Phaser.Scene {
 		// Access world data from serverState.world
 		const { world } = gameContext.serverState;
 		const { grid, width, depth, spaceco } = world;
-
-		console.log('[WatchScene] World dimensions:', { width, depth });
-		console.log('[WatchScene] Grid exists:', !!grid);
 
 		// Calculate zoom to fit entire map
 		const mapWidth = width * 64;
@@ -247,8 +241,6 @@ export default class WatchScene extends Phaser.Scene {
 	}
 
 	startWorldTransition(newWorldState) {
-		console.log('[WatchScene] Starting world transition:', newWorldState);
-
 		// Create transport ship sprite using screen coordinates (bigger for Watch mode)
 		const screenWidth = this.cameras.main.width;
 		const screenHeight = this.cameras.main.height;
@@ -312,9 +304,6 @@ export default class WatchScene extends Phaser.Scene {
 	}
 
 	rebuildWorld(newWorldState) {
-		console.log('[WatchScene] Rebuilding world with new state:', newWorldState);
-		console.log('[WatchScene] newWorldState keys:', Object.keys(newWorldState));
-
 		// Update server state - newWorldState might be the full state or just the world
 		// Check if it has a 'world' property or if it IS the world
 		if (newWorldState.world) {
@@ -431,8 +420,6 @@ export default class WatchScene extends Phaser.Scene {
 	}
 
 	fadeInWorld() {
-		console.log('[WatchScene] Fading in new world');
-
 		// Fade in all scene layers
 		const fadeInDuration = 1200;
 		Object.values(gameContext.sceneLayers).forEach(layer => {
@@ -541,8 +528,6 @@ export default class WatchScene extends Phaser.Scene {
 		const duration = 15000;
 		const startX = -300;
 		const endX = screenWidth + 300;
-
-		console.log('[FlyBy] Starting animation:', { screenWidth, screenHeight, startX, endX, shipBaseY, qrTopY });
 
 		const animate = () => {
 			const elapsed = Date.now() - startTime;

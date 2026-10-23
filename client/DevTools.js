@@ -49,8 +49,7 @@ export default class DevTools extends View {
 		const { activeTab } = this.options;
 
 		if (activeTab === 'levelEditor') {
-			const editor = new LevelEditor({ appendTo: container });
-			console.log('LevelEditor created:', editor);
+			new LevelEditor({ appendTo: container });
 		}
 	}
 }
