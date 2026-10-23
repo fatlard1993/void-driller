@@ -322,14 +322,17 @@ export function setupEventRouter() {
 		}
 
 		if (data.playerId === gameContext.playerId) {
-			new Notify({ type: 'warning', content: data.reason || 'Movement interrupted', timeout: 2000 });
+			const reasons = { no_fuel: 'Out of fuel', no_health: 'Hull breached' };
+			const notify = () =>
+				new Notify({ type: 'warning', content: reasons[data.reason] || 'Movement interrupted', timeout: 2000 });
 
-			// The stranded-pod lifeline the migration dropped
-			if (['no_fuel', 'no_health'].includes(data.reason)) {
+			// The stranded-pod lifeline the migration dropped; its toast follows it, so it stacks clear of the dialog
+			if (reasons[data.reason]) {
 				import('./RescueDialog.js').then(module => {
 					gameContext.openDialog = new module.default();
+					notify();
 				});
-			}
+			} else notify();
 		}
 	});
 
