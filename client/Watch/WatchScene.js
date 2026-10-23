@@ -31,6 +31,17 @@ export default class WatchScene extends Phaser.Scene {
 		this.load.image('transport', 'img/transport.png');
 	}
 
+	// The whole map in view, with a 10% margin
+	fitCamera() {
+		const { width, depth } = gameContext.serverState.world;
+		const mapWidth = width * 64;
+		const mapHeight = depth * 64;
+		const camera = this.cameras.main;
+
+		camera.setZoom(Math.min(camera.width / mapWidth, camera.height / mapHeight) * 0.9);
+		camera.centerOn(mapWidth / 2, mapHeight / 2);
+	}
+
 	create() {
 		// Create layers for rendering organization
 		gameContext.sceneLayers = {
@@ -44,18 +55,12 @@ export default class WatchScene extends Phaser.Scene {
 
 		// Access world data from serverState.world
 		const { world } = gameContext.serverState;
-		const { grid, width, depth, spaceco } = world;
+		const { grid, spaceco } = world;
 
-		// Calculate zoom to fit entire map
-		const mapWidth = width * 64;
-		const mapHeight = depth * 64;
-		const scaleX = this.cameras.main.width / mapWidth;
-		const scaleY = this.cameras.main.height / mapHeight;
-		const zoom = Math.min(scaleX, scaleY) * 0.9; // 90% to add some padding
-
-		// Set camera to show full map
-		this.cameras.main.setZoom(zoom);
-		this.cameras.main.centerOn(mapWidth / 2, mapHeight / 2);
+		this.fitCamera();
+		// The canvas changes size to sit below the toolbar after the scene starts, and again with the window
+		this.scale.on('resize', this.fitCamera, this);
+		this.events.once('shutdown', () => this.scale.off('resize', this.fitCamera, this));
 
 		// Build the world grid (matching GameScene.js pattern)
 		grid.forEach((layer, x) => {
@@ -337,17 +342,9 @@ export default class WatchScene extends Phaser.Scene {
 			return;
 		}
 
-		const { grid, width, depth, spaceco } = world;
+		const { grid, spaceco } = world;
 
-		// Recalculate zoom for new map size
-		const mapWidth = width * 64;
-		const mapHeight = depth * 64;
-		const scaleX = this.cameras.main.width / mapWidth;
-		const scaleY = this.cameras.main.height / mapHeight;
-		const zoom = Math.min(scaleX, scaleY) * 0.9;
-
-		this.cameras.main.setZoom(zoom);
-		this.cameras.main.centerOn(mapWidth / 2, mapHeight / 2);
+		this.fitCamera();
 
 		// Build the world grid
 		grid.forEach((layer, x) => {
