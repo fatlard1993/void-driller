@@ -50,7 +50,7 @@ export default class StatusBarHUD {
 
 				text.setOrigin(0.5, 0.5);
 
-				edge.fillStyle(0x000000, 0.75);
+				edge.fillStyle(0x000000, 1);
 				edge.fillPoints(outline, true);
 				edge.lineStyle(1.5, toColor(frameColor), 1);
 				edge.strokePoints(outline, true);
