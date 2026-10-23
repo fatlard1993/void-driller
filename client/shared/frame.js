@@ -194,3 +194,32 @@ export const frameToolbarStyles = `
 		}
 	}
 `;
+
+/**
+ * A box with some corners cut, as points for the canvas (Phaser) to draw in the frame's language. Each cut is clamped
+ * to the box, so a nearly empty gauge still draws.
+ * @param {number} width - The box's width
+ * @param {number} height - The box's height
+ * @param {{ tl?: number, tr?: number, br?: number, bl?: number }} cuts - How far each corner's cut reaches
+ * @returns {Array<{ x: number, y: number }>} The points, clockwise from the top left
+ */
+export const cutCornerPoints = (width, height, { tl = 0, tr = 0, br = 0, bl = 0 } = {}) => {
+	const [a, b, c, d] = [tl, tr, br, bl].map(cut => Math.max(0, Math.min(cut, width, height)));
+	const points = [
+		{ x: 0, y: a },
+		{ x: a, y: 0 },
+		{ x: width - b, y: 0 },
+		{ x: width, y: b },
+		{ x: width, y: height - c },
+		{ x: width - c, y: height },
+		{ x: d, y: height },
+		{ x: 0, y: height - d },
+	];
+
+	// A corner left square gives the same point twice
+	return points.filter(({ x, y }, index) => {
+		const previous = points.at(index - 1);
+
+		return x !== previous.x || y !== previous.y;
+	});
+};
