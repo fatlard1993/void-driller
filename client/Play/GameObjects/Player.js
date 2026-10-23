@@ -187,9 +187,9 @@ export class Player extends Drill {
 	updateTradePromptPosition() {
 		if (this.tradeButton && this.currentGridPosition) {
 			const { x, y } = gridToPxPosition(this.currentGridPosition);
-			// Centered above the status bars
+			// Centered, its bottom edge clear of the name tag that starts 60px above the driller
 			this.tradeButton.x = x;
-			this.tradeButton.y = y - 69;
+			this.tradeButton.y = y - 60 - parseInt(theme.space.sm) - this.tradeButton.tagHeight / 2;
 		}
 	}
 

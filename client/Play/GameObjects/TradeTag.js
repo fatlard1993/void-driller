@@ -37,6 +37,8 @@ export class TradeTag extends Phaser.GameObjects.Container {
 
 		this.add([shape, text]);
 
+		this.tagHeight = height;
+
 		// A container's hit area is centered on it, like the tag
 		this.setSize(width + TOUCH_SLOP * 2, height + TOUCH_SLOP * 2);
 		this.setInteractive({ cursor: 'pointer' });
