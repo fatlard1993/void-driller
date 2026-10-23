@@ -1,21 +1,24 @@
 import { Dialog, styled } from '@vanilla-bean/components';
+import { frameAttributes, frameCorner, frameDialogStyles } from './frame';
 import gameContext from './gameContext';
 
 /**
  * Base dialog class that provides common functionality and styling for game dialogs
  */
 const StyledDialog = styled(Dialog)`
-	/* The content's padding, named so whatever bleeds to its edges can follow it */
+	${frameDialogStyles()}
+
+	/* The content's padding, named so whatever bleeds to its edges can follow it; clear of the bottom left notch */
 	--content-pad-block: ${({ space }) => space.md};
-	--content-pad-inline: ${({ space }) => space.md};
+	--content-pad-inline: var(--frame-inset);
 
 	& .content {
 		padding: var(--content-pad-block) var(--content-pad-inline);
 	}
 
 	@media ${({ media }) => media.phone} {
+		--frame-corner: ${frameCorner.small};
 		--content-pad-block: 0px;
-		--content-pad-inline: ${({ space }) => space.xs};
 
 		box-sizing: border-box;
 		margin: 0;
@@ -23,16 +26,6 @@ const StyledDialog = styled(Dialog)`
 		max-width: 100%;
 		height: 100% !important;
 		max-height: 100%;
-
-		&:after {
-			background: none;
-		}
-
-		& .content {
-			&:before {
-				content: none;
-			}
-		}
 
 		& .menuBody {
 			padding: ${({ space }) => space.xs} ${({ space }) => space.sm};
@@ -67,7 +60,7 @@ export default class BaseDialog extends StyledDialog {
 				width: 'clamp(420px, 90vw, 1700px)',
 				height: 'clamp(420px, 72vh, 1200px)',
 			},
-			'data-augmented-ui': 'tl-clip tr-2-clip-x br-clip bl-2-clip-y border',
+			...frameAttributes,
 			buttons: ['Close'],
 			onButtonPress: () => {
 				this.handleClose();
