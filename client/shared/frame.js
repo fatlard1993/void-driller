@@ -115,3 +115,68 @@ export const cardFrameStyles = `
 		--aug-br1: ${theme.space.sm};
 	}
 `;
+
+// Each corner's cut runs across the corner box, and a gradient starting from the corner meets it halfway
+const cornerGradients = {
+	tl: ['to bottom right', 'left top'],
+	tr: ['to bottom left', 'right top'],
+	br: ['to top left', 'right bottom'],
+	bl: ['to top right', 'left bottom'],
+};
+
+/**
+ * The edge along a clip-path cut, which a border can't follow: a line across the corner's box, inside the cut
+ * @param {'tl'|'tr'|'br'|'bl'} corner - The corner cut
+ * @param {string} color - The edge's color
+ * @param {string} width - The edge's width
+ * @returns {string} A background image for the corner's box
+ */
+const cutEdge = (corner, color, width) =>
+	`linear-gradient(${cornerGradients[corner][0]}, transparent 50%, ${color} 50%, ${color} calc(50% + ${width}), transparent calc(50% + ${width}))`;
+
+/**
+ * The game's top bars (the framework's toolbars, styled from here as a stylesheet): the lower edge angles up at both
+ * ends, ruled in the frame's color, and each button's outer bottom corner is cut toward the screen edge it sits by.
+ * A dialog's footer buttons stay plain.
+ */
+export const frameToolbarStyles = `
+	.variant-bar:has(> .left):has(> .right) {
+		--toolbar-corner: ${theme.space.md};
+		--chrome-corner: ${theme.space.md};
+
+		clip-path: polygon(
+			0 0,
+			100% 0,
+			100% calc(100% - var(--toolbar-corner)),
+			calc(100% - var(--toolbar-corner)) 100%,
+			var(--toolbar-corner) 100%,
+			0 calc(100% - var(--toolbar-corner))
+		);
+		border-bottom: none;
+		padding-bottom: calc(${theme.space.sm} + var(--toolbar-corner) / 2);
+		background:
+			${cutEdge('bl', frameColor, '2px')} left bottom / var(--toolbar-corner) var(--toolbar-corner) no-repeat,
+			${cutEdge('br', frameColor, '2px')} right bottom / var(--toolbar-corner) var(--toolbar-corner) no-repeat,
+			linear-gradient(${frameColor}, ${frameColor}) center bottom / calc(100% - 2 * var(--toolbar-corner)) 2px no-repeat,
+			${theme.colors.surface};
+
+		& > :is(.left, .right) > :is(.vbc-button, .variant-button) {
+			border-radius: 0;
+			/* Inside the cut, where an outline outside it would be clipped */
+			outline-offset: -3px;
+		}
+
+		& > .left > :is(.vbc-button, .variant-button) {
+			clip-path: ${cutCorners('var(--chrome-corner)', ['bl'])};
+		}
+
+		& > .right > :is(.vbc-button, .variant-button) {
+			clip-path: ${cutCorners('var(--chrome-corner)', ['br'])};
+		}
+
+		@media ${theme.media.phone} {
+			--toolbar-corner: ${theme.space.sm};
+			--chrome-corner: ${theme.space.sm};
+		}
+	}
+`;

@@ -2,6 +2,7 @@ import { Page, appendStyles, theme } from '@vanilla-bean/components';
 
 import './background';
 import router from './router';
+import { frameToolbarStyles } from './shared/frame';
 
 import '@fatlard1993/web-game-framework/client/socket';
 import '@vanilla-bean/components/app/reloadOnBuild';
@@ -21,5 +22,7 @@ appendStyles(`
 			8 ${theme.colors.light(theme.colors.red)} /* quotes, tags */
 	}
 `);
+
+appendStyles(frameToolbarStyles);
 
 new Page({ appendTo: document.body, append: router, styleSheets: ['augmented-ui/augmented-ui.min.css'] });
