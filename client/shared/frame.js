@@ -149,6 +149,26 @@ const cutEdge = (corner, color, width) =>
 	`linear-gradient(${cornerGradients[corner][0]}, transparent 50%, ${color} 50%, ${color} calc(50% + ${width}), transparent calc(50% + ${width}))`;
 
 /**
+ * One corner cut, with the box's border carried across the cut (clip-path, for a box with a border and no room for
+ * augmented-ui's pseudo-elements: a toast's icon is its ::before, an input has none)
+ * @param {'tl'|'tr'|'br'|'bl'} corner - The corner to cut
+ * @param {string} size - How far the cut reaches along both sides
+ * @param {string} edge - The border's color
+ * @param {string} [width] - The border's width
+ * @returns {string} CSS declarations; the box keeps its own background color
+ */
+export const cutCornerEdgeStyles = (corner, size, edge, width = '1px') => `
+	clip-path: ${cutCorners(size, [corner])};
+	border-radius: 0;
+	border-color: ${edge};
+	background-image: ${cutEdge(corner, edge, width)};
+	background-position: ${cornerGradients[corner][1]};
+	background-size: ${size} ${size};
+	background-repeat: no-repeat;
+	background-origin: border-box;
+`;
+
+/**
  * The game's top bars (the framework's toolbars, styled from here as a stylesheet): the lower edge angles up at both
  * ends, ruled in the frame's color, and each button's outer bottom corner is cut toward the screen edge it sits by.
  * A dialog's footer buttons stay plain.

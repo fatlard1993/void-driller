@@ -1,5 +1,5 @@
 import { theme, styled, delay, Button, Elem } from '@vanilla-bean/components';
-import { frameAttributes, frameCorner, frameStyles } from './frame';
+import { cutCornerEdgeStyles, frameAttributes, frameColor, frameCorner, frameStyles } from './frame';
 
 const defaultCharacterDelay = 12;
 
@@ -28,6 +28,25 @@ export class ConsoleContainer extends (styled.Component`
 		color: ${theme.colors.white};
 		font-size: 18px;
 		white-space: pre-wrap;
+	}
+
+	/* A terminal's field: a corner cut, edged in the frame's color, brighter while typing */
+	& input:not([type='checkbox']) {
+		--input-edge: ${theme.colors.alpha(frameColor, 0.5)};
+		--input-edge-width: 1px;
+
+		${cutCornerEdgeStyles('tr', theme.space.sm, 'var(--input-edge)', 'var(--input-edge-width)')}
+
+		&:focus {
+			--input-edge: ${frameColor};
+			--input-edge-width: 2px;
+
+			box-shadow: inset 0 0 0 1px var(--input-edge);
+		}
+
+		&.validation-errors {
+			--input-edge: ${theme.colors.light(theme.colors.red)};
+		}
 	}
 
 	/* Below the top right notch and its corner */
