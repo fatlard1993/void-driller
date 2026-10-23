@@ -444,17 +444,16 @@ export default class WatchScene extends Phaser.Scene {
 		const screenWidth = this.cameras.main.width;
 		const screenHeight = this.cameras.main.height;
 
-		// QR code dimensions (just the code, no text)
-		const qrSize = 200;
+		// QR code dimensions (just the code, no text); a phone gets a smaller ship and code, so the map stays in view
+		const qrSize = Math.min(200, Math.round(screenWidth * 0.4));
 		const qrCenterY = screenHeight / 2; // Move to middle of screen instead of top third
 		const qrTopY = qrCenterY - qrSize / 2;
 
 		// Ship positioned directly above QR code - make it bigger!
-		const shipScale = 1.5;
+		const shipScale = Math.min(1.5, screenWidth / 512);
 		const shipWidth = 256 * shipScale;
 		const shipHeight = 256 * shipScale;
-		// Position ship so its bottom edge overlaps QR top edge (no visible gap)
-		const shipBaseY = qrTopY - shipHeight + 120; // +80px overlap to eliminate gap
+		const shipBaseY = qrTopY - shipHeight + 80 * shipScale; // The ship sits over the code's top edge, with no gap
 
 		// Create transport ship as DOM element (not Phaser) for perfect sync
 		const shipWrapper = document.createElement('div');
@@ -523,8 +522,8 @@ export default class WatchScene extends Phaser.Scene {
 		// Animate both ship and QR code across screen
 		const startTime = Date.now();
 		const duration = 15000;
-		const startX = -300;
-		const endX = screenWidth + 300;
+		const startX = -shipWidth;
+		const endX = screenWidth + shipWidth;
 
 		const animate = () => {
 			const elapsed = Date.now() - startTime;
@@ -536,9 +535,8 @@ export default class WatchScene extends Phaser.Scene {
 			// Sin wave for noticeable vertical bobbing (amplitude: 50px, 2 full cycles across screen)
 			const sinWaveOffset = Math.sin(progress * Math.PI * 2 * 2) * 50;
 
-			// Move both DOM elements together with sin wave
-			// QR code offset to the right of ship center
-			const qrOffsetX = 50; // Move QR 100px to the right
+			// Move both DOM elements together with sin wave, the code centered under the ship
+			const qrOffsetX = (shipWidth - (qrSize + 20)) / 2;
 
 			shipWrapper.style.left = `${currentX}px`;
 			shipWrapper.style.top = `${shipBaseY + sinWaveOffset}px`;
