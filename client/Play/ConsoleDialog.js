@@ -33,7 +33,7 @@ import Notify from '../shared/Notify';
 import PriceDisplay from '../shared/PriceDisplay';
 import { formatPlayerAchievementRewards } from '../../utils';
 import audioPlayer from '../shared/AudioPlayer';
-import BurgerTabs from '../shared/BurgerTabs';
+import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
 import { SubPanel } from '../shared/frame';
 import {
 	toggleAutoPath,
@@ -368,37 +368,6 @@ class AutoPathControl extends Component {
 export default class ConsoleDialog extends (styled(BaseDialog)`
 	& button {
 		white-space: initial;
-	}
-
-	& .menu {
-		display: flex;
-		flex-wrap: wrap-reverse;
-		gap: ${({ space }) => space.sm};
-		margin: ${({ space }) => space.sm};
-
-		& button {
-			flex: 1;
-		}
-
-		& button:disabled {
-			background: transparent;
-			color: ${({ colors }) => colors.success} !important;
-			font-weight: bold;
-
-			&:before {
-				content: '';
-				background-color: ${({ colors }) => colors.alpha(colors.white, 0.02)};
-				width: calc(100% - 3px);
-				height: calc(100% + 17px);
-				position: absolute;
-				top: -12px;
-				left: -3px;
-			}
-
-			&:after {
-				content: none;
-			}
-		}
 	}
 
 	& .menuBody {
@@ -1262,17 +1231,16 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	}
 
 	renderHelpMenu() {
-		new Elem(
-			{ className: 'menu', appendTo: this._menuBody },
-			['Docs', 'Briefing'].map(
-				view =>
-					new Button({
-						content: view,
-						onPointerPress: () => {
-							this.options.view = `help_${view}`;
-						},
-						disabled: this.options.view === `help_${view}`,
-					}),
+		new TabRow(
+			{ addClass: 'menu', appendTo: this._menuBody },
+			['Docs', 'Briefing'].map(view =>
+				Tab({
+					content: view,
+					onPointerPress: () => {
+						this.options.view = `help_${view}`;
+					},
+					selected: this.options.view === `help_${view}`,
+				}),
 			),
 		);
 

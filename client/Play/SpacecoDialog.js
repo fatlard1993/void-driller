@@ -27,7 +27,7 @@ import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { DescriptionText } from '../shared/DescriptionText';
 import PriceDisplay from '../shared/PriceDisplay';
-import BurgerTabs from '../shared/BurgerTabs';
+import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
 import { SubPanel } from '../shared/frame';
 import {
 	spacecoBuyItem,
@@ -366,62 +366,6 @@ class UpgradePricing extends (styled.Component`
 export default class SpacecoDialog extends (styled(BaseDialog)`
 	& button {
 		white-space: initial;
-	}
-
-	& .menu {
-		display: flex;
-		flex-wrap: wrap-reverse;
-		gap: ${({ space }) => space.sm};
-		margin: ${({ space }) => space.sm};
-
-		& button {
-			flex: 1;
-		}
-
-		& button:disabled {
-			background: transparent;
-
-			&:before {
-				content: '';
-				background-color: ${({ colors }) => colors.alpha(colors.white, 0.02)};
-				width: calc(100% - 3px);
-				height: calc(100% + 17px);
-				position: absolute;
-				top: -12px;
-				left: -3px;
-			}
-
-			&:after {
-				content: none;
-			}
-		}
-
-		/* Style for empty/unavailable menus */
-		& button.empty-menu {
-			opacity: 0.7;
-			color: ${({ colors }) => colors.muted};
-
-			&:before {
-				background: repeating-linear-gradient(
-					45deg,
-					transparent,
-					transparent 2px,
-					${({ colors }) => colors.alpha(colors.gray, 0.1)} 2px,
-					${({ colors }) => colors.alpha(colors.gray, 0.1)} 4px
-				);
-			}
-		}
-
-		/* Style for currently selected menu - matches content background for continuity */
-		& button.selected-menu {
-			color: ${({ colors }) => colors.success} !important;
-			font-weight: bold !important;
-			opacity: 1 !important;
-
-			&:before {
-				background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)} !important;
-			}
-		}
 	}
 
 	& .menuBody {
@@ -1448,28 +1392,20 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	renderShopMenu() {
 		this.renderPlayerCredits();
 
-		new Elem(
-			{ className: 'menu', appendTo: this._menuBody },
+		new TabRow(
+			{ addClass: 'menu', appendTo: this._menuBody },
 			['SpaceCo Shop', 'Player Inventory'].map(view => {
 				const viewKey = `shop_${view.split(' ')[0]}`;
-				const isSelected = this.options.view === viewKey;
 				const isEmpty = this.isShopSubmenuEmpty(view);
-				const isDisabled = isSelected || isEmpty;
 
-				let className = '';
-				if (isSelected) {
-					className = 'selected-menu';
-				} else if (isEmpty) {
-					className = 'empty-menu';
-				}
-
-				return new Button({
+				return Tab({
 					content: view,
 					onPointerPress: () => {
 						this.options.view = viewKey;
 					},
-					disabled: isDisabled,
-					className,
+					selected: this.options.view === viewKey,
+					disabled: isEmpty,
+					addClass: isEmpty && 'empty-menu',
 				});
 			}),
 		);
@@ -2036,27 +1972,19 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	}
 
 	renderStatusMenu() {
-		new Elem(
-			{ className: 'menu', appendTo: this._menuBody },
+		new TabRow(
+			{ addClass: 'menu', appendTo: this._menuBody },
 			['Current', 'Achievements', 'Minerals'].map(view => {
-				const isSelected = this.options.view === `status_${view}`;
 				const isEmpty = this.isStatusSubmenuEmpty(view);
-				const isDisabled = isSelected || isEmpty;
 
-				let className = '';
-				if (isSelected) {
-					className = 'selected-menu';
-				} else if (isEmpty) {
-					className = 'empty-menu';
-				}
-
-				return new Button({
+				return Tab({
 					content: view,
 					onPointerPress: () => {
 						this.options.view = `status_${view}`;
 					},
-					disabled: isDisabled,
-					className,
+					selected: this.options.view === `status_${view}`,
+					disabled: isEmpty,
+					addClass: isEmpty && 'empty-menu',
 				});
 			}),
 		);

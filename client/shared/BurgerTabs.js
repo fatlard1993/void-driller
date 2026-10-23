@@ -1,4 +1,51 @@
-import { Elem, Button, Icon, theme } from '@vanilla-bean/components';
+import { Button, Icon, styled, theme } from '@vanilla-bean/components';
+
+import { tabFrameAttributes, tabFrameStyles } from './frame';
+
+/** A row of tabs over the panel they switch; the menu body below it is the selected tab's */
+export const TabRow = styled.Component`
+	display: flex;
+	flex-wrap: wrap-reverse;
+	gap: ${({ space }) => space.sm};
+	margin: ${({ space }) => space.sm};
+
+	& > button {
+		flex: 1;
+		${tabFrameStyles}
+	}
+
+	& > button.selected-menu {
+		background: transparent;
+		color: ${({ colors }) => colors.success};
+		font-weight: bold;
+	}
+
+	/* A tab with nothing behind it */
+	& > button.empty-menu {
+		opacity: 0.7;
+		color: ${({ colors }) => colors.muted};
+		background: repeating-linear-gradient(
+			45deg,
+			transparent,
+			transparent 2px,
+			${({ colors }) => colors.alpha(colors.gray, 0.1)} 2px,
+			${({ colors }) => colors.alpha(colors.gray, 0.1)} 4px
+		);
+	}
+`;
+
+/**
+ * A tab for a TabRow; the selected one is already pressed, so it's disabled
+ * @param {object} options - Button options
+ * @param {boolean} [options.selected] - Whether it's the selected tab
+ * @returns {Button} The tab
+ */
+export const Tab = ({ selected = false, ...options }) =>
+	new Button({
+		...tabFrameAttributes(selected),
+		...options,
+		...(selected && { addClass: 'selected-menu', disabled: true }),
+	});
 
 /**
  * Collapsible hamburger menu tabs component
@@ -10,15 +57,15 @@ export default class BurgerTabs {
 		this._menuExpanded = false;
 
 		// Create expandable menu container (appears above fixed buttons)
-		this._expandableMenu = new Elem({
-			className: 'menu',
+		this._expandableMenu = new TabRow({
+			addClass: 'menu',
 			appendTo: options.appendTo,
 			style: { marginBottom: '0px' },
 		});
 
 		// Create fixed menu container (hamburger + selected tab, always visible)
-		this._menuContainer = new Elem({
-			className: 'menu',
+		this._menuContainer = new TabRow({
+			addClass: 'menu',
 			appendTo: options.appendTo,
 		});
 
@@ -44,9 +91,8 @@ export default class BurgerTabs {
 				if (tab === selectedTab) return; // Skip selected tab
 
 				const isEmpty = isTabEmpty(tab);
-				const className = isEmpty ? 'empty-menu' : getTabClassName(tab);
 
-				new Button({
+				Tab({
 					appendTo: this._expandableMenu,
 					content: tab,
 					onPointerPress: () => {
@@ -54,13 +100,13 @@ export default class BurgerTabs {
 						if (onTabClick) onTabClick(tab);
 					},
 					disabled: isEmpty,
-					className,
+					addClass: isEmpty ? 'empty-menu' : getTabClassName(tab),
 				});
 			});
 		}
 
 		// Hamburger button (always in fixed position)
-		new Button({
+		Tab({
 			appendTo: this._menuContainer,
 			content: new Icon({ icon: 'bars' }),
 			onPointerPress: () => {
@@ -75,11 +121,10 @@ export default class BurgerTabs {
 
 		// Selected tab button (always in fixed position, after hamburger)
 		if (selectedTab) {
-			new Button({
+			Tab({
 				appendTo: this._menuContainer,
 				content: selectedTab,
-				className: 'selected-menu',
-				disabled: true,
+				selected: true,
 			});
 		}
 	}

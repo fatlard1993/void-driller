@@ -13,41 +13,11 @@ import { inventoryItem } from '../shared/inventoryItem';
 import PriceDisplay from '../shared/PriceDisplay';
 import { engines } from '../../constants';
 import { getScaledServiceCosts } from '../../utils';
+import { Tab, TabRow } from '../shared/BurgerTabs';
 
 export default class RescueDialog extends (styled(BaseDialog)`
 	& button {
 		white-space: initial;
-	}
-
-	& .menu {
-		display: flex;
-		flex-wrap: wrap-reverse;
-		gap: ${({ space }) => space.sm};
-		margin: ${({ space }) => space.sm};
-
-		& button {
-			flex: 1;
-		}
-
-		& button:disabled {
-			background: transparent;
-			color: ${({ colors }) => colors.success} !important;
-			font-weight: bold;
-
-			&:before {
-				content: '';
-				background-color: ${({ colors }) => colors.alpha(colors.white, 0.02)};
-				width: calc(100% - 3px);
-				height: calc(100% + 17px);
-				position: absolute;
-				top: -12px;
-				left: -3px;
-			}
-
-			&:after {
-				content: none;
-			}
-		}
 	}
 
 	& .menuBody {
@@ -71,17 +41,16 @@ export default class RescueDialog extends (styled(BaseDialog)`
 	}
 
 	renderMenu() {
-		new Elem(
-			{ className: 'menu', appendTo: this._body },
-			['Rescue', 'Inventory'].map(
-				view =>
-					new Button({
-						content: view,
-						onPointerPress: () => {
-							this.options.view = view.toLowerCase();
-						},
-						disabled: this.options.view === view.toLowerCase(),
-					}),
+		new TabRow(
+			{ addClass: 'menu', appendTo: this._body },
+			['Rescue', 'Inventory'].map(view =>
+				Tab({
+					content: view,
+					onPointerPress: () => {
+						this.options.view = view.toLowerCase();
+					},
+					selected: this.options.view === view.toLowerCase(),
+				}),
 			),
 		);
 

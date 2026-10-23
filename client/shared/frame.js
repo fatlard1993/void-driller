@@ -116,6 +116,20 @@ export const cardFrameStyles = `
 	}
 `;
 
+/** A tab: one corner cut, and the selected one edged in the frame's color (augmented-ui) */
+export const tabFrameAttributes = selected => ({ 'data-augmented-ui': selected ? 'tr-clip border' : 'tr-clip' });
+
+export const tabFrameStyles = `
+	--aug-tr1: ${theme.space.md};
+	--aug-border-all: 2px;
+	--aug-border-bg: ${frameColor};
+	border-radius: 0;
+
+	@media ${theme.media.phone} {
+		--aug-tr1: ${theme.space.sm};
+	}
+`;
+
 // Each corner's cut runs across the corner box, and a gradient starting from the corner meets it halfway
 const cornerGradients = {
 	tl: ['to bottom right', 'left top'],
