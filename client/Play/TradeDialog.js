@@ -15,6 +15,7 @@ import {
 import { MineralImage, ItemImage } from '../shared/SpriteSheetImage';
 import { updateTradeOffer, acceptTrade, cancelTrade } from '../api';
 import BaseDialog from '../shared/BaseDialog';
+import { subPanelOptions } from '../shared/frame';
 import gameContext from '../shared/gameContext';
 import { minerals, items } from '../../constants';
 import Notify from '../shared/Notify';
@@ -230,20 +231,9 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	& .trade-side {
 		flex: 1;
-		border: 2px solid ${({ colors }) => colors.border};
-		border-radius: ${({ radius }) => radius.md};
 		padding: ${({ space }) => space.md};
-		background: ${({ colors }) => colors.alpha(colors.white, 0.02)};
 		display: flex;
 		flex-direction: column;
-	}
-
-	& .trade-side.your-offer {
-		border-color: ${({ colors }) => colors.alpha(colors.blue, 0.3)};
-	}
-
-	& .trade-side.their-offer {
-		border-color: ${({ colors }) => colors.alpha(colors.green, 0.3)};
 	}
 
 	& .trade-header {
@@ -535,7 +525,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 				// Your Offer (editable)
 				new Elem(
-					{ className: 'trade-side your-offer' },
+					{ className: 'trade-side your-offer', ...subPanelOptions },
 					new Elem({ className: 'trade-header', content: 'Your Offer' }),
 					this.myOfferList,
 					this.renderAddItemSection(),
@@ -543,7 +533,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 				// Their Offer (read-only)
 				new Elem(
-					{ className: 'trade-side their-offer' },
+					{ className: 'trade-side their-offer', ...subPanelOptions },
 					new Elem({ className: 'trade-header', content: `${this.otherPlayer.name}'s Offer` }),
 					this.theirOfferList,
 				),

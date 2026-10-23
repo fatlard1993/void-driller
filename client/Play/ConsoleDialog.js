@@ -34,6 +34,7 @@ import PriceDisplay from '../shared/PriceDisplay';
 import { formatPlayerAchievementRewards } from '../../utils';
 import audioPlayer from '../shared/AudioPlayer';
 import BurgerTabs from '../shared/BurgerTabs';
+import { SubPanel } from '../shared/frame';
 import {
 	toggleAutoPath,
 	setAutoPathRadius,
@@ -42,7 +43,7 @@ import {
 	clearIgnoreList,
 } from './inputs/pointer';
 
-const CollapsibleLabel = configured(Label, { variant: 'collapsible' });
+const CollapsibleLabel = configured(SubPanel, { variant: 'collapsible' });
 
 class AlertControl extends Component {
 	static schema = {
@@ -617,9 +618,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		const fuelEfficiencyDisplay = player.fuelEfficiency / (1.0 + cargoWeightRatio * 0.2);
 
 		this._subMenuBody.append(
-			new Label('Position', `X: ${player.position.x} | Y: ${player.position.y}`),
-			new Label(
-				'Current Stats',
+			new SubPanel({ label: 'Position' }, `X: ${player.position.x} | Y: ${player.position.y}`),
+			new SubPanel(
+				{ label: 'Current Stats' },
 				new List({
 					items: [
 						new Elem({
@@ -633,8 +634,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					],
 				}),
 			),
-			new Label(
-				'Totals',
+			new SubPanel(
+				{ label: 'Totals' },
 				new List({
 					items: [
 						`Max Health: ${player.maxHealth}hp`,
@@ -646,8 +647,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					],
 				}),
 			),
-			new Label(
-				'Stats',
+			new SubPanel(
+				{ label: 'Stats' },
 				new List({
 					items: Object.entries(player.stats).flatMap(([key, value]) => {
 						if (typeof value !== 'number') return [];
@@ -669,8 +670,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		const partConfig = parts[player.configuration.part];
 
 		this._subMenuBody.append(
-			new Label(
-				'Configuration',
+			new SubPanel(
+				{ label: 'Configuration' },
 				new CardGrid({
 					content: [
 						new Card({
@@ -1018,8 +1019,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		// Add inventory status at the top
 		this._menuBody.append(
-			new Label(
-				`Inventory: ${currentItemCount} / ${player.maxItemSlots} slots`,
+			new SubPanel(
+				{ label: `Inventory: ${currentItemCount} / ${player.maxItemSlots} slots` },
 				currentItemCount >= player.maxItemSlots &&
 					new Elem({
 						tag: 'p',
@@ -1214,8 +1215,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		this._menuBody.append(
 			...settingsControls,
 
-			new Label(
-				'Default Console Menu',
+			new SubPanel(
+				{ label: 'Default Console Menu' },
 				new Select({
 					options: [
 						'Cargo',
@@ -1234,8 +1235,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				}),
 			),
 
-			new Label(
-				'Default SpaceCo Menu',
+			new SubPanel(
+				{ label: 'Default SpaceCo Menu' },
 				new Select({
 					options: [
 						'Sell',

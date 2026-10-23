@@ -28,6 +28,7 @@ import { CardGrid } from '../shared/CardGrid';
 import { DescriptionText } from '../shared/DescriptionText';
 import PriceDisplay from '../shared/PriceDisplay';
 import BurgerTabs from '../shared/BurgerTabs';
+import { SubPanel } from '../shared/frame';
 import {
 	spacecoBuyItem,
 	spacecoBuyTransport,
@@ -604,8 +605,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const player = gameContext.players.currentPlayer;
 
 		this._menuBody.append(
-			new Label(
-				'Credits',
+			new SubPanel(
+				{ label: 'Credits' },
 				new PriceDisplay({
 					amount: Math.floor(player.credits),
 					size: 20,
@@ -806,7 +807,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const engineConfig = engines[player.configuration.engine];
 		const partConfig = parts[player.configuration.part];
 
-		new Label(
+		new SubPanel(
 			{ label: 'Configuration', appendTo: this._subMenuBody },
 			new CardGrid({
 				content: [
@@ -1338,12 +1339,12 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		}
 
 		this._menuBody.append(
-			new Label(
-				'Fuel',
+			new SubPanel(
+				{ label: 'Fuel' },
 				`${player.fuel.toFixed(1)}l / ${player.maxFuel}l (${convertRange(player.fuel, [0, player.maxFuel], [0, 100]).toFixed(1)}%)`,
 			),
-			new Label(
-				`Fuel Type: ${capitalize(engineConfig.fuelType.replaceAll('_', ' '), true)}`,
+			new SubPanel(
+				{ label: `Fuel Type: ${capitalize(engineConfig.fuelType.replaceAll('_', ' '), true)}` },
 				new ItemImage(engineConfig.fuelType, { displaySize: 96 }),
 				...[5, 10, 20, 40, 50].map(amount => {
 					if (player.credits > amount && amount <= cost) {
@@ -1380,8 +1381,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	render_repair() {
 		this.renderPlayerCredits();
 
-		const playerRepairs = new Label('Repair your Drill');
-		const spacecoRepairs = new Label('Repair Spaceco Outpost');
+		const playerRepairs = new SubPanel({ label: 'Repair your Drill' });
+		const spacecoRepairs = new SubPanel({ label: 'Repair Spaceco Outpost' });
 
 		const player = gameContext.players.currentPlayer;
 
@@ -1392,7 +1393,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		if (neededHealth === 0) {
 			new Elem({ tag: 'p', content: `You're in good shape`, appendTo: playerRepairs });
 		} else {
-			new Label(
+			new SubPanel(
 				{ label: 'Health', appendTo: this._menuBody },
 				`${convertRange(player.health, [0, player.maxHealth], [0, 100]).toFixed(1)}%`,
 			);
@@ -1514,7 +1515,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			],
 		});
 
-		new Label(
+		new SubPanel(
 			{ appendTo: this._subMenuBody, label: `Inventory: ${currentItemCount} / ${player.maxItemSlots} slots` },
 			currentItemCount >= player.maxItemSlots &&
 				new Elem({
@@ -2060,20 +2061,20 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		this.renderStatusMenu();
 
 		this._subMenuBody.append(
-			new Label(
-				'Position',
+			new SubPanel(
+				{ label: 'Position' },
 				`X: ${gameContext.serverState.world.spaceco.position.x} | Y: ${gameContext.serverState.world.spaceco.position.y}`,
 			),
-			new Label(
-				'Current Stats',
+			new SubPanel(
+				{ label: 'Current Stats' },
 				new List({
 					items: [
 						`Health: ${gameContext.serverState.world.spaceco.health}hp / 9hp (${convertRange(gameContext.serverState.world.spaceco.health, [0, 9], [0, 100]).toFixed(1)}%)`,
 					],
 				}),
 			),
-			new Label(
-				'Stats',
+			new SubPanel(
+				{ label: 'Stats' },
 				new List({
 					items: Object.entries(gameContext.serverState.world.spaceco.stats).flatMap(([key, value]) => {
 						if (typeof value !== 'number') return [];
