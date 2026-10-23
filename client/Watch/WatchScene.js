@@ -194,26 +194,22 @@ export default class WatchScene extends Phaser.Scene {
 		const playerData = gameContext.players.get(playerId);
 		if (!playerData?.sprite) return null;
 
-		const sprite = playerData.sprite;
-
-		// Get sprite world position
-		const worldX = sprite.x;
-		const worldY = sprite.y;
-
-		// Convert world position to screen position using camera
+		const { sprite } = playerData;
 		const camera = this.cameras.main;
-		const screenX = (worldX - camera.scrollX) * camera.zoom + camera.width / 2;
-		const screenY = (worldY - camera.scrollY) * camera.zoom + camera.height / 2;
+		const canvas = this.game.canvas.getBoundingClientRect();
 
-		// Random angle around the player (in radians)
+		// The camera zooms about its midpoint, and the canvas sits below the toolbar at its CSS size
+		const cssScale = canvas.width / camera.width;
+		const screenX = canvas.left + ((sprite.x - camera.midPoint.x) * camera.zoom + camera.width / 2) * cssScale;
+		const screenY = canvas.top + ((sprite.y - camera.midPoint.y) * camera.zoom + camera.height / 2) * cssScale;
+
 		const angle = Math.random() * Math.PI * 2;
+		const distance = 96;
+		const inset = 12;
 
-		// Distance from player (adjusted for zoom level)
-		const distance = 150 / camera.zoom;
-
-		// Calculate final position
-		const x = screenX + Math.cos(angle) * distance;
-		const y = screenY + Math.sin(angle) * distance;
+		// Popover flips at the right and bottom edges but places any point as given, so the point stays on the canvas
+		const x = Math.min(Math.max(screenX + Math.cos(angle) * distance, canvas.left + inset), canvas.right - inset);
+		const y = Math.min(Math.max(screenY + Math.sin(angle) * distance, canvas.top + inset), canvas.bottom - inset);
 
 		return { x, y };
 	}
