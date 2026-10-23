@@ -3,6 +3,7 @@ import { theme, writeStorage } from '@vanilla-bean/components';
 
 import { rand } from '../../utils';
 import gameContext from '../shared/gameContext';
+import { frameAttributes, frameStyles } from '../shared/frame';
 import { drills, vehicles } from '../../constants';
 import { gameLog, clientLog } from '../../utils/logger.js';
 import { repairPlayerPosition } from '../api';
@@ -113,17 +114,17 @@ export default class GameScene extends Phaser.Scene {
 
 		// Create the main container with ConsoleContainer styling
 		this.loadingContainer = document.createElement('div');
+		for (const [name, value] of Object.entries(frameAttributes)) this.loadingContainer.setAttribute(name, value);
 		this.loadingContainer.style.cssText = `
+			${frameStyles()}
 			position: fixed;
 			top: 50%;
 			left: 50%;
 			transform: translate(-50%, -50%);
 			z-index: 9999;
 			background: ${theme.colors.black};
-			border: 3px solid ${theme.colors.lighter(theme.colors.blue)};
 			width: clamp(90vw, 80vw, 600px);
-			border-radius: 6px;
-			padding: 20px;
+			padding: var(--frame-inset);
 			box-sizing: border-box;
 		`;
 

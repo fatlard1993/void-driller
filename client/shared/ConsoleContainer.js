@@ -1,18 +1,19 @@
 import { theme, styled, delay, Button, Elem } from '@vanilla-bean/components';
+import { frameAttributes, frameCorner, frameStyles } from './frame';
 
 const defaultCharacterDelay = 12;
 
 export class ConsoleContainer extends (styled.Component`
+	${frameStyles()}
 	position: relative;
 	background: ${theme.colors.black};
-	border: 3px solid ${theme.colors.lighter(theme.colors.blue)};
 	width: clamp(90vw, 80vw, 1700px);
 	margin: 6em auto;
-	border-radius: ${theme.radius.md};
-	padding: ${theme.space.sm};
+	padding: var(--frame-inset);
 	box-sizing: border-box;
 
 	@media ${theme.media.phone} {
+		--frame-corner: ${frameCorner.small};
 		width: calc(100% - 24px);
 		max-width: 100vw;
 		margin-left: ${theme.space.md};
@@ -29,10 +30,11 @@ export class ConsoleContainer extends (styled.Component`
 		white-space: pre-wrap;
 	}
 
+	/* Below the top right notch and its corner */
 	& > button {
 		position: absolute;
-		top: 6px;
-		right: 6px;
+		top: calc(2 * var(--frame-corner));
+		right: var(--frame-inset);
 	}
 `) {
 	async typeText(text, getCharacterDelay = () => defaultCharacterDelay) {
@@ -44,6 +46,10 @@ export class ConsoleContainer extends (styled.Component`
 
 			await delay(getCharacterDelay(character, i));
 		}
+	}
+
+	constructor(options = {}, ...children) {
+		super({ ...frameAttributes, ...options }, ...children);
 	}
 
 	build() {
