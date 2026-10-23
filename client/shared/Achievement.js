@@ -1,5 +1,6 @@
 import { capitalize, Elem, styled, theme } from '@vanilla-bean/components';
 
+import { frameAttributes, frameCorner, frameStyles } from './frame';
 import gameContext from './gameContext';
 import PriceDisplay from './PriceDisplay';
 
@@ -8,7 +9,8 @@ export class Achievement extends styled.Popover(
 		flex-direction: column;
 		top: 100px;
 		left: 32px;
-		border: 3px solid ${colors.lighter(colors.blue)};
+		${frameStyles(frameCorner.small)}
+		padding-inline: var(--frame-inset);
 		max-width: 50%;
 
 		opacity: 0;
@@ -103,9 +105,10 @@ export class Achievement extends styled.Popover(
 			}
 		}
 
+		/* Below the top right notch and its corner */
 		& .count {
 			position: absolute;
-			top: 0;
+			top: calc(2 * var(--frame-corner));
 			right: 0;
 			padding: ${space.xs};
 			background: ${colors.lighter(colors.blue)};
@@ -118,7 +121,7 @@ export class Achievement extends styled.Popover(
 
 		& .rewards-section {
 			position: absolute;
-			top: 12px;
+			top: var(--frame-inset);
 			right: 30px;
 			display: flex;
 			flex-direction: column;
@@ -190,6 +193,10 @@ export class Achievement extends styled.Popover(
 	static schema = {
 		achievement: {},
 	};
+
+	constructor(options = {}, ...children) {
+		super({ ...frameAttributes, ...options }, ...children);
+	}
 
 	build() {
 		if (gameContext.visibleAchievement) {
