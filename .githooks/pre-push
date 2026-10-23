@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Lint, tests, and the pushed lld documents: the library's shared pre-push
+sh node_modules/@vanilla-bean/components/githooks/pre-push "$@" || exit 1

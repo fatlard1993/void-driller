@@ -1,3 +1,0 @@
-#!/usr/bin/env sh
-# The library's checks: lint, then the tests when there are any
-sh node_modules/@vanilla-bean/components/githooks/pre-commit || exit 1
