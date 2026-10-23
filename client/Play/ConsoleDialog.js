@@ -675,6 +675,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				new CardGrid({
 					content: [
 						new Card({
+							state: 'owned',
 							header: `Vehicle: ${vehicleConfig.name}`,
 							body: new Elem({
 								style: {
@@ -708,6 +709,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							}),
 						}),
 						new Card({
+							state: 'owned',
 							header: `Drill: ${drillConfig.name}`,
 							body: new Elem({
 								style: {
@@ -740,6 +742,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							}),
 						}),
 						new Card({
+							state: 'owned',
 							header: `Engine: ${engineConfig.name}`,
 							body: new Elem({
 								style: {
@@ -780,6 +783,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						}),
 						partConfig &&
 							new Card({
+								state: 'owned',
 								header: `Part: ${player.configuration.part}`,
 								body: new Elem({
 									style: {
@@ -889,11 +893,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					}
 
 					return new Card({
+						state: 'owned',
 						header: [new Icon({ icon: 'check' }), achievement.name],
-						style: {
-							background: theme.colors.darkest(theme.colors.success),
-							border: `1px solid ${theme.colors.success}`,
-						},
+						style: { background: theme.colors.darkest(theme.colors.success) },
 						body: new Elem({
 							style: {
 								display: 'flex',
@@ -945,11 +947,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				if (!player.stats.oreTypesCollected[color]) return [];
 
 				return new Card({
+					state: 'owned',
 					header: mineral.name,
-					style: {
-						background: theme.colors.darkest(theme.colors.success),
-						border: `1px solid ${theme.colors.success}`,
-					},
+					style: { background: theme.colors.darkest(theme.colors.success) },
 					body: new Elem({
 						style: {
 							display: 'flex',
@@ -982,11 +982,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				if (!player.stats.itemsUsed[name] && !player.items[name]) return [];
 
 				return new Card({
+					state: 'owned',
 					header: capitalize(name.replaceAll('_', ' '), true),
-					style: {
-						background: theme.colors.darkest(theme.colors.success),
-						border: `1px solid ${theme.colors.success}`,
-					},
+					style: { background: theme.colors.darkest(theme.colors.success) },
 					body: new Elem({
 						style: {
 							display: 'flex',
@@ -1057,6 +1055,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
+						state: 'owned',
 						header: itemName,
 						style: {
 							opacity: canUse ? 1 : 0.6,

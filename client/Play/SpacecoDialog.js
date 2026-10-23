@@ -812,6 +812,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			new CardGrid({
 				content: [
 					new Card({
+						state: 'owned',
 						header: `Vehicle: ${vehicleConfig.name}`,
 						body: new Elem({
 							style: {
@@ -845,6 +846,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 					new Card({
+						state: 'owned',
 						header: `Drill: ${drillConfig.name}`,
 						body: new Elem({
 							style: {
@@ -867,6 +869,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 					new Card({
+						state: 'owned',
 						header: `Engine: ${engineConfig.name}`,
 						body: new Elem({
 							style: {
@@ -907,6 +910,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					}),
 					partConfig &&
 						new Card({
+							state: 'owned',
 							header: `Part: ${player.configuration.part}`,
 							body: new Elem({
 								style: {
@@ -953,6 +957,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const canAfford = player.credits >= finalCost;
 
 				return new Card({
+					state: canAfford ? 'available' : 'unavailable',
 					header: name,
 					body: new Elem({
 						style: {
@@ -1035,6 +1040,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const canAfford = player.credits >= finalCost;
 
 				return new Card({
+					state: canAfford ? 'available' : 'unavailable',
 					header: name,
 					body: new Elem({
 						style: {
@@ -1130,6 +1136,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				}
 
 				return new Card({
+					state: canAfford && !missingRequirements ? 'available' : 'unavailable',
 					header: name,
 					body: new Elem({
 						style: {
@@ -1248,6 +1255,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				};
 
 				return new Card({
+					state: canAfford ? 'available' : 'unavailable',
 					header: name,
 					body: new Elem({
 						style: {
@@ -1546,6 +1554,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
+						state: canPurchase ? 'available' : 'unavailable',
 						header: capitalize(key.replaceAll('_', ' '), true),
 						body: new Elem({
 							style: {
@@ -1747,6 +1756,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
+						state: 'owned',
 						header: itemName,
 						body: new Elem({
 							style: {
@@ -1873,6 +1883,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
+						state: locked ? 'unavailable' : 'available',
 						header: new Elem({
 							content: capitalize(key.replaceAll('_', ' '), true),
 							style: {
@@ -2203,11 +2214,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					}
 
 					return new Card({
+						state: 'owned',
 						header: [new Icon({ icon: 'check' }), achievement.name],
-						style: {
-							background: theme.colors.darkest(theme.colors.success),
-							border: `1px solid ${theme.colors.success}`,
-						},
+						style: { background: theme.colors.darkest(theme.colors.success) },
 						body: new Elem({
 							style: {
 								display: 'flex',

@@ -81,4 +81,37 @@ export const frameDialogStyles = (corner = frameCorner.large) => `
 	& > .footer {
 		padding-inline: var(--frame-inset);
 	}
+
+	& :is(.${subPanelClass}, blockquote) {
+		--sub-panel-corner: ${theme.space.md};
+
+		clip-path: ${cutCorners('var(--sub-panel-corner)', ['tl', 'br'])};
+		border-radius: 0;
+
+		@media ${theme.media.phone} {
+			--sub-panel-corner: ${theme.space.sm};
+		}
+	}
+
+	& .${subPanelClass} {
+		background-color: ${theme.colors.alpha(theme.colors.teal, 0.08)};
+		border: none;
+	}
+`;
+
+/** A card: the sub-panel's corners, edged in --card-edge, which the card's state sets (augmented-ui) */
+export const cardFrameAttributes = { 'data-augmented-ui': 'tl-clip br-clip border' };
+
+export const cardFrameStyles = `
+	--aug-tl1: ${theme.space.md};
+	--aug-br1: ${theme.space.md};
+	--aug-border-all: 2px;
+	--aug-border-bg: var(--card-edge, ${theme.colors.gray});
+	border: none;
+	border-radius: 0;
+
+	@media ${theme.media.phone} {
+		--aug-tl1: ${theme.space.sm};
+		--aug-br1: ${theme.space.sm};
+	}
 `;

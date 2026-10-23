@@ -1,37 +1,54 @@
-import { Component, Elem, theme } from '@vanilla-bean/components';
+import { Component, Elem, styled, theme } from '@vanilla-bean/components';
+
+import { cardFrameAttributes, cardFrameStyles, frameColor } from './frame';
 
 /**
  * Standardized card container component with optional header, body, and footer sections
  * Based on the SpacecoDialog shop player inventory item cards reference template
  */
-export class Card extends Component {
+export class Card extends styled(
+	Component,
+	({ colors, space }) => `
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		background: ${colors.darkest(colors.gray)};
+		padding: ${space.md};
+		min-width: 120px;
+		gap: ${space.sm};
+		${cardFrameStyles}
+
+		&.state-available {
+			--card-edge: ${colors.success};
+		}
+
+		&.state-unavailable {
+			--card-edge: ${colors.alpha(colors.danger, 0.7)};
+		}
+
+		&.state-owned {
+			--card-edge: ${frameColor};
+		}
+	`,
+) {
 	static schema = {
 		header: {},
 		body: {},
 		footer: {},
 		footerButtons: {},
+		// Edges the card: 'available' to take (affordable), 'unavailable' (can't afford, or locked), or 'owned'
+		state: {
+			enum: ['available', 'unavailable', 'owned'],
+			set(value) {
+				this.removeClass(/\bstate-\S+\b/g);
+
+				if (value) this.addClass(`state-${value}`);
+			},
+		},
 	};
 
-	constructor(options = {}) {
-		const defaultStyle = {
-			display: 'flex',
-			flexDirection: 'column',
-			alignItems: 'center',
-			background: theme.colors.darkest(theme.colors.gray),
-			border: `2px solid ${theme.colors.gray}`,
-			borderRadius: theme.radius.md,
-			padding: theme.space.md,
-			minWidth: '120px',
-			gap: theme.space.sm,
-		};
-
-		super({
-			...options,
-			style: {
-				...defaultStyle,
-				...options.style,
-			},
-		});
+	constructor(options = {}, ...children) {
+		super({ ...cardFrameAttributes, ...options }, ...children);
 	}
 
 	build() {

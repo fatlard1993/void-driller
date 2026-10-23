@@ -159,6 +159,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
+						state: 'owned',
 						header: itemName,
 						style: {
 							opacity: canUse ? 1 : 0.6,
