@@ -8,6 +8,7 @@ import TradeDialog from '../TradeDialog';
 import { disarmBomb, deactivateTeleporter, initiateTrade } from '../../api';
 import Notify from '../../shared/Notify';
 import { Drill } from './Drill';
+import { TradeTag } from './TradeTag';
 
 export class Player extends Drill {
 	constructor(scene, x, y, orientation, vehicle, drill, name) {
@@ -125,26 +126,7 @@ export class Player extends Drill {
 		// Clean up any existing trade button
 		this.hideTradePrompt();
 
-		this.tradeButton = this.scene.add.text(0, 0, 'Trade', {
-			fontSize: '12px',
-			fontFamily: 'monospace',
-			fill: '#ffffff',
-			backgroundColor: 'hsl(209, 55%, 45%)',
-			padding: { x: 8, y: 4 },
-		});
-
-		this.tradeButton.setInteractive({ cursor: 'pointer' });
-
-		this.tradeButton.on('pointerover', () => {
-			if (gameContext.cursor) gameContext.cursor.visible = false;
-			// Simulate button hover effect with slight position shift
-			this.tradeButton.y = this.tradeButton.y - 1;
-		});
-
-		this.tradeButton.on('pointerout', () => {
-			// Reset button position
-			this.tradeButton.y = this.tradeButton.y + 1;
-		});
+		this.tradeButton = new TradeTag(this.scene);
 
 		this.tradeButton.on('pointerdown', async () => {
 			if (!gameContext.openDialog) {
@@ -205,8 +187,9 @@ export class Player extends Drill {
 	updateTradePromptPosition() {
 		if (this.tradeButton && this.currentGridPosition) {
 			const { x, y } = gridToPxPosition(this.currentGridPosition);
-			this.tradeButton.x = x - 22;
-			this.tradeButton.y = y - 80; // Position above status bars
+			// Centered above the status bars
+			this.tradeButton.x = x;
+			this.tradeButton.y = y - 69;
 		}
 	}
 
