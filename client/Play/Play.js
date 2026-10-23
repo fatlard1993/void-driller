@@ -1,4 +1,4 @@
-import { Button } from '@vanilla-bean/components';
+import { Button, styled } from '@vanilla-bean/components';
 import { failureReason } from '@vanilla-bean/hypertether';
 
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
@@ -7,8 +7,13 @@ import Notify from '../shared/Notify';
 import { getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import { releaseInputOnClose } from '../shared/BaseDialog';
+import { frameAttributes, frameCorner, frameDialogStyles } from '../shared/frame';
 import Game from './Game';
 import ConsoleDialog from './ConsoleDialog';
+
+const AbortDialog = styled(ExitDialog)`
+	${frameDialogStyles(frameCorner.small)}
+`;
 
 export default class Play extends View {
 	static schema = {
@@ -26,7 +31,8 @@ export default class Play extends View {
 							content: 'Abort Contract',
 							onPointerPress: () => {
 								gameContext.openDialog = releaseInputOnClose(
-									new ExitDialog({
+									new AbortDialog({
+										...frameAttributes,
 										gameId: gameContext.gameId,
 										playerId: gameContext.playerId,
 										header: 'Abort Contract',
