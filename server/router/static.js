@@ -35,7 +35,7 @@ const staticRouter = async request => {
 
 	// The page and its build, then the sprites and sounds the client loads by url, then the briefing audio in docs/
 	const response =
-		(await serveApp(request, { api: '/games/', packages: ['augmented-ui'] })) ??
+		(await serveApp(request, { api: '/games/' })) ??
 		(await serveStatic(request, { root: 'client' })) ??
 		(path.startsWith('/docs/') ? await serveStatic(request, { root: '.' }) : undefined);
 

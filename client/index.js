@@ -25,4 +25,4 @@ appendStyles(`
 
 appendStyles(frameToolbarStyles);
 
-new Page({ appendTo: document.body, append: router, styleSheets: ['augmented-ui/augmented-ui.min.css'] });
+new Page({ appendTo: document.body, append: router });
