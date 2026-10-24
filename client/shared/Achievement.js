@@ -244,7 +244,7 @@ export class Achievement extends styled.Popover(
 
 			gameContext.sounds.achievement_close.play({ volume: gameContext.volume.alerts });
 
-			this.hide();
+			this.close();
 
 			setTimeout(() => {
 				gameContext.visibleAchievement = undefined;

@@ -1,5 +1,4 @@
-import { Elem, Button, theme, styled } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
+import { Elem, Button, failureReason, theme, styled } from '@vanilla-bean/components';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
@@ -89,7 +88,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 				onPointerPress: async () => {
 					const result = await exitGame();
 
-					if (result.status === 'error') new Notify({ type: 'error', content: failureReason(result) });
+					if (result.status === 'error') new Notify({ intent: 'danger', content: failureReason(result) });
 
 					window.location.href = `#/join/${gameContext.gameId}`;
 

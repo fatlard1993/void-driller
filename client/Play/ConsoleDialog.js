@@ -3,6 +3,7 @@ import {
 	Component,
 	convertRange,
 	Elem,
+	GET,
 	Input,
 	Label,
 	List,
@@ -17,7 +18,6 @@ import {
 	orderBy,
 	writeStorage,
 } from '@vanilla-bean/components';
-import { GET } from '@vanilla-bean/hypertether';
 
 import { DrillImage, EngineImage, ItemImage, MineralImage, PartImage, VehicleImage } from '../shared/SpriteSheetImage';
 import { Card } from '../shared/Card';
@@ -1258,7 +1258,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		if (!helpFile.response.ok) {
 			new Notify({
-				type: 'error',
+				intent: 'danger',
 				content:
 					'Unable to retrieve SpaceCo documentation. Did you really need instructions to dig a hole? (Connection error.)',
 			});
@@ -1335,7 +1335,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		if (!helpFile.response.ok) {
 			new Notify({
-				type: 'error',
+				intent: 'danger',
 				content:
 					'Briefing data corrupted. Your mission is now officially "wing it" until further notice. (Try reloading.)',
 			});

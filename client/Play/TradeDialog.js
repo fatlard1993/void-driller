@@ -392,7 +392,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 				await updateTradeOffer({ tradeId: this.tradeSession.id, offer });
 			} catch (error) {
 				new Notify({
-					type: 'error',
+					intent: 'danger',
 					content: error.message || 'Failed to update offer',
 				});
 			}
@@ -462,7 +462,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 						await acceptTrade({ tradeId: this.tradeSession.id });
 					} catch (error) {
 						new Notify({
-							type: 'error',
+							intent: 'danger',
 							content: error.message || 'Failed to accept trade',
 						});
 					}

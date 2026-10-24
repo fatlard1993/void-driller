@@ -45,7 +45,7 @@ function checkResourceAlerts(player) {
 			const fuelBarCenter = startX + barWidth + barWidth / 2;
 
 			new Notify({
-				type: 'error',
+				intent: 'danger',
 				content: 'FUEL',
 				x: fuelBarCenter,
 				y: 40,
@@ -69,7 +69,7 @@ function checkResourceAlerts(player) {
 			const healthBarCenter = startX + barWidth / 2;
 
 			new Notify({
-				type: 'error',
+				intent: 'danger',
 				content: 'HEALTH',
 				x: healthBarCenter,
 				y: 40,
@@ -93,7 +93,7 @@ function checkResourceAlerts(player) {
 			const cargoBarCenter = startX + barWidth * 2 + barWidth / 2;
 
 			new Notify({
-				type: 'error',
+				intent: 'danger',
 				content: 'CARGO',
 				x: cargoBarCenter,
 				y: 40,
@@ -303,7 +303,7 @@ export function setupEventRouter() {
 		clearMovementState(data.playerId);
 
 		if (data.playerId === gameContext.playerId) {
-			new Notify({ type: 'error', content: data.reason || 'Cannot move there', timeout: 2000 });
+			new Notify({ intent: 'danger', content: data.reason || 'Cannot move there', timeout: 2000 });
 		}
 	});
 
@@ -311,7 +311,7 @@ export function setupEventRouter() {
 		clearMovementState(data.playerId);
 
 		if (data.playerId === gameContext.playerId) {
-			new Notify({ type: 'warning', content: data.reason || 'Path blocked', timeout: 2000 });
+			new Notify({ intent: 'warning', content: data.reason || 'Path blocked', timeout: 2000 });
 		}
 	});
 
@@ -324,7 +324,7 @@ export function setupEventRouter() {
 		if (data.playerId === gameContext.playerId) {
 			const reasons = { no_fuel: 'Out of fuel', no_health: 'Hull breached' };
 			const notify = () =>
-				new Notify({ type: 'warning', content: reasons[data.reason] || 'Movement interrupted', timeout: 2000 });
+				new Notify({ intent: 'warning', content: reasons[data.reason] || 'Movement interrupted', timeout: 2000 });
 
 			// The stranded-pod lifeline the migration dropped; its toast follows it, so it stacks clear of the dialog
 			if (reasons[data.reason]) {
@@ -340,7 +340,7 @@ export function setupEventRouter() {
 		clearMovementState(data.playerId);
 
 		if (data.playerId === gameContext.playerId) {
-			new Notify({ type: 'error', content: data.error || 'Movement failed', timeout: 2000 });
+			new Notify({ intent: 'danger', content: data.error || 'Movement failed', timeout: 2000 });
 		}
 	});
 
@@ -382,7 +382,7 @@ export function setupEventRouter() {
 		}
 
 		if (data.playerId === gameContext.playerId) {
-			new Notify({ type: 'success', content: 'Thank you!', timeout: 1000 });
+			new Notify({ intent: 'success', content: 'Thank you!', timeout: 1000 });
 
 			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
 				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
@@ -390,7 +390,7 @@ export function setupEventRouter() {
 
 			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
 		} else {
-			new Notify({ type: 'info', content: `Transporting to ${data.world}...`, timeout: 2000 });
+			new Notify({ intent: 'info', content: `Transporting to ${data.world}...`, timeout: 2000 });
 		}
 
 		if (gameContext.openDialog?.elem?.open) {
@@ -463,7 +463,7 @@ export function setupEventRouter() {
 
 		gameContext.sounds.psykick_attack.play({ volume: gameContext.volume.effects * 0.7 });
 		new Notify({
-			type: 'success',
+			intent: 'success',
 			content: `Submitted ${data.count} psykick egg${data.count > 1 ? 's' : ''} to the endgame hunt!`,
 			timeout: 2000,
 		});
@@ -494,7 +494,7 @@ export function setupEventRouter() {
 			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
 		);
 		gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
-		new Notify({ type: 'success', content, timeout });
+		new Notify({ intent: 'success', content, timeout });
 	};
 
 	router.on('spacecoSell', data => {
@@ -568,7 +568,7 @@ export function setupEventRouter() {
 		[...Array(randInt(1, Math.min(50, Math.max(2, data.sellValue))))].forEach((_, index) =>
 			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(50, 90)),
 		);
-		new Notify({ type: 'success', content: `Sold for $${data.sellValue}!`, timeout: 1500 });
+		new Notify({ intent: 'success', content: `Sold for $${data.sellValue}!`, timeout: 1500 });
 		gameContext.spaceco.dialog.options.view = 'shop_Player';
 	});
 
@@ -740,7 +740,7 @@ export function setupEventRouter() {
 
 	router.on('alien_message', data => {
 		if (data.targetPlayerId === gameContext.playerId) {
-			new Notify({ type: 'info', textContent: `Alien ${data.name} says: ${data.message}`, timeout: 3000 });
+			new Notify({ intent: 'info', textContent: `Alien ${data.name} says: ${data.message}`, timeout: 3000 });
 		}
 	});
 
@@ -811,7 +811,7 @@ export function setupEventRouter() {
 
 			if (totalMinerals > 0 || totalItems > 0) {
 				new Notify({
-					type: 'success',
+					intent: 'success',
 					content: `Implosion collected: ${totalMinerals} minerals, ${totalItems} items`,
 					timeout: 3000,
 				});
@@ -839,7 +839,7 @@ export function setupEventRouter() {
 
 			if (data.playerId === gameContext.playerId) {
 				new Notify({
-					type: 'warning',
+					intent: 'warning',
 					content: 'Byzanium released gas when stressed!',
 					timeout: 2000,
 				});
@@ -849,7 +849,7 @@ export function setupEventRouter() {
 
 			if (data.playerId === gameContext.playerId) {
 				new Notify({
-					type: 'error',
+					intent: 'danger',
 					content: 'Adamantite destabilizing...',
 					timeout: 1500,
 				});
@@ -859,7 +859,7 @@ export function setupEventRouter() {
 
 			if (data.playerId === gameContext.playerId) {
 				new Notify({
-					type: 'error',
+					intent: 'danger',
 					content: 'Adamantite exploded!',
 					timeout: 2000,
 				});
@@ -888,7 +888,7 @@ export function setupEventRouter() {
 			});
 
 			new Notify({
-				type: 'info',
+				intent: 'info',
 				content: `Trade session started with ${player2Name}`,
 				timeout: 3000,
 			});
@@ -896,7 +896,7 @@ export function setupEventRouter() {
 			gameContext.pendingTradeInvitation = trade;
 
 			new Notify({
-				type: 'info',
+				intent: 'info',
 				content: `${player1Name} wants to trade! Press their Trade button to accept.`,
 				timeout: 5000,
 			});
@@ -919,7 +919,7 @@ export function setupEventRouter() {
 			if (updatedBy !== gameContext.playerId) {
 				const otherPlayerName = gameContext.openDialog.otherPlayer.name;
 				new Notify({
-					type: 'info',
+					intent: 'info',
 					content: `${otherPlayerName} updated their offer`,
 					timeout: 2000,
 				});
@@ -941,7 +941,7 @@ export function setupEventRouter() {
 			if (playerId !== gameContext.playerId) {
 				const otherPlayerName = gameContext.openDialog.otherPlayer.name;
 				new Notify({
-					type: 'success',
+					intent: 'success',
 					content: `${otherPlayerName} accepted the trade!`,
 					timeout: 2000,
 				});
@@ -959,7 +959,7 @@ export function setupEventRouter() {
 			}));
 
 			new Notify({
-				type: 'success',
+				intent: 'success',
 				content: 'Trade completed successfully!',
 				timeout: 3000,
 			});
@@ -970,7 +970,7 @@ export function setupEventRouter() {
 			}));
 
 			new Notify({
-				type: 'success',
+				intent: 'success',
 				content: 'Trade completed successfully!',
 				timeout: 3000,
 			});
@@ -1003,7 +1003,7 @@ export function setupEventRouter() {
 
 		if (player1Id === gameContext.playerId || player2Id === gameContext.playerId) {
 			new Notify({
-				type: 'error',
+				intent: 'danger',
 				content: `Trade failed: ${error}`,
 				timeout: 4000,
 			});
@@ -1019,13 +1019,13 @@ export function setupEventRouter() {
 
 		if (cancelledBy === gameContext.playerId) {
 			new Notify({
-				type: 'info',
+				intent: 'info',
 				content: 'You cancelled the trade',
 				timeout: 2000,
 			});
 		} else if (player1Id === gameContext.playerId || player2Id === gameContext.playerId) {
 			new Notify({
-				type: 'warning',
+				intent: 'warning',
 				content: 'Trade was cancelled',
 				timeout: 3000,
 			});

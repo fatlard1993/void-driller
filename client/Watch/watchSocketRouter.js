@@ -173,7 +173,7 @@ const handleWorldUpdate = data => {
 	if (data.update === 'alien_attack') {
 		const player = gameContext.serverState.players.find(p => p.id === data.targetPlayerId);
 		if (player) {
-			scene.showAlert(`Alien attack!`, 'error', data.targetPlayerId);
+			scene.showAlert(`Alien attack!`, 'danger', data.targetPlayerId);
 		}
 	} else if (data.update === 'explodeBomb' || data.update === 'explodeImplosion') {
 		// Explosions don't have a specific player position

@@ -4251,8 +4251,6 @@ export default class Game extends BaseGame {
 	}
 
 	applyGroundMiningEffects(position, groundType, playerId) {
-		const { chance } = require('../utils');
-
 		// Green ground (byzanium) - can release gas when stressed
 		if (groundType === 'green') {
 			// 12% chance of releasing gas when mined

@@ -1,5 +1,4 @@
-import { Elem, writeStorage } from '@vanilla-bean/components';
-import { GET } from '@vanilla-bean/hypertether';
+import { Elem, GET, writeStorage } from '@vanilla-bean/components';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
@@ -31,7 +30,7 @@ export default class BriefingDialog extends BaseDialog {
 
 		if (!helpFile.response.ok) {
 			new Notify({
-				type: 'error',
+				intent: 'danger',
 				content:
 					'Briefing data corrupted. Your mission is now officially "wing it" until further notice. (Try reloading.)',
 			});

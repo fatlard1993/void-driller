@@ -1,4 +1,4 @@
-import { POST } from '@vanilla-bean/hypertether';
+import { POST } from '@vanilla-bean/components';
 
 import gameContext from '../shared/gameContext';
 

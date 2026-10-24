@@ -15,24 +15,12 @@ appendStyles(`
 export default class Notify extends styled(
 	BaseNotify,
 	({ colors, space }) => `
-		/* A tiny cut, the toast's border carried across it in the color of its type */
+		/* A tiny cut, the toast's border carried across it in the color of its intent */
 		${cutCornerEdgeStyles('br', space.sm, 'var(--toast-edge)')}
 
-		&.info {
-			--toast-edge: ${colors.light(colors.blue)};
-		}
-
-		&.success {
-			--toast-edge: ${colors.light(colors.green)};
-		}
-
-		&.warning {
-			--toast-edge: ${colors.light(colors.yellow)};
-		}
-
-		&.error {
-			--toast-edge: ${colors.light(colors.red)};
-		}
+		${['info', 'success', 'warning', 'danger']
+			.map(intent => `&.intent-${intent} { --toast-edge: ${colors.light(colors[intent])}; }`)
+			.join('\n')}
 	`,
 ) {
 	constructor(options) {

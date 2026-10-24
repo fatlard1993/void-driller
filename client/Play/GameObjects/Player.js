@@ -154,12 +154,12 @@ export class Player extends Drill {
 						// If error is "already have active trade", try to cancel and retry
 						if (error.message?.includes('already have an active trade')) {
 							new Notify({
-								type: 'warning',
+								intent: 'warning',
 								content: 'Previous trade still active. Please close it first.',
 							});
 						} else {
 							new Notify({
-								type: 'error',
+								intent: 'danger',
 								content: error.message || 'Failed to start trade',
 							});
 						}

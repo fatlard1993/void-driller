@@ -1958,7 +1958,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 											await spacecoBuyTransport({ world: key });
 										} catch (error) {
 											console.error('Transport failed:', error);
-											new Notify({ type: 'error', content: 'Transport failed. Please try again.', timeout: 3000 });
+											new Notify({ intent: 'danger', content: 'Transport failed. Please try again.', timeout: 3000 });
 										}
 									},
 									disabled: locked,

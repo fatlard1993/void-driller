@@ -1,5 +1,4 @@
-import { Button, styled } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
+import { Button, failureReason, styled } from '@vanilla-bean/components';
 
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import { ExitDialog } from '@fatlard1993/web-game-framework/ui/GameRoom';
@@ -80,7 +79,7 @@ export default class Play extends View {
 		this.game = await getGame(gameContext.gameId);
 
 		if (this.game.status === 'error') {
-			new Notify({ type: 'error', content: failureReason(this.game) });
+			new Notify({ intent: 'danger', content: failureReason(this.game) });
 
 			localStorage.removeItem(this.options.gameId);
 

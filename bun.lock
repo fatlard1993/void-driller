@@ -5,9 +5,8 @@
     "": {
       "name": "void-driller",
       "dependencies": {
-        "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#bb92658",
-        "@vanilla-bean/components": "^6.3.0",
-        "@vanilla-bean/hypertether": "^1.2.0",
+        "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#3bf1e94",
+        "@vanilla-bean/components": "^7.0.0",
         "argi-cli": "^1.0.0",
         "augmented-ui": "^2.0.0",
         "emoji-js": "^3.9.0",
@@ -68,7 +67,7 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.7.2", "", { "dependencies": { "@eslint/core": "^1.2.1", "levn": "^0.4.1" } }, "sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A=="],
 
-    "@fatlard1993/web-game-framework": ["@fatlard1993/web-game-framework@github:fatlard1993/web-game-framework#bb92658", { "dependencies": { "lowdb": "^7.0.1", "nanoid": "^6.0.0", "qrcode": "^1.5.4" }, "peerDependencies": { "@vanilla-bean/components": "^6.0.0", "@vanilla-bean/hypertether": "^1.2.0" } }, "fatlard1993-web-game-framework-bb92658", "sha512-p/d4/z7LNcoci59hRNfyP+Il0686/p20SqS49QYsZ51D0cJsrOCMwd/AUfPzn2Rf4UGfyQo8CMcN4mBs7f+Y9w=="],
+    "@fatlard1993/web-game-framework": ["@fatlard1993/web-game-framework@github:fatlard1993/web-game-framework#3bf1e94", { "dependencies": { "lowdb": "^7.0.1", "nanoid": "^6.0.0", "qrcode": "^1.5.4" }, "peerDependencies": { "@vanilla-bean/components": "^7.0.0" } }, "fatlard1993-web-game-framework-3bf1e94", "sha512-zW8gqKOuQWJMiPw2cLhMqNPr6kVKHik3/MiD2TIZlZgkzcNTDRDadW2I2AIrX6iwOPJHlLn8MJtMrrDSkdmH6g=="],
 
     "@fontsource-variable/kode-mono": ["@fontsource-variable/kode-mono@5.2.8", "", {}, "sha512-X1O4RAIPyP4Vm8rVoKHirg3amVdE2XvIAQUvDRU17aCzSUz648/9w2KJafH1vK6g0uy7U8PrOCc1I11riXhHwQ=="],
 
@@ -126,7 +125,7 @@
 
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.62.0", "", { "dependencies": { "@typescript-eslint/types": "8.62.0", "eslint-visitor-keys": "^5.0.0" } }, "sha512-CY3uyFSRbcQv3nnSv8S0+lDftMVz6P963PoRlxrV7ew/Md564g9ut60PYzdLM5qW4jFn93GBF+Soi90ISAN+GQ=="],
 
-    "@vanilla-bean/components": ["@vanilla-bean/components@6.3.0", "", { "dependencies": { "@ctrl/tinycolor": "^4.2.0", "@fontsource-variable/kode-mono": "^5.2.8", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/hypertether": "^1.1.1", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "6" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "emoji-js": "^3.9.0", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "lowdb": "^7.0.1", "marked": ">=18" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "emoji-js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "lowdb", "marked"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-tbPNabNU9uH9YqGOVHHI+rM+VKhZkcB0xSKAKb2OIiwu+Rs0lq17J026onT3TUEok6+9ZgQLQZOYgZerLNokjw=="],
+    "@vanilla-bean/components": ["@vanilla-bean/components@7.0.0", "", { "dependencies": { "@ctrl/tinycolor": "^4.2.0", "@fontsource-variable/kode-mono": "^5.2.8", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/hypertether": "^1.2.0", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "6" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "emoji-js": "^3.9.0", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "lowdb": "^7.0.1", "marked": ">=18" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "emoji-js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "lowdb", "marked"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-sTkQBT98K+TcQfhu5gQzPS02w+MMb5MuRrrtD9ZpD0pLNvB9u61uYxWQqmV2rDKKK8zmyRKLAF2Pc+aFdS8Rag=="],
 
     "@vanilla-bean/hypertether": ["@vanilla-bean/hypertether@1.2.0", "", {}, "sha512-f1x+J46+lpEKuZbgWkleG9Wb3FiqcYI3xo+lmedc7rw+lhWL2/YkufYU5wFO/7ayUAfF0eogXVyEUyOVKfxpow=="],
 
