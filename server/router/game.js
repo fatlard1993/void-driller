@@ -1,6 +1,11 @@
 import { requestMatch } from '@vanilla-bean/components/app';
 import { serverLog, gameLog, playerLog } from '../../utils/logger.js';
-import { getScaledServiceCosts } from '../../utils/pricing.js';
+
+// A game method's answer as a response: a refusal carries its reason
+const respond = result =>
+	result?.success === false
+		? Response.json({ message: result.error }, { status: 400 })
+		: Response.json({}, { status: 200 });
 
 const parseRequestBody = async request => {
 	try {
@@ -148,9 +153,7 @@ const _game = async (request, server) => {
 
 		if (error) return error;
 
-		server.games[gameId].spacecoSell(playerId);
-
-		return Response.json({}, { status: 200 });
+		return respond(server.games[gameId].spacecoSell(playerId));
 	}
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/refuel', request);
@@ -173,9 +176,7 @@ const _game = async (request, server) => {
 			return Response.json({ message: 'Invalid amount specified' }, { status: 400 });
 		}
 
-		server.games[gameId].spacecoRefuel(playerId, amount);
-
-		return Response.json({}, { status: 200 });
+		return respond(server.games[gameId].spacecoRefuel(playerId, amount));
 	}
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/repair', request);
@@ -265,18 +266,12 @@ const _game = async (request, server) => {
 
 		const { upgrade, type } = body;
 
-		const result = server.games[gameId].spacecoBuyUpgrade(playerId, upgrade, type);
-
-		if (result && !result.success) {
-			return Response.json({ message: result.error }, { status: 400 });
-		}
-
-		return Response.json({}, { status: 200 });
+		return respond(server.games[gameId].spacecoBuyUpgrade(playerId, upgrade, type));
 	}
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/rescue', request);
 	if (match) {
-		const { game, gameId, playerId, error } = validateGameMatch(match, server, request);
+		const { gameId, playerId, error } = validateGameMatch(match, server, request);
 
 		if (error) return error;
 
@@ -285,7 +280,7 @@ const _game = async (request, server) => {
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/transport', request);
 	if (match) {
-		const { game, gameId, playerId, error } = validateGameMatch(match, server, request);
+		const { gameId, playerId, error } = validateGameMatch(match, server, request);
 
 		if (error) return error;
 
@@ -294,48 +289,12 @@ const _game = async (request, server) => {
 
 		const { world } = body;
 
-		// Validate world exists
 		if (!world || typeof world !== 'string') {
-			serverLog.warning('Validation: Invalid world selection', {
-				gameId,
-				playerId,
-				world,
-				worldType: typeof world,
-			});
 			return Response.json({ message: 'Invalid world selection for transport request.' }, { status: 400 });
-		}
-		const player = game.players.get(playerId);
-		const targetWorld = Object.keys(game.world.transports).find(w => w === world);
-
-		if (!targetWorld) {
-			return Response.json({ message: 'Requested destination not available from current asteroid.' }, { status: 400 });
-		}
-
-		const transportCost = Math.floor(game.world.transports[world].price * (1.0 + game.world.spaceco.xp / 200000));
-
-		if (player.credits < transportCost) {
-			return Response.json(
-				{ message: `Insufficient credits for transport. Required: ${transportCost}, Available: ${player.credits}` },
-				{ status: 400 },
-			);
-		}
-
-		// Check requirements
-		const requirementsMet = game.world.transports[world].requirements.every(([requirementType, amount]) => {
-			if (requirementType === 'xp') {
-				return game.world.spaceco.xp >= amount;
-			} else {
-				return (game.world.spaceco.hull[requirementType] || 0) >= amount;
-			}
-		});
-
-		if (!requirementsMet) {
-			return Response.json({ message: 'Transport requirements not met for selected destination.' }, { status: 400 });
 		}
 
 		try {
-			server.games[gameId].spacecoBuyTransport(playerId, world);
-			return Response.json({}, { status: 200 });
+			return respond(server.games[gameId].spacecoBuyTransport(playerId, world));
 		} catch (transportError) {
 			gameLog.error('Transport error', { playerId, gameId, error: transportError.message });
 			return Response.json({ message: 'Transport system malfunction. Please try again.' }, { status: 500 });
@@ -344,23 +303,12 @@ const _game = async (request, server) => {
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/resupply', request);
 	if (match) {
-		const { game, gameId, playerId, error } = validateGameMatch(match, server, request);
+		const { gameId, playerId, error } = validateGameMatch(match, server, request);
 
 		if (error) return error;
 
-		const player = game.players.get(playerId);
-		const resupplyCost = Math.floor(game.world.transportPrice * 0.9);
-
-		if (player.credits < resupplyCost) {
-			return Response.json(
-				{ message: `Insufficient credits for resupply. Required: ${resupplyCost}, Available: ${player.credits}` },
-				{ status: 400 },
-			);
-		}
-
 		try {
-			server.games[gameId].spacecoResupply(playerId);
-			return Response.json({}, { status: 200 });
+			return respond(server.games[gameId].spacecoResupply(playerId));
 		} catch (resupplyError) {
 			gameLog.error('Resupply error', { playerId, gameId, error: resupplyError.message });
 			return Response.json({ message: 'Resupply system malfunction. Please try again.' }, { status: 500 });
@@ -587,8 +535,7 @@ const _game = async (request, server) => {
 		}
 
 		try {
-			server.games[gameId].disarmBomb(playerId, { x, y });
-			return Response.json({}, { status: 200 });
+			return respond(server.games[gameId].disarmBomb(playerId, { x, y }));
 		} catch (disarmError) {
 			gameLog.error('Bomb disarm error', { playerId, gameId, position: { x, y }, error: disarmError.message });
 			return Response.json({ message: 'Bomb disarm system error. Please try again.' }, { status: 500 });
@@ -609,8 +556,7 @@ const _game = async (request, server) => {
 		}
 
 		try {
-			server.games[gameId].deactivateTeleporter(playerId, { x, y });
-			return Response.json({}, { status: 200 });
+			return respond(server.games[gameId].deactivateTeleporter(playerId, { x, y }));
 		} catch (deactivateError) {
 			gameLog.error('Teleporter deactivate error', {
 				playerId,
