@@ -4,7 +4,7 @@ Out here on the edge of civilization, the asteroid belt is full of rocks no sane
 
 You're the pilot of a heavily modified drilling rig, newly assigned to SpaceCo's Deep Belt Initiative. Your job: mine, survive, and turn a profit in the cold dark void. It's dangerous work, but the pay _might_ be worth it.
 
-As you work, you'll earn **Pension Credits** - SpaceCo's version of a retirement fund. Every mineral sale, equipment purchase, and service transaction adds to your pension. Stack enough and you might just afford that retirement colony with actual atmosphere and synthetic gravity.
+As you work, you'll earn **Pension Credits** - SpaceCo's version of a retirement fund. Equipment purchases, transports and achievements add to your pension; every sale grows SpaceCo's own **Galactic Market Share**. Stack enough and you might just afford that retirement colony with actual atmosphere and synthetic gravity.
 
 You'll begin at a SpaceCo outpost, equipped with just enough to get started. Check your console, scan for minerals, and start drilling.
 
@@ -38,9 +38,9 @@ You can change which tab opens by default in the **Settings** menu - useful if y
 
 Accessible from the **player console**:
 
-- **Volume controls** for music, effects, and ambient sounds
+- **Volume controls** for music, briefings, alerts, interfaces and effects
 - **Alerts** for low fuel, cargo full, or low health
-- **Startup Menu** to choose which submenu opens when you join
+- **Default Console Menu** to choose which submenu opens with the console
 
 ## ⛏️ Mining
 
@@ -80,7 +80,7 @@ SpaceCo operations include a comprehensive inventory system for equipment manage
 
 ### **Inventory Slots**
 
-Your rig has limited storage slots for items (separate from mineral cargo). Base vehicles start with 8 slots, expanding up to 24 slots with advanced vehicles. Parts can add significant additional inventory space.
+Your rig has limited storage slots for items (separate from mineral cargo). Base vehicles start with 6 slots, expanding up to 18 slots with advanced vehicles. Storage parts add 4 or 8 more.
 
 ### **Item Categories**
 
@@ -94,7 +94,7 @@ Items can be used from your **console inventory** and include:
 
 ### **Transport Insurance**
 
-SpaceCo's transport insurance (15 credits per use) protects your entire inventory during inter-asteroid travel. Without insurance, you keep credits and minerals but lose all items during transport. Essential for preserving valuable equipment when moving to new extraction sites.
+SpaceCo's transport insurance (15 credits, rising with SpaceCo's market share) protects your entire inventory during inter-asteroid travel. Without insurance, you keep credits and minerals but lose all items during transport. Essential for preserving valuable equipment when moving to new extraction sites.
 
 ## ☢️ Hazards & Survival
 
@@ -111,8 +111,8 @@ If you **run out of fuel or health**, your vehicle becomes immobile. Options inc
 
 - **SpaceCo Remote Rescue:** Costly teleport service (rates scale with SpaceCo development)
 - **Emergency Items:** Use teleporters or other escape tools
-- **Player Rescue:** In multiplayer, other contractors can assist
-- **Abandon Mission:** Start over with basic equipment on the same asteroid
+- **Player Rescue:** In multiplayer, other contractors can trade you fuel or nanites
+- **Abort Contract:** Leave the operation and rejoin as a new contractor
 
 If you **run out of cargo space**, you cannot drill new rock and must return to sell minerals.
 
@@ -144,14 +144,14 @@ Deeper excavation increases the frequency of pure mineral discoveries.
 | Name | Color | Strength | Value | Description |
 | --- | --- | --- | --- | --- |
 | Tritanium | White | 1 | 6 | Common crystalline deposits found in surface layers. |
-| Duranium | Orange | 2 | 9 | Durable base metal with high thermal resistance. |
+| Duranium | Orange | 2 | 9 | Dense metallic ore with high thermal resistance. |
 | Pentrilium | Yellow | 3 | 12 | Sought-after for its refined luster and solid resale margin. |
-| Byzanium | Green | 4 | 18 | Can be unstable when stressed, but the payout is worth it. |
-| Etherium | Teal | 5 | 22 | Suspended in layered veins, unnervingly quiet when struck. |
+| Byzanium | Green | 4 | 18 | Can be unstable when stressed, but the payout is worth the worry. |
+| Etherium | Teal | 5 | 22 | Suspended in layered veins, it's unnervingly quiet when struck. |
 | Mithril | Blue | 6 | 26 | Elusive and glossy - hard to find, harder to let go. |
 | Octanium | Purple | 7 | 30 | Its fractal structure resists most drills. Found deep. |
 | Saronite | Pink | 8 | 34 | Pulsates under low-light conditions. You're not imagining it. |
-| Adamantite | Red | 9 | 38 | Visible in early fields, but impossible to extract without serious upgrades. |
+| Adamantite | Red | 9 | 38 | Radiates faint heat. Dense enough to warp drills, unstable enough to warrant serious upgrades. |
 | Quadium | Black | 10 | 42 | Rare obsidian-like crystals that seem to absorb light. |
 
 **Note:** Black quadium appears commonly in early levels but requires the strongest drills (T10+) to extract, creating an interesting risk/reward dynamic.
@@ -196,7 +196,7 @@ SpaceCo tracks contractor performance through two achievement categories:
 Track individual milestones and reward **Pension Credits**, credits, and sometimes items:
 
 - **First Experiences:** Initial game actions and discoveries
-- **Progression Milestones:** Level unlocks, equipment advancement, exploration depth
+- **Progression Milestones:** Equipment advancement, exploration depth, asteroids visited
 - **Economic Achievements:** Sales volume, purchase history, trade activity
 - **Operational Achievements:** Service usage, equipment utilization, survival records
 - **Encounter Achievements:** Environmental life contact, hazard survival

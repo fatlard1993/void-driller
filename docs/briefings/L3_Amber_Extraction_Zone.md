@@ -6,13 +6,13 @@ Excellent progress, contractor.
 
 Your performance in Surface Prospects earned you an 18% efficiency commendation and only two "minor incident" reports, which puts you well ahead of the curve. The insurance actuaries have upgraded your risk assessment from "probable total loss" to "acceptable liability exposure."
 
-Welcome to the Amber Extraction Zone, where the real mining begins. This asteroid cluster shows dense pentrilium concentrations throughout its accessible layers, with promising byzanium signatures at extreme depth. The geological profile here is more complex than previous assignments - expect varied mineral composition and enhanced thermal activity.
+Welcome to the Amber Extraction Zone, where the real mining begins. This asteroid cluster shows dense pentrilium concentrations throughout its accessible layers, with duranium seams threaded through the lower layers. The geological profile here is more complex than previous assignments - expect varied mineral composition and enhanced thermal activity.
 
-> [!WARNING] Amber Extraction Zone features unstable rock formations and increased hazard density. Advanced teleportation equipment is recommended for emergency situations.
+> [!WARNING] Amber Extraction Zone features unstable rock formations and increased hazard density. Keep a SpaceCo teleporter aboard for emergency situations.
 
 The pentrilium deposits here run exceptionally pure, with mineral formations appearing more frequently than standard distribution models predict. Our geological survey team describes the mineral density as "suspiciously abundant" and "probably fine, probably."
 
-> [!IMPORTANT] Your outpost now stocks basic explosive devices for terrain modification. Timed charges can clear blocked passages and create strategic mining routes.
+> [!IMPORTANT] Your outpost now stocks repair nanites and emergency teleporters. Field repairs keep a rig working between visits to the surface.
 
 Equipment recommendations include upgrading to mid-tier drilling systems and enhanced cargo capacity. The deeper pentrilium veins require stronger bore bits, and the increased payload will strain basic transport systems.
 

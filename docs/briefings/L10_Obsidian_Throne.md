@@ -4,7 +4,7 @@
 
 Contractor performance evaluation data has been integrated into centralized databases for review by administrative oversight.
 
-Geological surveys indicate dense quadium concentrations throughout accessible formations, representing the highest-value mineral deposits identified within operational parameters.
+Geological surveys indicate dense adamantite formations throughout, veined with quadium: the highest-value mineral deposits identified within operational parameters.
 
 > [!IMPORTANT] Advanced dimensional manipulation devices have been authorized for operational deployment. These systems utilize sophisticated matter displacement principles for maximum excavation efficiency and optimal mineral acquisition results.
 
