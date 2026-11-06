@@ -1,6 +1,5 @@
-import { POST } from '@vanilla-bean/components';
-
 import gameContext from '../shared/gameContext';
+import { post } from './request';
 
 const apiContext = {
 	get gameId() {
@@ -12,7 +11,7 @@ const apiContext = {
 };
 
 export const playerMove = async ({ path }, options) =>
-	await POST('/games/:gameId/:playerId/move', {
+	await post('/games/:gameId/:playerId/move', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { path },
@@ -20,14 +19,14 @@ export const playerMove = async ({ path }, options) =>
 	});
 
 export const spacecoSell = async options =>
-	await POST('/games/:gameId/:playerId/spaceco/sell', {
+	await post('/games/:gameId/:playerId/spaceco/sell', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		...options,
 	});
 
 export const spacecoRefuel = async ({ amount } = {}, options) =>
-	await POST('/games/:gameId/:playerId/spaceco/refuel', {
+	await post('/games/:gameId/:playerId/spaceco/refuel', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { amount },
@@ -35,7 +34,7 @@ export const spacecoRefuel = async ({ amount } = {}, options) =>
 	});
 
 export const spacecoRepair = async ({ amount, type }, options) =>
-	await POST('/games/:gameId/:playerId/spaceco/repair', {
+	await post('/games/:gameId/:playerId/spaceco/repair', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { amount, type },
@@ -43,7 +42,7 @@ export const spacecoRepair = async ({ amount, type }, options) =>
 	});
 
 export const spacecoBuyItem = async ({ item, count = 1 }, options) =>
-	await POST('/games/:gameId/:playerId/spaceco/item', {
+	await post('/games/:gameId/:playerId/spaceco/item', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { item, count },
@@ -51,7 +50,7 @@ export const spacecoBuyItem = async ({ item, count = 1 }, options) =>
 	});
 
 export const spacecoSellItem = async ({ item, count = 1 }, options) =>
-	await POST('/games/:gameId/:playerId/spaceco/sellitem', {
+	await post('/games/:gameId/:playerId/spaceco/sellitem', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { item, count },
@@ -59,7 +58,7 @@ export const spacecoSellItem = async ({ item, count = 1 }, options) =>
 	});
 
 export const spacecoBuyUpgrade = async ({ upgrade, type }, options) =>
-	await POST('/games/:gameId/:playerId/spaceco/upgrade', {
+	await post('/games/:gameId/:playerId/spaceco/upgrade', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { upgrade, type },
@@ -67,14 +66,14 @@ export const spacecoBuyUpgrade = async ({ upgrade, type }, options) =>
 	});
 
 export const spacecoBuyRescue = async options =>
-	await POST('/games/:gameId/:playerId/spaceco/rescue', {
+	await post('/games/:gameId/:playerId/spaceco/rescue', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		...options,
 	});
 
 export const spacecoBuyTransport = async ({ world }, options) =>
-	await POST('/games/:gameId/:playerId/spaceco/transport', {
+	await post('/games/:gameId/:playerId/spaceco/transport', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { world },
@@ -82,14 +81,14 @@ export const spacecoBuyTransport = async ({ world }, options) =>
 	});
 
 export const spacecoResupply = async options =>
-	await POST('/games/:gameId/:playerId/spaceco/resupply', {
+	await post('/games/:gameId/:playerId/spaceco/resupply', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		...options,
 	});
 
 export const useItem = async ({ item }, options) =>
-	await POST('/games/:gameId/:playerId/useItem', {
+	await post('/games/:gameId/:playerId/useItem', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { item },
@@ -97,14 +96,14 @@ export const useItem = async ({ item }, options) =>
 	});
 
 export const repairPlayerPosition = async (playerId, options) =>
-	await POST('/games/:gameId/:playerId/repair-position', {
+	await post('/games/:gameId/:playerId/repair-position', {
 		invalidates: ['games'],
 		urlParameters: { ...apiContext, playerId },
 		...options,
 	});
 
 export const disarmBomb = async ({ x, y }, options) =>
-	await POST('/games/:gameId/:playerId/disarm-bomb', {
+	await post('/games/:gameId/:playerId/disarm-bomb', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { x, y },
@@ -112,7 +111,7 @@ export const disarmBomb = async ({ x, y }, options) =>
 	});
 
 export const deactivateTeleporter = async ({ x, y }, options) =>
-	await POST('/games/:gameId/:playerId/deactivate-teleporter', {
+	await post('/games/:gameId/:playerId/deactivate-teleporter', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { x, y },

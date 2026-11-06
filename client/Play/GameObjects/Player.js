@@ -6,7 +6,6 @@ import { gridToPxPosition, getSurroundingRadius } from '../../../utils';
 import gameContext from '../../shared/gameContext';
 import TradeDialog from '../TradeDialog';
 import { disarmBomb, deactivateTeleporter, initiateTrade } from '../../api';
-import Notify from '../../shared/Notify';
 import { Drill } from './Drill';
 import { TradeTag } from './TradeTag';
 
@@ -128,7 +127,7 @@ export class Player extends Drill {
 
 		this.tradeButton = new TradeTag(this.scene);
 
-		this.tradeButton.on('pointerdown', async () => {
+		this.tradeButton.on('pointerdown', () => {
 			if (!gameContext.openDialog) {
 				// Check if there's a pending trade invitation with this player
 				const pendingTrade = gameContext.pendingTradeInvitation;
@@ -145,25 +144,8 @@ export class Player extends Drill {
 					// Clear the pending invitation
 					gameContext.pendingTradeInvitation = null;
 				} else {
-					// Start a new trade session
-					try {
-						await initiateTrade({ targetPlayerId: targetPlayer.id });
-						// Dialog will open automatically via socket event for initiator
-					} catch (error) {
-						console.error('Trade initiation error:', error);
-						// If error is "already have active trade", try to cancel and retry
-						if (error.message?.includes('already have an active trade')) {
-							new Notify({
-								intent: 'warning',
-								content: 'Previous trade still active. Please close it first.',
-							});
-						} else {
-							new Notify({
-								intent: 'danger',
-								content: error.message || 'Failed to start trade',
-							});
-						}
-					}
+					// The dialog opens on the tradeSessionStarted event
+					initiateTrade({ targetPlayerId: targetPlayer.id });
 				}
 			}
 		});

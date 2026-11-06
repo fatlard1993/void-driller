@@ -1,5 +1,5 @@
-import { POST, DELETE } from '@vanilla-bean/components';
 import gameContext from '../shared/gameContext';
+import { post, del } from './request';
 
 const apiContext = {
 	get gameId() {
@@ -11,7 +11,7 @@ const apiContext = {
 };
 
 export const initiateTrade = async ({ targetPlayerId }, options) =>
-	await POST('/games/:gameId/:playerId/trade', {
+	await post('/games/:gameId/:playerId/trade', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { targetPlayerId },
@@ -19,7 +19,7 @@ export const initiateTrade = async ({ targetPlayerId }, options) =>
 	});
 
 export const updateTradeOffer = async ({ tradeId, offer }, options) =>
-	await POST('/games/:gameId/:playerId/trade/:tradeId/offer', {
+	await post('/games/:gameId/:playerId/trade/:tradeId/offer', {
 		invalidates: ['games'],
 		urlParameters: { ...apiContext, tradeId },
 		body: { offer },
@@ -27,14 +27,14 @@ export const updateTradeOffer = async ({ tradeId, offer }, options) =>
 	});
 
 export const acceptTrade = async ({ tradeId }, options) =>
-	await POST('/games/:gameId/:playerId/trade/:tradeId/accept', {
+	await post('/games/:gameId/:playerId/trade/:tradeId/accept', {
 		invalidates: ['games'],
 		urlParameters: { ...apiContext, tradeId },
 		...options,
 	});
 
 export const cancelTrade = async ({ tradeId }, options) =>
-	await DELETE('/games/:gameId/:playerId/trade/:tradeId', {
+	await del('/games/:gameId/:playerId/trade/:tradeId', {
 		invalidates: ['games'],
 		urlParameters: { ...apiContext, tradeId },
 		...options,

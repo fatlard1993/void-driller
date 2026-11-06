@@ -45,8 +45,6 @@ import gameContext from '../shared/gameContext';
 import { inventoryItem } from '../shared/inventoryItem';
 import { drills, engines, items, minerals, parts, spacecoAchievements, vehicles, worlds } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
-import { spacecoLog } from '../../utils/logger.js';
-import Notify from '../shared/Notify';
 
 /**
  * Calculate trade-in discount for equipment upgrades
@@ -1647,16 +1645,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										background: theme.colors.purple,
 										color: 'white',
 									},
-									onPointerPress: async () => {
-										spacecoLog.info('Attempting to submit psykick egg:', key, 'count:', 1);
-										try {
-											const result = await spacecoSellItem({ item: key, count: 1 });
-											spacecoLog.info('Submit egg result:', result);
-										} catch (error) {
-											spacecoLog.error('Failed to submit egg:', error);
-											spacecoLog.error('Error details:', error.response?.data || error.message);
-										}
-									},
+									onPointerPress: () => spacecoSellItem({ item: key, count: 1 }),
 								}),
 								...(count > 1
 									? [
@@ -1667,16 +1656,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													background: theme.colors.dark(theme.colors.purple),
 													color: 'white',
 												},
-												onPointerPress: async () => {
-													spacecoLog.info('Attempting to submit all psykick eggs:', key, 'count:', count);
-													try {
-														const result = await spacecoSellItem({ item: key, count });
-														spacecoLog.info('Submit all eggs result:', result);
-													} catch (error) {
-														spacecoLog.error('Failed to submit eggs:', error);
-														spacecoLog.error('Error details:', error.response?.data || error.message);
-													}
-												},
+												onPointerPress: () => spacecoSellItem({ item: key, count }),
 											}),
 										]
 									: []),
@@ -1746,16 +1726,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													postText: ')',
 												}),
 											),
-											onPointerPress: async () => {
-												spacecoLog.info('Attempting to sell item:', key, 'count:', 1);
-												try {
-													const result = await spacecoSellItem({ item: key, count: 1 });
-													spacecoLog.info('Sell item result:', result);
-												} catch (error) {
-													spacecoLog.error('Failed to sell item:', error);
-													spacecoLog.error('Error details:', error.response?.data || error.message);
-												}
-											},
+											onPointerPress: () => spacecoSellItem({ item: key, count: 1 }),
 										}),
 										...(count > 1
 											? [
@@ -1771,16 +1742,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 																postText: ')',
 															}),
 														),
-														onPointerPress: async () => {
-															spacecoLog.info('Attempting to sell all items:', key, 'count:', count);
-															try {
-																const result = await spacecoSellItem({ item: key, count });
-																spacecoLog.info('Sell all items result:', result);
-															} catch (error) {
-																spacecoLog.error('Failed to sell items:', error);
-																spacecoLog.error('Error details:', error.response?.data || error.message);
-															}
-														},
+														onPointerPress: () => spacecoSellItem({ item: key, count }),
 													}),
 												]
 											: []),
@@ -1953,14 +1915,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Button({
 									content: `Buy Transport`,
 									style: { width: '100%' },
-									onPointerPress: async () => {
-										try {
-											await spacecoBuyTransport({ world: key });
-										} catch (error) {
-											console.error('Transport failed:', error);
-											new Notify({ intent: 'danger', content: 'Transport failed. Please try again.', timeout: 3000 });
-										}
-									},
+									onPointerPress: () => spacecoBuyTransport({ world: key }),
 									disabled: locked,
 								}),
 							],

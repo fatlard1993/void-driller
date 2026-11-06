@@ -17,8 +17,7 @@ import { updateTradeOffer, acceptTrade, cancelTrade } from '../api';
 import BaseDialog from '../shared/BaseDialog';
 import { subPanelOptions } from '../shared/frame';
 import gameContext from '../shared/gameContext';
-import { minerals, items } from '../../constants';
-import Notify from '../shared/Notify';
+import { minerals } from '../../constants';
 
 const TradeItemRow = styled.Component`
 	display: flex;
@@ -387,16 +386,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		});
 
 		// Rapid edits to the offer reach the server once they settle
-		this.sendOffer = debounce(async offer => {
-			try {
-				await updateTradeOffer({ tradeId: this.tradeSession.id, offer });
-			} catch (error) {
-				new Notify({
-					intent: 'danger',
-					content: error.message || 'Failed to update offer',
-				});
-			}
-		}, 500);
+		this.sendOffer = debounce(offer => updateTradeOffer({ tradeId: this.tradeSession.id, offer }), 500);
 
 		// Component references for updating
 		this.myOfferList = null;
@@ -456,17 +446,8 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			style: {
 				backgroundColor: this.iAccepted ? theme.colors.success : '',
 			},
-			onPointerPress: async () => {
-				if (!this.iAccepted) {
-					try {
-						await acceptTrade({ tradeId: this.tradeSession.id });
-					} catch (error) {
-						new Notify({
-							intent: 'danger',
-							content: error.message || 'Failed to accept trade',
-						});
-					}
-				}
+			onPointerPress: () => {
+				if (!this.iAccepted) acceptTrade({ tradeId: this.tradeSession.id });
 			},
 			disabled: this.iAccepted,
 		});
