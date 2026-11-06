@@ -1936,6 +1936,21 @@ function generateGeologicalFormations(world, worldConfig, asteroidShape, holePat
 		}
 	}
 }
+/**
+ * Rock somewhere in the ten cells above: a cave pocket rather than an open crater
+ * @param {object} world - The world being generated
+ * @param {number} x - Grid x
+ * @param {number} y - Grid y
+ * @returns {boolean} Whether the cell has a roof
+ */
+function hasRoof(world, x, y) {
+	for (let checkY = y - 1; checkY >= Math.max(0, y - 10); checkY--) {
+		if (world.grid[x]?.[checkY]?.terrain !== 'space') return true;
+	}
+
+	return false;
+}
+
 
 /**
  * Place aliens using budget system
@@ -1971,20 +1986,10 @@ function placeAliens(world, worldConfig) {
 				cell.terrain === 'space' &&
 				(!cell.hazards || cell.hazards.length === 0) &&
 				cellBelow &&
-				cellBelow.terrain !== 'space'
+				cellBelow.terrain !== 'space' &&
+				hasRoof(world, x, y)
 			) {
-				// Check for roof above (solid ground somewhere above within reasonable distance)
-				let hasRoof = false;
-				for (let checkY = y - 1; checkY >= Math.max(0, y - 10); checkY--) {
-					if (world.grid[x] && world.grid[x][checkY] && world.grid[x][checkY].terrain !== 'space') {
-						hasRoof = true;
-						break;
-					}
-				}
-
-				if (hasRoof) {
-					validLocations.push({ x, y });
-				}
+				validLocations.push({ x, y });
 			}
 		}
 	}
@@ -2116,16 +2121,8 @@ function placeItems(world, worldConfig) {
 			const cell = world.grid[x] && world.grid[x][y];
 			const cellBelow = world.grid[x] && world.grid[x][y + 1];
 
-			// Items should go in empty space cells that have ground support below them
-			if (
-				cell &&
-				cell.terrain !== 'space' &&
-				!cell.ground &&
-				y > world.airGap &&
-				cellBelow &&
-				cellBelow.terrain !== 'space' &&
-				cellBelow.ground
-			) {
+			// An open cell, under the surface, standing on ground with rock somewhere above
+			if (cell && !cell.ground?.type && y > world.airGap && cellBelow?.ground?.type && hasRoof(world, x, y)) {
 				validLocations.push({ x, y });
 			}
 		}
