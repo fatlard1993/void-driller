@@ -29,6 +29,11 @@ export class Card extends styled(
 		&.state-owned {
 			--card-edge: ${frameColor};
 		}
+
+		& .card-footer.buttons > button {
+			flex: 1;
+			min-width: 80px;
+		}
 	`,
 ) {
 	static schema = {
@@ -105,23 +110,10 @@ export class Card extends styled(
 						textAlign: 'center',
 					};
 
-			// Apply flex styles to footer buttons more idiomatically
-			let footerContent = this.options.footer;
-			if (this.options.footerButtons && Array.isArray(footerContent)) {
-				footerContent = footerContent.map(child => {
-					if (child.constructor.name === 'Button') {
-						return Object.assign(child, {
-							style: { ...child.style, flex: '1', minWidth: '80px' },
-						});
-					}
-					return child;
-				});
-			}
-
 			sections.push(
 				new Elem({
-					content: footerContent,
-					className: 'card-footer',
+					content: this.options.footer,
+					className: this.options.footerButtons ? 'card-footer buttons' : 'card-footer',
 					style: footerStyle,
 				}),
 			);
