@@ -91,9 +91,9 @@ function getSpacecoXp(amount, source) {
  */
 function getScaledAchievementReward(baseAmount, type, spacecoXp) {
 	if (type === 'credits') {
-		return Math.floor(baseAmount * (1 + spacecoXp / 50000)); // Up to 3x at 150k XP
+		return Math.floor(baseAmount * (1 + spacecoXp / 50000));
 	}
-	return baseAmount; // XP and items don't scale
+	return baseAmount;
 }
 
 export default class Game extends BaseGame {
@@ -297,8 +297,6 @@ export default class Game extends BaseGame {
 				});
 			}
 		});
-
-		this.save();
 	}
 
 	findValidSpawnPosition(world = null) {
@@ -3485,7 +3483,6 @@ export default class Game extends BaseGame {
 				player: player, // Include full player state with updated cargo
 			});
 
-			this.save();
 			return;
 		}
 
@@ -3505,7 +3502,6 @@ export default class Game extends BaseGame {
 
 			if (player.health > 0) this.broadcast('playerCantMove', { playerId, player: stopped });
 
-			this.save();
 			return;
 		}
 
@@ -3532,8 +3528,6 @@ export default class Game extends BaseGame {
 				finalPosition: player.position,
 				player: player, // Include full player state
 			});
-
-			this.save();
 		}
 	}
 
