@@ -975,22 +975,6 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('tradeFailed', data => {
-		const { error, player1Id, player2Id } = data;
-
-		if (player1Id === gameContext.playerId || player2Id === gameContext.playerId) {
-			new Notify({
-				intent: 'danger',
-				content: `Trade failed: ${error}`,
-				timeout: 4000,
-			});
-
-			if (gameContext.openDialog instanceof TradeDialog) {
-				gameContext.openDialog.close();
-			}
-		}
-	});
-
 	router.on('tradeCancelled', data => {
 		const { cancelledBy, player1Id, player2Id } = data;
 
