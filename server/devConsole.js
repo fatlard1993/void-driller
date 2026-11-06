@@ -7,7 +7,7 @@ export const handleDevCommand = async (command, server) => {
 		console.log('help         - Show this help');
 		console.log('stats        - Show server statistics');
 		console.log('stop/exit    - Stop server');
-		console.log('fuck         - Emergency failure detection & recovery');
+		console.log('fuck         - Check git, disk and the runtime; suggest recovery steps');
 		console.log('\n=== Game Data ===');
 		console.log('games        - List active games');
 		console.log('world        - Show world overview');
@@ -426,41 +426,9 @@ export const handleDevCommand = async (command, server) => {
 	if (command === 'fuck' || command === '/fuck') {
 		console.log('\n=== EMERGENCY FAILURE DETECTION & RECOVERY ===');
 
-		// 1. Check for zombie build processes
-		const zombieProcesses = [];
-		try {
-			const processes = Bun.spawnSync(['ps', 'aux']).stdout.toString().split('\n');
+		console.log(`✅ Serving on port ${server.port}`);
 
-			processes.forEach(line => {
-				if (line.includes('vbc-build') && !line.includes('grep')) {
-					const pid = line.trim().split(/\s+/)[1];
-					zombieProcesses.push({ pid, line: line.trim() });
-				}
-			});
-
-			if (zombieProcesses.length > 1) {
-				console.log(`🚨 PROBLEM DETECTED: ${zombieProcesses.length} zombie build processes found!`);
-				console.log('Killing excess build processes...');
-
-				// Keep only the most recent build process, kill the rest
-				const sortedProcesses = zombieProcesses.sort((a, b) => parseInt(b.pid) - parseInt(a.pid));
-
-				for (let i = 1; i < sortedProcesses.length; i++) {
-					try {
-						process.kill(parseInt(sortedProcesses[i].pid), 'SIGTERM');
-						console.log(`✅ Killed zombie process PID ${sortedProcesses[i].pid}`);
-					} catch (error) {
-						console.log(`❌ Failed to kill PID ${sortedProcesses[i].pid}: ${error.message}`);
-					}
-				}
-			} else {
-				console.log('✅ No zombie build processes detected');
-			}
-		} catch (error) {
-			console.log(`❌ Failed to check for zombie processes: ${error.message}`);
-		}
-
-		// 2. Check git status for uncommitted changes
+		// 1. Check git status for uncommitted changes
 		try {
 			const gitStatus = Bun.spawnSync(['git', 'status', '--porcelain']).stdout.toString().trim();
 
@@ -482,23 +450,7 @@ export const handleDevCommand = async (command, server) => {
 			console.log(`❌ Failed to check git status: ${error.message}`);
 		}
 
-		// 3. Check if main server is running
-		try {
-			const lsofResult = Bun.spawnSync(['lsof', '-i', `:${server.port}`])
-				.stdout.toString()
-				.trim();
-
-			if (!lsofResult) {
-				console.log(`🚨 PROBLEM DETECTED: Main server not running on port ${server.port}`);
-				console.log('💡 FIX: Run "bun run dev" to start the main server');
-			} else {
-				console.log(`✅ Main server running on port ${server.port}`);
-			}
-		} catch {
-			console.log(`⚠️  Could not check port ${server.port} status`);
-		}
-
-		// 4. Check disk space
+		// 2. Check disk space
 		try {
 			const dfResult = Bun.spawnSync(['df', '-h', '.']).stdout.toString().trim();
 			const lines = dfResult.split('\n');
@@ -520,14 +472,14 @@ export const handleDevCommand = async (command, server) => {
 			console.log(`❌ Failed to check disk space: ${error.message}`);
 		}
 
-		// 5. Check for common Node.js/Bun issues
+		// 3. Runtime
 		console.log('\n=== QUICK HEALTH CHECK ===');
 		console.log(`Bun version: ${Bun.version}`);
 		console.log(`Memory usage: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`);
 		console.log(`Uptime: ${Math.round(process.uptime())}s`);
 		console.log(`Active games: ${Object.keys(server.games).length}`);
 
-		// 6. Provide recovery suggestions
+		// 4. Provide recovery suggestions
 		console.log('\n=== SUGGESTED RECOVERY ACTIONS ===');
 		console.log('1. If build issues: ctrl+c, then run "bun run dev"');
 		console.log('2. If git issues: "git add ." then "git commit -m "fix: recovery commit""');

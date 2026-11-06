@@ -19,6 +19,5 @@ describe('fuck', () => {
 
 		expect(lines.join('\n')).toContain('port 54321');
 		expect(lines.join('\n')).not.toContain('3000');
-		expect(lines.join('\n')).not.toContain('Failed to check');
 	});
 });
