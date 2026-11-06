@@ -2450,8 +2450,8 @@ export default class Game extends BaseGame {
 		// Move based on movement type
 		const newPosition = this.calculateMovementByType(position, triggeringPlayer.position, behavior.movement);
 
-		if (newPosition && (newPosition.x !== position.x || newPosition.y !== position.y)) {
-			this.moveAlien(name, position, newPosition, curiosityState);
+	executeSpawn(spawnType, spawnTarget, spawnPosition) {
+		const cell = this.world.grid[spawnPosition.x][spawnPosition.y];
 
 			setTimeout(
 				() => {
@@ -2470,474 +2470,6 @@ export default class Game extends BaseGame {
 
 	handleScaredBehavior(name, position, triggeringPlayer, distanceToPlayer, alienHazard, alienConfig) {
 		const behavior = alienConfig.behavior;
-
-		// Player close - panic and try to flee instantly
-		if (distanceToPlayer <= (behavior.panicThreshold || 1)) {
-			if (chance(80) && alienConfig.messages) {
-				const message = randFromArray(alienConfig.messages);
-				this.broadcast('alien_message', {
-					name,
-					position,
-					message,
-					targetPlayerId: triggeringPlayer.id,
-				});
-			}
-
-			this.attemptFleeMovement(name, position, triggeringPlayer.position, alienHazard, true, behavior);
-			return;
-		}
-
-		// Initialize or update fear state
-		if (!alienHazard.fearState) {
-			alienHazard.fearState = {
-				fleeTarget: { ...triggeringPlayer.position },
-				panicLevel: distanceToPlayer <= 2 ? 5 : 3,
-				lastSoundTime: 0,
-			};
-		}
-
-		const fearState = alienHazard.fearState;
-		fearState.fleeTarget = { ...triggeringPlayer.position };
-
-		// Emit nervous sounds occasionally
-		const now = Date.now();
-		if (chance(behavior.messageFrequency) && alienConfig.messages && now - fearState.lastSoundTime > 2000) {
-			const message = randFromArray(alienConfig.messages);
-			this.broadcast('alien_message', {
-				name,
-				position,
-				message,
-				targetPlayerId: triggeringPlayer.id,
-			});
-			fearState.lastSoundTime = now;
-		}
-
-		// Attempt to flee based on flight response
-		if (behavior.flightResponse === 'immediate' || (behavior.flightResponse === 'gradual' && chance(60))) {
-			this.attemptFleeMovement(name, position, triggeringPlayer.position, alienHazard, false, behavior);
-		} else {
-			this.scheduleNextScaredCheck(name, position, randInt(1000, 2000));
-		}
-	}
-
-	handleMeleeBehavior(name, position, triggeringPlayer, distanceToPlayer, alienHazard, alienConfig) {
-		const behavior = alienConfig.behavior;
-
-		// Initialize or update melee state
-		if (!alienHazard.meleeState) {
-			alienHazard.meleeState = {
-				targetPlayerId: triggeringPlayer.id,
-				pursuitEnergy: randInt(...behavior.pursuitEnergy),
-				exhaustionLevel: 0,
-				lastAttackTime: 0,
-			};
-		}
-
-		const meleeState = alienHazard.meleeState;
-		const now = Date.now();
-
-		// Check if alien is exhausted
-		if (meleeState.exhaustionLevel >= 8) {
-			if (chance(80)) {
-				this.broadcast('alien_rest', { name, position });
-				meleeState.exhaustionLevel = Math.max(0, meleeState.exhaustionLevel - 2);
-
-				setTimeout(
-					() => {
-						if (chance(60)) {
-							meleeState.exhaustionLevel = Math.max(0, meleeState.exhaustionLevel - 2);
-							this.alien_wake({ name, ...position });
-						} else {
-							this.broadcast('alien_sleep', { name, position });
-						}
-					},
-					randInt(2000, 4000),
-				);
-				return;
-			}
-		}
-
-		// On top of player - ATTACK!
-		if (distanceToPlayer === 0) {
-			if (now - meleeState.lastAttackTime < behavior.attackCooldown) {
-				this.broadcast('alien_menace', { name, position, targetPlayerId: triggeringPlayer.id });
-				return;
-			}
-
-			this.broadcast('alien_attack', {
-				name,
-				position,
-				damage: behavior.damage,
-				targetPlayerId: triggeringPlayer.id,
-			});
-
-			this.hurtPlayers({ players: [triggeringPlayer.id], damage: behavior.damage });
-
-			meleeState.lastAttackTime = now;
-			meleeState.exhaustionLevel += 2;
-
-			this.scheduleNextMeleeCheck(name, position, randInt(800, 1200), false);
-			return;
-		}
-
-		// Handle movement based on movement type and aggression level
-		const newPosition = this.calculateMovementByType(position, triggeringPlayer.position, behavior.movement);
-
-		if (newPosition && (newPosition.x !== position.x || newPosition.y !== position.y)) {
-			meleeState.pursuitEnergy--;
-			meleeState.exhaustionLevel++;
-			this.moveAlien(name, position, newPosition, meleeState);
-
-			let moveSpeed;
-			if (behavior.aggressionLevel === 'very_high') {
-				moveSpeed = randInt(300, 600);
-			} else if (behavior.aggressionLevel === 'high') {
-				moveSpeed = randInt(400, 800);
-			} else {
-				moveSpeed = randInt(600, 1000);
-			}
-
-			this.scheduleNextMeleeCheck(name, newPosition, moveSpeed, meleeState.exhaustionLevel >= 5);
-		} else {
-			meleeState.exhaustionLevel += 2;
-			this.scheduleNextMeleeCheck(name, position, randInt(1000, 1500), true);
-		}
-	}
-
-	handleSpawnBehavior(name, position, triggeringPlayer, distanceToPlayer, alienHazard, alienConfig) {
-		const behavior = alienConfig.behavior;
-		const spawnConfig = behavior.spawnConfig;
-
-		// Initialize spawn state if needed
-		if (!alienHazard.spawnState) {
-			alienHazard.spawnState = {
-				targetPlayerId: triggeringPlayer.id,
-				spawnCooldown: 0,
-				alertLevel: 0,
-				activeSpawns: 0, // Track active spawns for spawn mothers
-			};
-		}
-
-		const spawnState = alienHazard.spawnState;
-
-		// Update target to nearest player
-		const nearestPlayer = this.findNearestPlayer(position);
-		if (nearestPlayer) {
-			spawnState.targetPlayerId = nearestPlayer.id;
-			distanceToPlayer =
-				Math.abs(nearestPlayer.position.x - position.x) + Math.abs(nearestPlayer.position.y - position.y);
-			triggeringPlayer = nearestPlayer;
-		}
-
-		// Reduce spawn cooldown
-		if (spawnState.spawnCooldown > 0) {
-			spawnState.spawnCooldown--;
-		}
-
-		// Increase alert level based on proximity and aggression level
-		let alertIncrease;
-		if (behavior.aggressionLevel === 'high') {
-			alertIncrease = 2;
-		} else if (behavior.aggressionLevel === 'medium') {
-			alertIncrease = 1;
-		} else {
-			alertIncrease = 0.5;
-		}
-
-		if (distanceToPlayer <= 2) {
-			spawnState.alertLevel = Math.min(10, spawnState.alertLevel + alertIncrease * 2);
-		} else if (distanceToPlayer <= 4) {
-			spawnState.alertLevel = Math.min(10, spawnState.alertLevel + alertIncrease);
-		} else {
-			spawnState.alertLevel = Math.max(0, spawnState.alertLevel - 1);
-		}
-
-		// Check if should attempt to spawn
-		const shouldAttemptSpawn =
-			spawnState.spawnCooldown === 0 &&
-			spawnState.alertLevel >= 3 &&
-			chance(spawnConfig.spawnChance) &&
-			(!spawnConfig.maxSpawns || spawnState.activeSpawns < spawnConfig.maxSpawns);
-
-		if (shouldAttemptSpawn) {
-			this.attemptSpawn(name, position, alienConfig, spawnState);
-		}
-
-		// Handle movement
-		this.handleSpawnMovement(
-			name,
-			position,
-			triggeringPlayer,
-			distanceToPlayer,
-			alienHazard,
-			behavior.movement,
-			alienConfig,
-		);
-	}
-
-	handleAmbushBehavior(name, position, triggeringPlayer, distanceToPlayer, alienHazard, alienConfig) {
-		const behavior = alienConfig.behavior;
-
-		// Initialize ambush state
-		if (!alienHazard.ambushState) {
-			alienHazard.ambushState = {
-				isRevealed: false,
-				hasAttacked: false,
-			};
-		}
-
-		const ambushState = alienHazard.ambushState;
-
-		// Only trigger when player is within ambush radius
-		if (distanceToPlayer <= behavior.ambushRadius) {
-			if (!ambushState.isRevealed) {
-				// Reveal the ambush predator
-				ambushState.isRevealed = true;
-				this.broadcast('alien_reveal_ambush', {
-					name,
-					position,
-					targetPlayerId: triggeringPlayer.id,
-				});
-			}
-
-			// Attack if on top of player and haven't attacked yet
-			if (distanceToPlayer === 0 && !ambushState.hasAttacked) {
-				let damage = behavior.damage;
-				if (behavior.surpriseAttack) {
-					damage = Math.floor(damage * 1.5); // 50% bonus for surprise
-				}
-
-				this.broadcast('alien_attack', {
-					name,
-					position,
-					damage,
-					targetPlayerId: triggeringPlayer.id,
-					surpriseAttack: behavior.surpriseAttack,
-				});
-
-				this.hurtPlayers({ players: [triggeringPlayer.id], damage });
-
-				ambushState.hasAttacked = true;
-
-				// After ambush attack, become a regular melee creature
-				setTimeout(
-					() => {
-						if (chance(70)) {
-							// Convert to regular melee behavior
-							alienConfig.behavior.type = 'melee';
-							this.alien_wake({ name, ...position });
-						} else {
-							this.broadcast('alien_sleep', { name, position });
-						}
-					},
-					randInt(500, 1000),
-				);
-			} else if (ambushState.isRevealed && distanceToPlayer > 0) {
-				// Move toward player for attack
-				const newPosition = this.calculateMovementByType(position, triggeringPlayer.position, 'approach');
-
-				if (newPosition && (newPosition.x !== position.x || newPosition.y !== position.y)) {
-					this.moveAlien(name, position, newPosition, ambushState);
-
-					setTimeout(
-						() => {
-							this.alien_wake({ name, ...newPosition });
-						},
-						randInt(400, 800),
-					);
-				}
-			}
-		} else if (ambushState.isRevealed && distanceToPlayer > behavior.detectionRange) {
-			// Player moved away, go back to sleep and reset ambush
-			ambushState.isRevealed = false;
-			ambushState.hasAttacked = false;
-			this.broadcast('alien_sleep', { name, position });
-		}
-	}
-
-	handleNeutralBehavior(name, position, triggeringPlayer, distanceToPlayer, alienHazard) {
-		const alienConfig = aliens[name];
-
-		// On top of player - no damage, peacefully coexist
-		if (distanceToPlayer === 0) {
-			// Send neutral message with low chance (10%)
-			if (chance(10) && alienConfig.messages) {
-				const message = randFromArray(alienConfig.messages);
-				this.broadcast('alien_message', {
-					name,
-					position,
-					message,
-					targetPlayerId: triggeringPlayer.id,
-				});
-			}
-			// Go back to sleep instantly - neutral aliens don't care about players
-			this.broadcast('alien_sleep', { name, position });
-			return;
-		}
-
-		// Initialize or update neutral state
-		if (!alienHazard.neutralState) {
-			alienHazard.neutralState = {
-				wanderMoves: randInt(1, 3), // How many moves before sleeping
-				lastMessageTime: 0,
-			};
-		}
-
-		const neutralState = alienHazard.neutralState;
-
-		// Send occasional neutral messages (low chance - 5%)
-		const now = Date.now();
-		if (chance(5) && alienConfig.messages && now - neutralState.lastMessageTime > 5000) {
-			const message = randFromArray(alienConfig.messages);
-			this.broadcast('alien_message', {
-				name,
-				position,
-				message,
-				targetPlayerId: triggeringPlayer.id,
-			});
-			neutralState.lastMessageTime = now;
-		}
-
-		// Check if alien can move
-		const surrounds = getImmediateSurrounds(position, ['left', 'right', 'bottom', 'top'], this.world.grid);
-		const canMove = Object.values(surrounds).some(cell => !positionIsOccupied(cell, this.world.grid));
-
-		if (!canMove) {
-			// Trapped, go to sleep
-			this.broadcast('alien_sleep', { name, position });
-			return;
-		}
-
-		// Decide whether to wander (60% chance) or go back to sleep
-		if (chance(60) && neutralState.wanderMoves > 0) {
-			// Wander in a random direction
-			const newPosition = this.calculateRandomWanderMovement(position);
-
-			if (newPosition && (newPosition.x !== position.x || newPosition.y !== position.y)) {
-				neutralState.wanderMoves--;
-				this.moveAlien(name, position, newPosition, neutralState);
-
-				// Schedule next behavior check
-				setTimeout(
-					() => {
-						if (neutralState.wanderMoves > 0 && chance(50)) {
-							// Continue wandering
-							this.alien_wake({ name, ...newPosition });
-						} else {
-							// Done wandering, go to sleep
-							this.broadcast('alien_sleep', { name, position: newPosition });
-						}
-					},
-					randInt(1000, 2000),
-				); // Neutral aliens move slowly and deliberately
-			} else {
-				// Can't move in desired direction, give up and sleep
-				this.broadcast('alien_sleep', { name, position });
-			}
-		} else {
-			// Choose to sleep instead of wandering
-			this.broadcast('alien_sleep', { name, position });
-		}
-	}
-
-	attemptSpawn(name, position, alienConfig, spawnState) {
-		const spawnConfig = alienConfig.behavior.spawnConfig;
-		const spawnRadius = spawnConfig.spawnRadius || 1;
-
-		// Find valid spawn positions within radius
-		const validSpawnPositions = getSurroundingRadius(position, spawnRadius).filter(pos => {
-			const cell = this.world.grid[pos.x]?.[pos.y];
-			if (!cell) return false;
-
-			switch (spawnConfig.spawnType) {
-				case 'hazard':
-					return !cell.ground?.type && cell.hazards.length === 0;
-				case 'item':
-					return !cell.ground?.type;
-				case 'ground':
-					return !cell.ground?.type;
-				case 'alien':
-					return !cell.ground?.type && cell.hazards.length === 0;
-				default:
-					return false;
-			}
-		});
-
-		if (validSpawnPositions.length === 0) {
-			spawnState.alertLevel = Math.min(10, spawnState.alertLevel + 1);
-			return;
-		}
-
-		const spawnPosition = randFromArray(validSpawnPositions);
-
-		// Determine what to spawn
-		let spawnTarget;
-		if (typeof spawnConfig.spawn === 'string') {
-			spawnTarget = spawnConfig.spawn;
-		} else if (Array.isArray(spawnConfig.spawn)) {
-			spawnTarget = randFromArray(spawnConfig.spawn);
-		} else if (typeof spawnConfig.spawn === 'object') {
-			spawnTarget = weightedChance(spawnConfig.spawn);
-		}
-
-		// Execute spawn
-		this.executeSpawn(spawnConfig.spawnType, spawnTarget, spawnPosition, name, position);
-
-		// Set cooldown and update state
-		spawnState.spawnCooldown = randInt(...spawnConfig.cooldown);
-		spawnState.alertLevel = Math.max(0, spawnState.alertLevel - 2);
-
-		if (spawnConfig.maxSpawns) {
-			spawnState.activeSpawns++;
-		}
-
-		this.broadcast('alien_spawn', {
-			spawnerName: name,
-			spawnerPosition: position,
-			spawnType: spawnConfig.spawnType,
-			spawnTarget,
-			spawnPosition,
-		});
-	}
-
-	executeSpawn(spawnType, spawnTarget, spawnPosition) {
-		const cell = this.world.grid[spawnPosition.x][spawnPosition.y];
-
-		switch (spawnType) {
-			case 'hazard':
-				if (spawnTarget === 'lava') {
-					cell.hazards.push({ type: 'lava' });
-					// Check if SpaceCo is at this position and take hazard damage
-					if (
-						this.world?.spaceco?.position &&
-						this.world.spaceco.position.x === spawnPosition.x &&
-						this.world.spaceco.position.y === spawnPosition.y
-					) {
-						this.checkSpacecoHazardDamage();
-					}
-					// Trigger lava spreading
-					setTimeout(() => this.spillLava(spawnPosition), 100);
-				} else if (spawnTarget === 'gas') {
-					cell.hazards.push({ type: 'gas' });
-					// Check if SpaceCo is at this position and take hazard damage
-					if (
-			state.lastActionTime = now;
-						this.world?.spaceco?.position &&
-						this.world.spaceco.position.x === spawnPosition.x &&
-						this.world.spaceco.position.y === spawnPosition.y
-					) {
-						this.checkSpacecoHazardDamage();
-					}
-					// Trigger gas spreading
-					setTimeout(() => this.dissipateGas(spawnPosition), 100);
-				}
-				break;
-
-			case 'item':
-				if (items[spawnTarget]) {
-					cell.items.push({ name: spawnTarget });
-				}
-				break;
 
 			case 'ground':
 				if (minerals[spawnTarget]) {
@@ -2979,118 +2511,6 @@ export default class Game extends BaseGame {
 		}
 	}
 
-	handleSpawnMovement(name, position, triggeringPlayer, distanceToPlayer, alienHazard, movementType) {
-		if (unsupported && bottom.y < this.world.depth) {
-		const newPosition = this.calculateMovementByType(position, triggeringPlayer.position, movementType);
-
-		if (newPosition && (newPosition.x !== position.x || newPosition.y !== position.y)) {
-			this.moveAlien(name, position, newPosition, alienHazard.spawnState);
-
-			setTimeout(
-				() => {
-					if (chance(85)) {
-						this.alien_wake({ name, ...newPosition });
-					} else {
-						this.broadcast('alien_sleep', { name, position: newPosition });
-					}
-				},
-				randInt(800, 1500),
-			);
-		} else {
-			setTimeout(
-				() => {
-					if (chance(70)) {
-						this.alien_wake({ name, ...position });
-					} else {
-						this.broadcast('alien_sleep', { name, position });
-					}
-				},
-				randInt(1000, 2000),
-			);
-		}
-	}
-
-	scheduleNextMeleeCheck(name, position, delay, isTired) {
-		setTimeout(() => {
-			if (isTired && chance(25)) {
-				// Tired aliens have chance to fall asleep
-				this.broadcast('alien_sleep', { name, position });
-			} else if (chance(90)) {
-				// High chance to continue being aggressive
-				this.alien_wake({ name, ...position });
-			} else {
-				// Small chance to lose interest
-				this.broadcast('alien_sleep', { name, position });
-			}
-		}, delay);
-	}
-
-	calculateRandomWanderMovement(currentPos) {
-		const surrounds = getImmediateSurrounds(currentPos, ['left', 'right', 'bottom', 'top'], this.world.grid);
-
-		// Get all valid moves (not occupied)
-		const validMoves = [];
-		for (const [, cell] of Object.entries(surrounds)) {
-			if (cell && !positionIsOccupied(cell, this.world.grid)) {
-				validMoves.push({ x: cell.x, y: cell.y });
-			}
-		}
-
-		// Return random valid move, or null if none available
-		return validMoves.length > 0 ? randFromArray(validMoves) : null;
-	}
-
-	attemptFleeMovement(name, position, threatPosition, alienHazard, isPanic) {
-		// Calculate flee movement (away from threat)
-		const newPosition = this.calculateAlienMovement(position, threatPosition, 'flee');
-
-		if (newPosition && (newPosition.x !== position.x || newPosition.y !== position.y)) {
-			// Successfully found escape route
-			this.moveAlien(name, position, newPosition, alienHazard.fearState);
-
-			// Schedule next behavior check (scared aliens move faster when panicking)
-			const moveDelay = isPanic ? randInt(300, 600) : randInt(600, 1000);
-			this.scheduleNextScaredCheck(name, newPosition, moveDelay);
-		} else {
-			// Trapped! Increase panic and try again soon, or cower
-			if (alienHazard.fearState) {
-				alienHazard.fearState.panicLevel = Math.min(10, alienHazard.fearState.panicLevel + 2);
-			}
-
-			// Send trapped/panic message
-			const alienConfig = aliens[name];
-			if (chance(60) && alienConfig.messages) {
-				const message = randFromArray(alienConfig.messages);
-				this.broadcast('alien_message', {
-					name,
-					position,
-					message,
-					targetPlayerId: this.findNearestPlayer(position)?.id,
-				});
-			}
-
-			// Try again soon or give up and cower
-			if (isPanic && alienHazard.fearState?.panicLevel < 8) {
-				this.scheduleNextScaredCheck(name, position, randInt(400, 800));
-			} else {
-				// Too panicked to think clearly, or trapped - go dormant
-				this.broadcast('alien_sleep', { name, position });
-			}
-		}
-	}
-
-	scheduleNextScaredCheck(name, position, delay) {
-		setTimeout(() => {
-			if (chance(85)) {
-				// High chance to continue being scared
-				this.alien_wake({ name, ...position });
-			} else {
-				// Small chance to calm down
-				this.broadcast('alien_sleep', { name, position });
-			}
-		}, delay);
-	}
-
 	findNearestPlayer(position) {
 		return [...this.players.values()].reduce((closest, player) => {
 			const currentDistance = Math.abs(player.position.x - position.x) + Math.abs(player.position.y - position.y);
@@ -3101,8 +2521,9 @@ export default class Game extends BaseGame {
 		}, null);
 	}
 
-	calculateAlienMovement(currentPos, targetPos, movementType) {
-		const surrounds = getImmediateSurrounds(currentPos, ['left', 'right', 'bottom', 'top'], this.world.grid);
+	moveAlien(name, fromPos, toPos) {
+		const from = this.world.grid[fromPos.x][fromPos.y];
+		const hazard = from.hazards.find(hazard => hazard.name === name);
 
 		const delta = {
 			x: targetPos.x - currentPos.x,
@@ -3111,218 +2532,11 @@ export default class Game extends BaseGame {
 
 		let preferredMoves = [];
 
-		if (movementType === 'approach') {
-			// Move toward target
-			if (Math.abs(delta.x) > Math.abs(delta.y)) {
-				preferredMoves = [delta.x > 0 ? 'right' : 'left', delta.y > 0 ? 'bottom' : 'top'];
-			} else {
-				preferredMoves = [delta.y > 0 ? 'bottom' : 'top', delta.x > 0 ? 'right' : 'left'];
-			}
-		} else if (movementType === 'flee') {
-			// Move away from target
-			if (Math.abs(delta.x) > Math.abs(delta.y)) {
-				preferredMoves = [delta.x > 0 ? 'left' : 'right', delta.y > 0 ? 'top' : 'bottom'];
-			} else {
-				preferredMoves = [delta.y > 0 ? 'top' : 'bottom', delta.x > 0 ? 'left' : 'right'];
-			}
-		}
+		from.hazards = from.hazards.filter(other => other !== hazard);
+		hazard.orientation = toPos.x > fromPos.x ? 'right' : 'left';
+		this.world.grid[toPos.x][toPos.y].hazards.push(hazard);
 
-		// Try preferred moves first
-		for (const direction of preferredMoves) {
-			const cell = surrounds[direction];
-			if (cell && !positionIsOccupied(cell, this.world.grid)) {
-				return { x: cell.x, y: cell.y };
-			}
-		}
-
-		// Try any available move
-		for (const [, cell] of Object.entries(surrounds)) {
-			if (cell && !positionIsOccupied(cell, this.world.grid)) {
-				return { x: cell.x, y: cell.y };
-			}
-		}
-
-		return null; // Can't move
-	}
-
-	moveAlien(name, fromPos, toPos, state = null) {
-		// Remove alien from old position
-		this.world.grid[fromPos.x][fromPos.y].hazards = this.world.grid[fromPos.x][fromPos.y].hazards.filter(
-			hazard => hazard.name !== name,
-		);
-
-		// Add alien to new position with preserved state
-		const newHazard = {
-			name,
-			type: 'alien',
-			orientation: toPos.x > fromPos.x ? 'right' : 'left',
-			state, // Preserve unified state
-		};
-
-		this.world.grid[toPos.x][toPos.y].hazards.push(newHazard);
-
-		this.broadcast('alien_move', {
-			name,
-			from: fromPos,
-			to: toPos,
-			orientation: newHazard.orientation,
-		});
-	}
-
-	resolveHazard(hazardValue, context) {
-		if (typeof hazardValue === 'string') {
-			if (hazardTypes.includes(hazardValue)) {
-				return { type: hazardValue };
-			}
-			if (alienNames.includes(hazardValue)) {
-				return { type: 'alien', name: hazardValue };
-			}
-			throw new Error(
-				`Invalid hazard "${hazardValue}" in ${context}. Must be hazard type (${hazardTypes.join(', ')}) or alien name`,
-			);
-		}
-
-		if (Array.isArray(hazardValue)) {
-			if (hazardValue.length === 0) {
-				throw new Error(`Empty hazard array in ${context}`);
-			}
-			return this.resolveHazard(randFromArray(hazardValue), context);
-		}
-
-		if (typeof hazardValue === 'object' && hazardValue !== null) {
-			// Check if it's a weighted distribution first
-			if (Object.values(hazardValue).every(v => typeof v === 'number')) {
-				const selectedHazard = weightedChance(hazardValue);
-				return this.resolveHazard(selectedHazard, context);
-			}
-
-			// It's a hazard definition object
-			const hazard = { ...hazardValue };
-
-			// Handle mystery spawner type
-			if (hazard.type === 'mystery_spawner') {
-				return this.createMysterySpawner(hazard, context);
-			}
-
-			if (!hazard.type) {
-				hazard.type = 'random';
-			}
-
-			if (hazard.type === 'random') {
-				hazard.type = randFromArray(hazardTypes);
-			}
-
-			if (!hazardTypes.includes(hazard.type)) {
-				throw new Error(
-					`Invalid hazard type "${hazard.type}" in ${context}. Must be one of: ${hazardTypes.join(', ')}`,
-				);
-			}
-
-			if (hazard.type === 'alien') {
-				if (!hazard.name) {
-					hazard.name = randFromArray(alienNames);
-				} else if (hazard.name === 'random') {
-					hazard.name = randFromArray(alienNames);
-				} else if (hazard.alien) {
-					// Traditional mystery spawner format
-					hazard.name = 'mystery_spawner';
-					if (Array.isArray(hazard.alien)) {
-						hazard.alien = randFromArray(hazard.alien);
-					} else if (typeof hazard.alien === 'object') {
-						hazard.alien = weightedChance(hazard.alien);
-					}
-				}
-
-				if (hazard.name === 'mystery_spawner' && hazard.alien && !alienNames.includes(hazard.alien)) {
-					throw new Error(
-						`Invalid alien spawn "${hazard.alien}" in ${context}. Must be one of: ${alienNames.join(', ')}`,
-					);
-				} else if (hazard.name !== 'mystery_spawner' && !alienNames.includes(hazard.name)) {
-					throw new Error(
-						`Invalid alien name "${hazard.name}" in ${context}. Must be one of: ${alienNames.join(', ')}`,
-					);
-				}
-			}
-
-			return hazard;
-		}
-
-		throw new Error(`Invalid hazard definition in ${context}: ${typeof hazardValue}`);
-	}
-
-		const updatedPlayer = { ...player, position, orientation, stats: { ...player.stats } };
-
-	createMysterySpawner(hazardConfig, context) {
-		if (!hazardConfig.spawnTable || !Array.isArray(hazardConfig.spawnTable)) {
-			throw new Error(`Mystery spawner in ${context} must have a spawnTable array`);
-		}
-
-		// Validate spawn table
-		const totalWeight = hazardConfig.spawnTable.reduce((sum, entry) => {
-			if (!entry.weight || !entry.spawn) {
-				throw new Error(`Invalid spawn table entry in ${context}: must have weight and spawn properties`);
-			}
-			return sum + entry.weight;
-		}, 0);
-
-		if (totalWeight !== 100) {
-	stopMovement(playerId) {
-		clearTimeout(this.movementTimeouts.get(playerId));
-		this.movementTimeouts.delete(playerId);
-		this.players.update(playerId, _ => ({ ..._, moving: false, _movementSessionId: null }));
-	}
-
-			throw new Error(`Mystery spawner spawn table in ${context} must sum to 100, got ${totalWeight}`);
-		}
-
-		// Validate each spawn entry
-		hazardConfig.spawnTable.forEach((entry, index) => {
-			const spawn = entry.spawn;
-			if (!spawn.type || !spawn.name) {
-				throw new Error(`Spawn entry ${index} in ${context} must have type and name properties`);
-			}
-
-			const validTypes = ['alien', 'item', 'hazard', 'ground'];
-			if (!validTypes.includes(spawn.type)) {
-				throw new Error(`Invalid spawn type "${spawn.type}" in ${context}. Must be one of: ${validTypes.join(', ')}`);
-			}
-
-			// Validate based on type
-			switch (spawn.type) {
-				case 'alien':
-					if (!alienNames.includes(spawn.name)) {
-						throw new Error(`Invalid alien name "${spawn.name}" in spawn entry ${index} of ${context}`);
-					}
-					break;
-				case 'item':
-					if (!itemNames.includes(spawn.name)) {
-						throw new Error(`Invalid item name "${spawn.name}" in spawn entry ${index} of ${context}`);
-					}
-					break;
-				case 'hazard':
-					if (!hazardTypes.includes(spawn.name)) {
-						throw new Error(`Invalid hazard type "${spawn.name}" in spawn entry ${index} of ${context}`);
-					}
-					break;
-				case 'ground':
-					if (!mineralColors.includes(spawn.name)) {
-						throw new Error(`Invalid mineral type "${spawn.name}" in spawn entry ${index} of ${context}`);
-					}
-					break;
-			}
-
-			// Validate elite chance if present
-			if (spawn.eliteChance !== undefined) {
-				if (typeof spawn.eliteChance !== 'number' || spawn.eliteChance < 0 || spawn.eliteChance > 100) {
-					throw new Error(`Elite chance in spawn entry ${index} of ${context} must be a number between 0-100`);
-				}
-			}
-		});
-
-		return {
-			type: 'mystery_spawner',
-			spawnTable: hazardConfig.spawnTable,
-		};
+		this.broadcast('alien_move', { name, from: fromPos, to: toPos, orientation: hazard.orientation });
 	}
 
 	initializeAlienState(alienHazard, alienConfig, triggeringPlayer) {
@@ -3495,7 +2709,7 @@ export default class Game extends BaseGame {
 		// Try to move closer
 		const newPosition = this.calculateMovement(position, triggeringPlayer.position, behavior.movement);
 		if (newPosition) {
-			this.moveAlien(name, position, newPosition, state);
+			this.moveAlien(name, position, newPosition);
 			return {
 				scheduleNext: true,
 				newPosition,
@@ -3520,7 +2734,7 @@ export default class Game extends BaseGame {
 		// Try to flee
 		const newPosition = this.calculateMovement(position, triggeringPlayer.position, 'flee');
 		if (newPosition) {
-			this.moveAlien(name, position, newPosition, state);
+			this.moveAlien(name, position, newPosition);
 			const moveDelay = state.panicLevel > 5 ? randInt(300, 600) : randInt(600, 1000);
 			return {
 				scheduleNext: true,
@@ -3556,7 +2770,7 @@ export default class Game extends BaseGame {
 			const newPosition = this.calculateMovement(position, triggeringPlayer.position, 'wander');
 			if (newPosition) {
 				state.energy--;
-				this.moveAlien(name, position, newPosition, state);
+				this.moveAlien(name, position, newPosition);
 				return {
 					scheduleNext: true,
 					newPosition,
@@ -3618,7 +2832,7 @@ export default class Game extends BaseGame {
 		if (newPosition) {
 			state.energy--;
 			state.exhaustion++;
-			this.moveAlien(name, position, newPosition, state);
+			this.moveAlien(name, position, newPosition);
 
 			let moveSpeed;
 			if (behavior.aggressionLevel === 'very_high') {
@@ -3683,7 +2897,7 @@ export default class Game extends BaseGame {
 		// Handle movement
 		const newPosition = this.calculateMovement(position, triggeringPlayer.position, behavior.movement);
 		if (newPosition) {
-			this.moveAlien(name, position, newPosition, state);
+			this.moveAlien(name, position, newPosition);
 			return {
 				scheduleNext: true,
 				newPosition,
@@ -3750,7 +2964,7 @@ export default class Game extends BaseGame {
 		// Move toward player for attack
 		const newPosition = this.calculateMovement(position, triggeringPlayer.position, 'approach');
 		if (newPosition) {
-			this.moveAlien(name, position, newPosition, state);
+			this.moveAlien(name, position, newPosition);
 			return {
 				scheduleNext: true,
 				newPosition,
