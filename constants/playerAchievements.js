@@ -46,7 +46,7 @@ export const playerAchievements = [
 		summary: 'Experience your first rig breakdown or rescue situation.',
 		flavor: 'Field failure logged. Maintenance schedule updated.',
 		hidden: true, // Reveals failure mechanics
-		trigger: { type: 'removePlayer', check: ({ player }) => player.stats.deaths >= 1 },
+		trigger: { type: 'playerMovementInterrupted', check: ({ event }) => event.reason === 'no_health' },
 		awards: [
 			['xp', 20],
 			['credits', 0],
@@ -58,7 +58,10 @@ export const playerAchievements = [
 		name: 'Patch Job',
 		summary: 'Repair your rig using nanites or SpaceCo services for the first time.',
 		flavor: "Rough edges smoothed out. You're operational again.",
-		trigger: { type: 'spacecoRepair', check: ({ event }) => event?.type === 'player' },
+		trigger: {
+			type: ['spacecoRepair', 'useItem'],
+			check: ({ event }) => event.type === 'player' || event.item === 'repair_nanites',
+		},
 		awards: [
 			['xp', 30],
 			['credits', 0],
@@ -186,10 +189,10 @@ export const playerAchievements = [
 		id: 'abyss_walker',
 		category: 'Exploration',
 		name: 'Abyss Walker',
-		summary: 'Reach depth 200.',
-		flavor: 'Depth 200 achieved. Congratulations on surviving where sensors fear to function.',
-		difficulty: 4, // Hard - extreme depth with dangerous conditions
-		trigger: { type: 'playerMove', check: ({ player }) => player.stats.deepestDepthReached >= 200 },
+		summary: 'Reach depth 125.',
+		flavor: 'Depth 125 achieved. Congratulations on surviving where sensors fear to function.',
+		difficulty: 4, // Hard - only the deepest asteroids go this far
+		trigger: { type: 'playerMove', check: ({ player }) => player.stats.deepestDepthReached >= 125 },
 		awards: [
 			['xp', 400],
 			['credits', 80],
@@ -271,10 +274,12 @@ export const playerAchievements = [
 		hidden: true, // Spoils alien technology existence and late-game content
 		trigger: {
 			type: 'spacecoBuyUpgrade',
-			check: ({ player }) =>
-				['T11', 'T12', 'T13', 'T14'].some(tier =>
-					Object.values(player.configuration).some(item => item?.includes(tier)),
-				),
+			check: ({ player }) => {
+				const { vehicle, drill, engine, part } = player.configuration;
+				const tier = id => parseInt(id?.slice(1), 10) || 0;
+
+				return tier(vehicle) >= 13 || tier(drill) >= 11 || tier(engine) >= 11 || tier(part) >= 13;
+			},
 		},
 		awards: [
 			['xp', 500],
@@ -291,7 +296,10 @@ export const playerAchievements = [
 		name: 'Well Stocked',
 		summary: 'Hold 10 or more items in your inventory at the same time.',
 		flavor: 'Inventory optimization maximized. Procurement efficiency noted.',
-		trigger: { type: 'spacecoBuyItem', check: ({ player }) => Object.keys(player.items).length >= 10 },
+		trigger: {
+			type: 'spacecoBuyItem',
+			check: ({ player }) => Object.values(player.items).reduce((sum, count) => sum + Math.max(0, count), 0) >= 10,
+		},
 		awards: [
 			['xp', 70],
 			['credits', 25],
@@ -353,7 +361,10 @@ export const playerAchievements = [
 		name: 'High Roller',
 		summary: 'Spend at least 1,000 credits in a single SpaceCo transaction.',
 		flavor: '1,000 credits dispensed in single transaction. Premium customer status confirmed.',
-		trigger: { type: 'spacecoBuyItem', check: ({ event }) => event.cost >= 1000 },
+		trigger: {
+			type: ['spacecoBuyItem', 'spacecoBuyUpgrade', 'spacecoBuyTransport'],
+			check: ({ event }) => event.cost >= 1000,
+		},
 		awards: [
 			['xp', 100],
 			['credits', 0],
@@ -378,7 +389,10 @@ export const playerAchievements = [
 		name: 'Valued Customer',
 		summary: 'Spend a total of 5,000 credits at SpaceCo.',
 		flavor: '5,000 credits expended. Premium customer services unlocked.',
-		trigger: { type: 'spacecoBuyItem', check: ({ player }) => player.stats.creditsSpent >= 5000 },
+		trigger: {
+			type: ['spacecoBuyItem', 'spacecoBuyUpgrade', 'spacecoBuyTransport', 'spacecoRefuel', 'spacecoRepair'],
+			check: ({ player }) => player.stats.creditsSpent >= 5000,
+		},
 		awards: [
 			['xp', 100],
 			['credits', 0],
@@ -443,7 +457,10 @@ export const playerAchievements = [
 		name: 'Belt Explorer',
 		summary: 'Visit 5 different asteroid zones via transport.',
 		flavor: 'Five asteroid environments surveyed. Belt-wide presence established.',
-		trigger: { type: 'spacecoBuyTransport', check: ({ player }) => player.stats.asteroidsVisited >= 5 },
+		trigger: {
+			type: 'playerMove',
+			check: ({ player }) => Object.keys(player.stats.worldsVisited || {}).length >= 5,
+		},
 		awards: [
 			['xp', 400],
 			['credits', 110],
@@ -457,7 +474,7 @@ export const playerAchievements = [
 		name: 'Trade Network',
 		summary: 'Complete 8 trades with other contractors.',
 		flavor: 'Inter-contractor commerce network established. Market efficiency improved.',
-		trigger: { type: 'playerTrade', check: ({ player }) => player.stats.tradesCompleted >= 8 },
+		trigger: { type: 'tradeCompleted', check: ({ player }) => player.stats.tradesCompleted >= 8 },
 		awards: [
 			['xp', 120],
 			['credits', 60],

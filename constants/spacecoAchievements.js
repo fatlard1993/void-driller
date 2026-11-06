@@ -11,10 +11,7 @@ export const spacecoAchievements = [
 		difficulty: 1, // Easy - requires another player joining
 		trigger: {
 			type: 'addPlayer',
-			check: ({ world }) => {
-				const count = Array.isArray(world.players) ? world.players.length : Object.keys(world.players || {}).length;
-				return count >= 2;
-			},
+			check: ({ playerCount }) => playerCount >= 2,
 		},
 		awards: [['xp', 50]],
 	},
@@ -27,10 +24,7 @@ export const spacecoAchievements = [
 		difficulty: 2, // Easy-Medium - requires coordinating multiple players
 		trigger: {
 			type: 'addPlayer',
-			check: ({ world }) => {
-				const count = Array.isArray(world.players) ? world.players.length : Object.keys(world.players || {}).length;
-				return count >= 3;
-			},
+			check: ({ playerCount }) => playerCount >= 3,
 		},
 		awards: [['xp', 75]],
 	},
@@ -43,10 +37,7 @@ export const spacecoAchievements = [
 		difficulty: 3, // Medium - requires significant player coordination
 		trigger: {
 			type: 'addPlayer',
-			check: ({ world }) => {
-				const count = Array.isArray(world.players) ? world.players.length : Object.keys(world.players || {}).length;
-				return count >= 5;
-			},
+			check: ({ playerCount }) => playerCount >= 5,
 		},
 		awards: [['xp', 125]],
 	},
@@ -59,10 +50,7 @@ export const spacecoAchievements = [
 		difficulty: 4, // Hard - requires large-scale multiplayer coordination
 		trigger: {
 			type: 'addPlayer',
-			check: ({ world }) => {
-				const count = Array.isArray(world.players) ? world.players.length : Object.keys(world.players || {}).length;
-				return count >= 8;
-			},
+			check: ({ playerCount }) => playerCount >= 8,
 		},
 		awards: [['xp', 200]],
 	},
@@ -75,10 +63,7 @@ export const spacecoAchievements = [
 		difficulty: 5, // Very Hard - maximum player coordination required
 		trigger: {
 			type: 'addPlayer',
-			check: ({ world }) => {
-				const count = Array.isArray(world.players) ? world.players.length : Object.keys(world.players || {}).length;
-				return count >= 12;
-			},
+			check: ({ playerCount }) => playerCount >= 12,
 		},
 		awards: [['xp', 300]],
 	},
@@ -263,7 +248,7 @@ export const spacecoAchievements = [
 		trigger: {
 			type: 'spacecoBuyUpgrade',
 			check: ({ world }) => {
-				const advancedUpgrades = ['T8', 'T9', 'T10', 'T11', 'T12', 'T13', 'T14'].reduce((count, tier) => {
+				const advancedUpgrades = ['T8', 'T9', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16'].reduce((count, tier) => {
 					return (
 						count +
 						['vehicle', 'drill', 'engine', 'part'].reduce((typeCount, type) => {
@@ -287,7 +272,7 @@ export const spacecoAchievements = [
 		trigger: {
 			type: 'spacecoBuyUpgrade',
 			check: ({ world }) => {
-				const alienTechSold = ['T11', 'T12', 'T13', 'T14'].reduce((count, tier) => {
+				const alienTechSold = ['T11', 'T12', 'T13', 'T14', 'T15', 'T16'].reduce((count, tier) => {
 					return (
 						count +
 						['vehicle', 'drill', 'engine', 'part'].reduce((typeCount, type) => {
@@ -456,11 +441,7 @@ export const spacecoAchievements = [
 		flavor: 'Maximum yield extraction protocol successful. Zero waste tolerance achieved.',
 		difficulty: 4, // Hard - requires completionist mindset and thorough exploration
 		hidden: true, // Reveals completionist achievement mechanic
-		trigger: {
-			type: 'spacecoBuyTransport',
-			check: ({ world }) =>
-				!world.grid.some(row => row.some(cell => cell.items?.some(item => item.name.startsWith('mineral')))),
-		},
+		trigger: { type: 'spacecoBuyTransport', check: ({ event }) => event.mineralsLeft === 0 },
 		awards: [['xp', 300]],
 	},
 
@@ -475,10 +456,7 @@ export const spacecoAchievements = [
 		flavor: 'Initial quantum specimen secured. The Collective notes satisfactory progress.',
 		difficulty: 5, // Very Hard - rare endgame items with story significance
 		hidden: true, // Major story spoiler - reveals alien control and specimen importance
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => (world.spaceco.hull.psykick_egg || 0) >= 1,
-		},
+		trigger: { type: 'spacecoEggSubmission', check: ({ world }) => world.spaceco.eggHunt.totalEggsSubmitted >= 1 },
 		awards: [['xp', 200]],
 	},
 	{
@@ -489,10 +467,7 @@ export const spacecoAchievements = [
 		flavor: 'Specimen cache established. Resonance harmonics improving.',
 		difficulty: 5, // Very Hard - extremely rare endgame collectibles
 		hidden: true, // Story spoiler
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => (world.spaceco.hull.psykick_egg || 0) >= 5,
-		},
+		trigger: { type: 'spacecoEggSubmission', check: ({ world }) => world.spaceco.eggHunt.totalEggsSubmitted >= 5 },
 		awards: [['xp', 400]],
 	},
 	{
@@ -503,10 +478,7 @@ export const spacecoAchievements = [
 		flavor: 'Substantial specimen collection achieved. Harmonic resonance patterns stabilizing.',
 		difficulty: 5, // Very Hard - massive commitment to rare item collection
 		hidden: true, // Story spoiler
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => (world.spaceco.hull.psykick_egg || 0) >= 15,
-		},
+		trigger: { type: 'spacecoEggSubmission', check: ({ world }) => world.spaceco.eggHunt.totalEggsSubmitted >= 15 },
 		awards: [['xp', 600]],
 	},
 	{
@@ -517,10 +489,7 @@ export const spacecoAchievements = [
 		flavor: 'Archive-level specimen collection completed. The Collective expresses deep satisfaction.',
 		difficulty: 5, // Very Hard - extreme dedication to rare collection
 		hidden: true, // Story spoiler
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => (world.spaceco.hull.psykick_egg || 0) >= 35,
-		},
+		trigger: { type: 'spacecoEggSubmission', check: ({ world }) => world.spaceco.eggHunt.totalEggsSubmitted >= 35 },
 		awards: [['xp', 800]],
 	},
 	{
@@ -531,10 +500,7 @@ export const spacecoAchievements = [
 		flavor: 'Major specimen repository established. Quantum harmonics approaching optimal resonance.',
 		difficulty: 5, // Very Hard - near-impossible dedication required
 		hidden: true, // Story spoiler
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => (world.spaceco.hull.psykick_egg || 0) >= 75,
-		},
+		trigger: { type: 'spacecoEggSubmission', check: ({ world }) => world.spaceco.eggHunt.totalEggsSubmitted >= 75 },
 		awards: [['xp', 1200]],
 	},
 	{
@@ -545,10 +511,7 @@ export const spacecoAchievements = [
 		flavor: 'Sacred reunification protocol achieved.',
 		difficulty: 5, // Very Hard - ultimate endgame achievement
 		hidden: true, // Ultimate story spoiler - reveals sacred nature and completion
-		trigger: {
-			type: 'spacecoSell',
-			check: ({ world }) => (world.spaceco.hull.psykick_egg || 0) >= 150,
-		},
+		trigger: { type: 'spacecoEggSubmission', check: ({ world }) => world.spaceco.eggHunt.totalEggsSubmitted >= 150 },
 		awards: [['xp', 2000]],
 	},
 

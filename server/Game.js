@@ -197,14 +197,18 @@ export default class Game extends BaseGame {
 
 		// Use safe broadcast method from parent class
 		super.broadcast(key, data);
+		const playerIds = data.playerIds ?? [data.playerId ?? data.player?.id ?? data.triggeringPlayerId].filter(Boolean);
+
 
 		playerAchievements.forEach(({ trigger, ...achievement }) => {
-			if (trigger.type !== key) return;
+			if (![].concat(trigger.type).includes(key)) return;
 
-			const { playerId = data.player?.id } = data;
-			const player = this.players.get(playerId);
+			playerIds.forEach(playerId => {
+				const player = this.players.get(playerId);
 
-			if (player && !player.achievements[achievement.id] && trigger.check({ event: data, player, world: this.world })) {
+				if (!player || player.achievements[achievement.id]) return;
+				if (!trigger.check({ event: data, player, world: this.world })) return;
+
 				let updatedPlayer = { ...player, achievements: { ...player.achievements, [achievement.id]: true } };
 
 				playerLog.info(`Achievement unlocked`, {
@@ -228,7 +232,7 @@ export default class Game extends BaseGame {
 							});
 
 							if (items[key]) {
-								updatedPlayer.items = { ...updatedPlayer.items, [key]: (updatedPlayer.items[key] ?? 0) + 1 };
+								updatedPlayer.items = { ...updatedPlayer.items, [key]: (updatedPlayer.items[key] ?? 0) + value };
 							} else {
 								const awardAmount =
 									key === 'credits' ? getScaledAchievementReward(value, 'credits', this.world.spaceco.xp) : value;
@@ -252,16 +256,26 @@ export default class Game extends BaseGame {
 				super.broadcast('achievement', {
 					playerId,
 					achievement,
-					player: ({ achievements, xp, credits, items, fuel, health }) =>
-						({ achievements, xp, credits, items, fuel, health })(updatedPlayer),
+					player: (({ achievements, xp, credits, items, fuel, health }) => ({
+						achievements,
+						xp,
+						credits,
+						items,
+						fuel,
+						health,
+					}))(updatedPlayer),
 				});
-			}
+
+				if (updatedPlayer.xp !== player.xp) this.broadcastXpGain(playerId, updatedPlayer.xp - player.xp);
+			});
 		});
 
 		spacecoAchievements.forEach(({ trigger, ...achievement }) => {
-			if (trigger.type !== key) return;
+			if (![].concat(trigger.type).includes(key)) return;
 
-			if (!this.world.spaceco.achievements[achievement.id] && trigger.check({ event: data, world: this.world })) {
+			const check = { event: data, world: this.world, playerCount: this.players.size };
+
+			if (!this.world.spaceco.achievements[achievement.id] && trigger.check(check)) {
 				gameLog.debug('Achievement triggered', { achievementId: achievement.id, achievementName: achievement.name });
 
 				this.world.spaceco.achievements[achievement.id] = true;
@@ -408,6 +422,7 @@ export default class Game extends BaseGame {
 				emergencyTeleports: 0,
 				oreTypesCollected: {},
 				creditsEarned: 0,
+				worldsVisited: { [this.world.name]: true },
 				creditsSpent: 0,
 				asteroidsVisited: 0,
 				alienEncounters: 0,
@@ -437,60 +452,34 @@ export default class Game extends BaseGame {
 
 	updateSpacecoStock() {
 		const playerCount = this.players.size;
-		const baseStockMultiplier = Math.max(1, Math.ceil(playerCount / 2)); // Scale stock with player count
+		const stockedFor = spaceco.stockedForPlayers ?? 1;
 
-		// Update shop stock based on player count
-		Object.keys(this.world.spaceco.shop).forEach(itemName => {
-			const baseStock = this.world.spaceco.shop[itemName];
-			if (typeof baseStock === 'number' && baseStock > 0) {
-				// Increase stock by multiplier, but cap at reasonable levels
-				this.world.spaceco.shop[itemName] = Math.min(baseStock * baseStockMultiplier, baseStock + playerCount * 2);
-			}
+		if (playerCount <= stockedFor) return;
+
+		// Each new head adds one of every stocked item, and every second head one more listing of each kind
+		Object.keys(spaceco.shop).forEach(itemName => {
+			if (spaceco.shop[itemName] > 0) spaceco.shop[itemName] += playerCount - stockedFor;
 		});
 
-		if (playerCount >= 2) {
-			const allVehicles = Object.keys(vehicles);
-			const currentVehicles = this.world.spaceco.vehicles.length;
-			const targetVehicles = Math.min(currentVehicles + Math.floor(playerCount / 2), allVehicles.length);
+		const extraListings = Math.floor(playerCount / 2) - Math.floor(stockedFor / 2);
 
-			while (this.world.spaceco.vehicles.length < targetVehicles) {
-				const availableVehicles = allVehicles.filter(v => !this.world.spaceco.vehicles.includes(v));
-				if (availableVehicles.length > 0) {
-					this.world.spaceco.vehicles.push(randFromArray(availableVehicles));
-				} else {
-					break;
-				}
-			}
-
-			const allDrills = Object.keys(drills);
-			const currentDrills = this.world.spaceco.drills.length;
-			const targetDrills = Math.min(currentDrills + Math.floor(playerCount / 2), allDrills.length);
-
-			while (this.world.spaceco.drills.length < targetDrills) {
-				const availableDrills = allDrills.filter(d => !this.world.spaceco.drills.includes(d));
-				if (availableDrills.length > 0) {
-					this.world.spaceco.drills.push(randFromArray(availableDrills));
-				} else {
-					break;
-				}
-			}
-
-			const allEngines = Object.keys(engines);
-			const currentEngines = this.world.spaceco.engines.length;
-			const targetEngines = Math.min(currentEngines + Math.floor(playerCount / 2), allEngines.length);
+		Object.entries({ vehicles, drills, engines, parts }).forEach(([type, configs]) => {
+			spaceco[type] ??= [];
 
 			while (this.world.spaceco.engines.length < targetEngines) {
 				const availableEngines = allEngines.filter(e => !this.world.spaceco.engines.includes(e));
 				if (availableEngines.length > 0) {
 					this.world.spaceco.engines.push(randFromArray(availableEngines));
 				} else {
+
+		spaceco.stockedForPlayers = playerCount;
+
+		spacecoLog.info('Stocked SpaceCo for more players', { playerCount, shop: spaceco.shop });
 					break;
 				}
 			}
 
-			const allParts = Object.keys(parts);
-			const currentParts = this.world.spaceco.parts.length;
-			const targetParts = Math.min(currentParts + Math.floor(playerCount / 2), allParts.length);
+				if (unlisted.length === 0) break;
 
 			while (this.world.spaceco.parts.length < targetParts) {
 				const availableParts = allParts.filter(p => !this.world.spaceco.parts.includes(p));
@@ -500,15 +489,6 @@ export default class Game extends BaseGame {
 					break;
 				}
 			}
-		}
-
-		spacecoLog.info('Updated SpaceCo stock', {
-			playerCount,
-			shop: this.world.spaceco.shop,
-			vehicles: this.world.spaceco.vehicles?.length || 0,
-			drills: this.world.spaceco.drills?.length || 0,
-			engines: this.world.spaceco.engines?.length || 0,
-			parts: this.world.spaceco.parts?.length || 0,
 		});
 	}
 
@@ -1074,10 +1054,7 @@ export default class Game extends BaseGame {
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-		// Broadcast xpGain event for achievements if XP was gained
-		if (item === 'pension_credit_buyup') {
-			this.broadcast('xpGain', { playerId, xpGained: Math.floor(cost * 0.5), totalXp: updates.xp });
-		}
+		if (item === 'pension_credit_buyup') this.broadcastXpGain(playerId, updates.xp - (player.xp || 0));
 
 		this.world.spaceco.shop[item] -= count;
 		this.world.spaceco.stats.creditsEarned += cost;
@@ -1192,6 +1169,7 @@ export default class Game extends BaseGame {
 		}
 
 		const currentEquipmentId = player.configuration[configKey];
+		this.broadcastXpGain(playerId, finalCost);
 		let tradeInDiscount = 0;
 
 		if (currentEquipmentId) {
@@ -1308,6 +1286,10 @@ export default class Game extends BaseGame {
 			(this.world.spaceco.stats.upgradesSoldByType[upgradeTypeKey] || 0) + 1;
 
 		this.addSpacecoXp(getSpacecoXp(finalCost, 'upgrade_sale'));
+		const mineralsLeft = this.world.grid
+			.flat()
+			.reduce((count, cell) => count + cell.items.filter(item => item.name.startsWith('mineral')).length, 0);
+
 
 		this.broadcastWithSpacecoState(
 			'spacecoBuyUpgrade',
@@ -1318,6 +1300,7 @@ export default class Game extends BaseGame {
 					credits,
 					xp,
 					health,
+		this.broadcastXpGain(playerId, newWorld.transportPrice);
 					maxHealth,
 					maxFuel,
 					maxCargo,
@@ -1348,6 +1331,7 @@ export default class Game extends BaseGame {
 			},
 			[type],
 		);
+					worldsVisited: { ...currentPlayer.stats.worldsVisited, [newWorld.name]: true },
 	}
 
 	spacecoBuyTransport(playerId, world = randFromArray(Object.keys(WORLDS))) {
@@ -1478,14 +1462,8 @@ export default class Game extends BaseGame {
 				updates,
 				cost: transportCost,
 				world: newWorld.name,
-				newWorldState: {
-					...this.world,
-					// Send full world state for seamless transition
-					players: Array.from(this.players.values()).map(p => ({
-						...p,
-						sprite: undefined, // Don't send sprites
-					})),
-				},
+				mineralsLeft,
+				newWorldState: { ...this.world, players: [...this.players.values()] },
 			},
 			['hull'],
 		);
@@ -2022,7 +2000,6 @@ export default class Game extends BaseGame {
 	acceptTrade(playerId, tradeId) {
 		const trade = this.activeTrades.get(tradeId);
 
-			playerIds: [trade.player1Id, trade.player2Id],
 		if (!trade) {
 			return { success: false, error: 'Trade not found or expired' };
 		}
@@ -2083,6 +2060,7 @@ export default class Game extends BaseGame {
 				player2Accepted: false,
 			});
 
+			playerIds: [trade.player1Id, trade.player2Id],
 		const player2Validation = this.validateTradeResources(player2, trade.player2Offer);
 		if (!player2Validation.valid) {
 			return { success: false, error: `${player2.name}: ${player2Validation.error}` };
@@ -3355,6 +3333,8 @@ export default class Game extends BaseGame {
 		throw new Error(`Invalid hazard definition in ${context}: ${typeof hazardValue}`);
 	}
 
+		const updatedPlayer = { ...player, position, orientation, stats: { ...player.stats } };
+
 	createMysterySpawner(hazardConfig, context) {
 		if (!hazardConfig.spawnTable || !Array.isArray(hazardConfig.spawnTable)) {
 			throw new Error(`Mystery spawner in ${context} must have a spawnTable array`);
@@ -3553,6 +3533,10 @@ export default class Game extends BaseGame {
 
 			default:
 				// Default to approach behavior
+	broadcastXpGain(playerId, xpGained) {
+		this.broadcast('xpGain', { playerId, xpGained, totalXp: this.players.get(playerId).xp });
+	}
+
 				preferredMoves =
 					Math.abs(delta.x) > Math.abs(delta.y)
 						? [delta.x > 0 ? 'right' : 'left', delta.y > 0 ? 'bottom' : 'top']
@@ -4470,7 +4454,6 @@ export default class Game extends BaseGame {
 	 */
 	addSpacecoXp(amount) {
 		this.world.spaceco.xp += amount;
-		// Broadcast spacecoXp event for achievements
 		this.broadcast('spacecoXp', { xpGained: amount, totalXp: this.world.spaceco.xp });
 	}
 
