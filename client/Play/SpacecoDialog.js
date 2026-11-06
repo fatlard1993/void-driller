@@ -572,7 +572,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		// Show egg hunt progress if any eggs have been submitted
 		const eggHunt = gameContext.serverState.world.spaceco.eggHunt;
 		if (eggHunt && eggHunt.totalEggsSubmitted > 0) {
-			const playerSubmitted = eggHunt.playerSubmissions?.get?.(gameContext.playerId) || 0;
+			const playerSubmitted = eggHunt.playerSubmissions?.[gameContext.playerId] || 0;
 
 			this._menuBody.append(
 				new Elem({
@@ -962,11 +962,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							style: {
 								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
-							onPointerPress: () => {
-								const player = gameContext.players.currentPlayer;
-								player.sprite.setTexture('vehicles', spriteIndex);
-								spacecoBuyUpgrade({ upgrade: id, type: 'vehicles' });
-							},
+							onPointerPress: () => spacecoBuyUpgrade({ upgrade: id, type: 'vehicles' }),
 							disabled: !canAfford,
 						}),
 					],
@@ -1155,11 +1151,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							style: {
 								backgroundColor: !missingRequirements && canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
-							onPointerPress: () => {
-								const player = gameContext.players.currentPlayer;
-								player.sprite.drill.setTexture('drills', spriteIndex);
-								spacecoBuyUpgrade({ upgrade: id, type: 'drills' });
-							},
+							onPointerPress: () => spacecoBuyUpgrade({ upgrade: id, type: 'drills' }),
 							disabled: missingRequirements || !canAfford,
 						}),
 					],
@@ -1291,10 +1283,10 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const pricePerLiter = serviceCosts.fuelPricePerUnit[engineConfig.fuelType];
 
 		const neededFuel = player.maxFuel - player.fuel;
-		const cost = neededFuel * pricePerLiter;
+		const cost = Math.floor(neededFuel * pricePerLiter);
 
-		if (neededFuel === 0) {
-			this._menuBody.append(new Elem({ tag: 'p', content: 'Your full' }));
+		if (neededFuel < 0.01) {
+			this._menuBody.append(new Elem({ tag: 'p', content: 'Tank is full' }));
 
 			return;
 		}
@@ -1329,7 +1321,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
 						new Elem({ content: 'Fill' }),
 						new Elem({ content: '(' }),
-						new PriceDisplay({ amount: cost.toFixed(2), size: 14 }),
+						new PriceDisplay({ amount: cost, size: 14 }),
 						new Elem({ content: ')' }),
 					),
 					onPointerPress: () => spacecoRefuel({ amount: cost }),
@@ -1584,7 +1576,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				if (key === 'psykick_egg') {
 					const eggHunt = gameContext.serverState.world.spaceco.eggHunt;
 					const totalSubmitted = eggHunt?.totalEggsSubmitted || 0;
-					const playerSubmitted = eggHunt?.playerSubmissions?.get?.(gameContext.playerId) || 0;
+					const playerSubmitted = eggHunt?.playerSubmissions?.[gameContext.playerId] || 0;
 
 					return [
 						new Elem({
