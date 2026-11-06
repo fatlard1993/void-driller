@@ -7,7 +7,7 @@ import { LevelEditor } from './DevTools/LevelEditor';
 const DevToolsContainer = styled.Component`
 	background: ${theme.colors.black};
 	border: 3px solid ${theme.colors.lighter(theme.colors.blue)};
-	width: clamp(90vw, 80vw, 1700px);
+	width: min(90vw, 1700px);
 	margin: 3em auto;
 	border-radius: 6px;
 	padding: 3px;

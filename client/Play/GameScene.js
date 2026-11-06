@@ -122,7 +122,7 @@ export default class GameScene extends Phaser.Scene {
 			transform: translate(-50%, -50%);
 			z-index: 9999;
 			background: ${theme.colors.black};
-			width: clamp(90vw, 80vw, 600px);
+			width: min(90vw, 600px);
 			padding: var(--frame-inset);
 			box-sizing: border-box;
 		`;
@@ -786,8 +786,8 @@ export default class GameScene extends Phaser.Scene {
 			// The hover cursor went with the interfaces layer; the pointer makes a new one
 			gameContext.cursor = null;
 
-			gameContext.serverState.players = newWorldState.players;
 			gameContext.serverState.world = newWorldState;
+			gameContext.serverState.players = newWorldState.players;
 
 			this.createWorldFromState();
 		}, fadeDelay + fadeDuration);
@@ -930,8 +930,8 @@ export default class GameScene extends Phaser.Scene {
 			gameContext.spaceco = new Spaceco(
 				this,
 				gameContext.serverState.world.spaceco.position.x,
-				gameContext.serverState.world.spaceco.variant,
 				gameContext.serverState.world.spaceco.position.y,
+				gameContext.serverState.world.spaceco.variant,
 			);
 			gameContext.sceneLayers.hazards.add(gameContext.spaceco);
 			// Keep it invisible until fade-in

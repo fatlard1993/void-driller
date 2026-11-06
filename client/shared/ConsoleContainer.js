@@ -7,7 +7,7 @@ export class ConsoleContainer extends (styled.Component`
 	${frameStyles()}
 	position: relative;
 	background: ${theme.colors.black};
-	width: clamp(90vw, 80vw, 1700px);
+	width: min(90vw, 1700px);
 	margin: 6em auto;
 	padding: var(--frame-inset);
 	box-sizing: border-box;
