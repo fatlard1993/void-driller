@@ -101,94 +101,9 @@ export default class Game extends BaseGame {
 		this.world = saveState.world || generateAsteroid(WORLDS[options.worldName] || options);
 		this.url = this.server.url;
 
-		// Setup EventRouter event handlers
-		this._setupEventHandlers();
-	}
-
-	/**
-	 * Setup EventRouter event handlers
-	 * This provides a cleaner alternative to REST routes for game actions
-	 */
-	_setupEventHandlers() {
-		// Define player movement event with validation and throttling
-		this.events.defineEvent('player:move', {
-			validate: data => {
-				if (!data.playerId || !data.path) return false;
-				if (!Array.isArray(data.path)) return false;
-				if (!this.players.has(data.playerId)) return false;
-
-				const player = this.players.get(data.playerId);
-				if (player.moving) return false; // Already moving
-
-				return true;
-			},
-			throttle: 100, // Prevent spam
-		});
-
-		this.events.on('player:move', data => {
-			try {
-				// Set moving state to prevent concurrent movements
-				this.players.update(data.playerId, current => ({ ...current, moving: true }));
-
-				this.movePlayer(data.playerId, data.path);
-			} catch (error) {
-				// Reset moving state on error
-				this.players.update(data.playerId, current => ({ ...current, moving: false }));
-				gameLog.error('Movement error via EventRouter', {
-					playerId: data.playerId,
-					gameId: this.id,
-					error: error.message,
-				});
-			}
-		});
-
-		// Define item usage event
-		this.events.defineEvent('player:useItem', {
-			validate: data => {
-				return data.playerId && data.item && this.players.has(data.playerId);
-			},
-		});
-
-		this.events.on('player:useItem', data => {
-			this.useItem(data.playerId, data.item, data.targetPosition);
-		});
-
-		// SpaceCo events
-		this.events.defineEvent('spaceco:sell', {
-			validate: data => {
-				return data.playerId && data.mineral && typeof data.count === 'number';
-			},
-		});
-
-		this.events.on('spaceco:sell', data => {
-			this.spacecoSell(data.playerId, data.mineral, data.count);
-		});
-
-		this.events.defineEvent('spaceco:sellItem', {
-			validate: data => {
-				return data.playerId && data.item && typeof data.count === 'number';
-			},
-		});
-
-		this.events.on('spaceco:sellItem', data => {
-			this.spacecoSellItem(data.playerId, data.item, data.count);
-		});
-
-		// Wildcard listener for all player events (logging)
-		this.events.on('player:*', (data, context) => {
-			playerLog.debug(`Player event: ${context.eventName}`, {
-				playerId: data.playerId,
-				gameId: this.id,
-			});
-		});
-
-		// Wildcard listener for all SpaceCo events (logging)
-		this.events.on('spaceco:*', (data, context) => {
-			spacecoLog.debug(`SpaceCo event: ${context.eventName}`, {
-				playerId: data.playerId,
-				gameId: this.id,
-			});
-		});
+		// Trades are between sessions, not part of the world: a Map here, never saved or sent
+		this.activeTrades = new Map();
+		this.movementTimeouts = new Map();
 
 		gameLog.info('EventRouter event handlers configured', {
 			gameId: this.id,
@@ -454,21 +369,6 @@ export default class Game extends BaseGame {
 			gamePlayerCount: this.players.size + 1,
 			sessionStartTime: new Date().toISOString(),
 		});
-
-		// Clean up any stale trades involving this player ID (from previous sessions)
-		if (this.world.activeTrades) {
-			const staleTrades = Array.from(this.world.activeTrades.values()).filter(
-				trade => trade.player1Id === id || trade.player2Id === id,
-			);
-
-			staleTrades.forEach(trade => {
-				playerLog.info('Cleaning up stale trade for joining player', {
-					playerId: id,
-					tradeId: trade.id,
-				});
-				this.world.activeTrades.delete(trade.id);
-			});
-		}
 
 		this.players.set(id, {
 			credits: 0,
@@ -1869,6 +1769,10 @@ export default class Game extends BaseGame {
 
 				// Collect pure minerals and other items (but not explosives to avoid chain reactions)
 				cell.items.forEach(item => {
+		if (initiatorId === targetId) {
+			return { success: false, error: 'You cannot trade with yourself' };
+		}
+
 					if (item.name.startsWith('mineral_')) {
 						const mineralType = item.name.replace('mineral_', '');
 						const pureKey = `mineral_${mineralType}`;
@@ -2016,13 +1920,10 @@ export default class Game extends BaseGame {
 		}
 
 		// Cancel any active trades involving this player
-		if (this.world.activeTrades) {
-			const tradesToCancel = Array.from(this.world.activeTrades.values()).filter(
-				trade => (trade.player1Id === id || trade.player2Id === id) && trade.status === 'active',
-			);
-
-			tradesToCancel.forEach(trade => {
-				this.world.activeTrades.delete(trade.id);
+		[...this.activeTrades.values()]
+			.filter(trade => trade.player1Id === id || trade.player2Id === id)
+			.forEach(trade => {
+				this.activeTrades.delete(trade.id);
 				this.broadcast('tradeCancelled', {
 					tradeId: trade.id,
 					cancelledBy: id,
@@ -2055,12 +1956,7 @@ export default class Game extends BaseGame {
 			return { success: false, error: 'Players must be adjacent to trade' };
 		}
 
-		// Check for existing active trades involving these players
-		if (!this.world.activeTrades) {
-			this.world.activeTrades = new Map();
-		}
-
-		const existingTrade = Array.from(this.world.activeTrades.values()).find(
+		const existingTrade = Array.from(this.activeTrades.values()).find(
 			trade =>
 				(trade.player1Id === initiatorId ||
 					trade.player2Id === initiatorId ||
@@ -2080,7 +1976,7 @@ export default class Game extends BaseGame {
 			playerLog.info('Force cleaning up stale trade to allow new session', {
 				tradeId: existingTrade.id,
 			});
-			this.world.activeTrades.delete(existingTrade.id);
+			this.activeTrades.delete(existingTrade.id);
 			this.broadcast('tradeCancelled', {
 				tradeId: existingTrade.id,
 				cancelledBy: initiatorId,
@@ -2100,10 +1996,9 @@ export default class Game extends BaseGame {
 			player2Accepted: false,
 			status: 'active',
 			createdAt: Date.now(),
-			expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
 		};
 
-		this.world.activeTrades.set(tradeId, trade);
+		this.activeTrades.set(tradeId, trade);
 
 		// Broadcast trade session started to both players
 		this.broadcast('tradeSessionStarted', {
@@ -2116,7 +2011,7 @@ export default class Game extends BaseGame {
 	}
 
 	updateTradeOffer(playerId, tradeId, offer) {
-		const trade = this.world.activeTrades?.get(tradeId);
+		const trade = this.activeTrades.get(tradeId);
 
 		if (!trade) {
 			return { success: false, error: 'Trade not found or expired' };
@@ -2163,8 +2058,9 @@ export default class Game extends BaseGame {
 	}
 
 	acceptTrade(playerId, tradeId) {
-		const trade = this.world.activeTrades?.get(tradeId);
+		const trade = this.activeTrades.get(tradeId);
 
+			playerIds: [trade.player1Id, trade.player2Id],
 		if (!trade) {
 			return { success: false, error: 'Trade not found or expired' };
 		}
@@ -2208,11 +2104,22 @@ export default class Game extends BaseGame {
 			return { success: false, error: 'One or both players no longer exist' };
 		}
 
-		// Final validation of resources
-		const player1Validation = this.validateTradeResources(player1, trade.player1Offer);
-		if (!player1Validation.valid) {
-			return { success: false, error: `${player1.name}: ${player1Validation.error}` };
-		}
+		// An offer can go stale between acceptances (credits spent elsewhere); both sides accept again
+		const failed = [
+			[player1, this.validateTradeResources(player1, trade.player1Offer)],
+			[player2, this.validateTradeResources(player2, trade.player2Offer)],
+		].find(([, validation]) => !validation.valid);
+
+		if (failed) {
+			const [player, validation] = failed;
+			trade.player1Accepted = false;
+			trade.player2Accepted = false;
+			this.broadcast('tradeAcceptanceChanged', {
+				tradeId: trade.id,
+				playerId: player.id,
+				player1Accepted: false,
+				player2Accepted: false,
+			});
 
 		const player2Validation = this.validateTradeResources(player2, trade.player2Offer);
 		if (!player2Validation.valid) {
@@ -2327,7 +2234,7 @@ export default class Game extends BaseGame {
 		this.updatePlayerCargo(trade.player2Id);
 
 		trade.status = 'completed';
-		this.world.activeTrades.delete(trade.id);
+		this.activeTrades.delete(trade.id);
 
 		this.broadcast('tradeCompleted', {
 			tradeId: trade.id,
@@ -2341,7 +2248,7 @@ export default class Game extends BaseGame {
 	}
 
 	cancelTrade(playerId, tradeId) {
-		const trade = this.world.activeTrades?.get(tradeId);
+		const trade = this.activeTrades.get(tradeId);
 
 		if (!trade) {
 			playerLog.warning('Attempted to cancel non-existent trade', { playerId, tradeId });
@@ -2356,14 +2263,14 @@ export default class Game extends BaseGame {
 		if (trade.status !== 'active') {
 			playerLog.warning('Attempted to cancel non-active trade', { playerId, tradeId, status: trade.status });
 			// Still delete it to clean up
-			this.world.activeTrades.delete(tradeId);
+			this.activeTrades.delete(tradeId);
 			return { success: true }; // Return success to prevent errors on cleanup
 		}
 
 		playerLog.info('Trade cancelled', { playerId, tradeId });
 
 		trade.status = 'cancelled';
-		this.world.activeTrades.delete(tradeId);
+		this.activeTrades.delete(tradeId);
 
 		this.broadcast('tradeCancelled', {
 			tradeId,
@@ -2375,196 +2282,23 @@ export default class Game extends BaseGame {
 		return { success: true };
 	}
 
-	validateTradeResources(player, tradeItems) {
-		// Handle null/undefined trade items
-		if (!tradeItems) {
-			return { valid: true };
+	validateTradeResources(player, offer) {
+		if (!offer || typeof offer !== 'object') return { valid: false, error: 'Offer required' };
+
+		const isCount = value => Number.isInteger(value) && value >= 0;
+
+		if (offer.credits !== undefined && !isCount(offer.credits)) {
+			return { valid: false, error: 'Credits must be a whole number' };
 		}
 
-		// Check credits
-		if (tradeItems.credits && tradeItems.credits > player.credits) {
-			return { valid: false, error: 'Insufficient credits' };
+		for (const [itemName, quantity] of Object.entries(offer.items || {})) {
+			if (!isCount(quantity)) return { valid: false, error: `${itemName} must be a whole number` };
+			if (quantity > (player.items[itemName] || 0)) return { valid: false, error: `Insufficient ${itemName}` };
 		}
 
-		// Check items
-		if (tradeItems.items) {
-			for (const [itemName, quantity] of Object.entries(tradeItems.items)) {
-				const playerQuantity = player.items[itemName] || 0;
-				if (quantity > playerQuantity) {
-					return { valid: false, error: `Insufficient ${itemName}` };
-				}
-			}
-		}
-
-		// Check minerals
-		if (tradeItems.minerals) {
-			for (const [mineralName, quantity] of Object.entries(tradeItems.minerals)) {
-				const playerQuantity = player.hull[mineralName] || 0;
-				if (quantity > playerQuantity) {
-					return { valid: false, error: `Insufficient ${mineralName}` };
-				}
-			}
-		}
-
-		return { valid: true };
-	}
-
-	// Add cleanup method to periodically remove expired trades
-	cleanupExpiredTrades() {
-		if (!this.world.activeTrades) return;
-
-		const now = Date.now();
-		const expiredTrades = [];
-
-		for (const [tradeId, trade] of this.world.activeTrades.entries()) {
-			if (now > trade.expiresAt && trade.status === 'active') {
-				expiredTrades.push(tradeId);
-			}
-		}
-
-		expiredTrades.forEach(tradeId => {
-			const trade = this.world.activeTrades.get(tradeId);
-			this.world.activeTrades.delete(tradeId);
-
-			this.broadcast('tradeExpired', {
-				tradeId,
-				player1Id: trade.player1Id,
-				player2Id: trade.player2Id,
-			});
-		});
-	}
-
-	postProcessHazardSpreading(world) {
-		// Process lava and gas spreading in a separate pass to avoid order-dependent behavior
-		const spreadableHazards = [];
-
-		for (let x = 0; x < world.width; x++) {
-			for (let y = 0; y < world.depth; y++) {
-				const cell = world.grid[x][y];
-				if (cell.hazards.some(h => h.type === 'lava' || h.type === 'gas')) {
-					spreadableHazards.push({ x, y, hazards: cell.hazards });
-				}
-			}
-		}
-
-		// Now spread hazards from all identified sources
-		spreadableHazards.forEach(({ x, y, hazards }) => {
-			const spreadingHazard = hazards.find(h => h.type === 'lava' || h.type === 'gas');
-			if (!spreadingHazard) return;
-
-			// Check all adjacent cells (not only left/top)
-			const adjacentPositions = [
-				{ x: x - 1, y },
-				{ x: x + 1, y },
-				{ x, y: y - 1 },
-				{ x, y: y + 1 },
-			];
-
-			adjacentPositions.forEach(pos => {
-				const adjacentCell = world.grid[pos.x]?.[pos.y];
-				if (
-					adjacentCell &&
-					!adjacentCell.ground.type &&
-					adjacentCell.hazards.length === 0 &&
-					adjacentCell.items.length === 0 &&
-					chance(30)
-				) {
-					// 30% chance to spread to adjacent empty cells
-
-					adjacentCell.hazards.push({ type: spreadingHazard.type });
-
-					// Check if SpaceCo is at this position and take hazard damage
-					if (world?.spaceco?.position && world.spaceco.position.x === pos.x && world.spaceco.position.y === pos.y) {
-						this.checkSpacecoHazardDamage();
-					}
-				}
-			});
-		});
-	}
-
-	// Helper method for world validation
-	validateGeneratedWorld(world) {
-		// Check SpaceCo position isn't in solid rock
-		const spacecoCell = world.grid[world.spaceco.position.x][world.spaceco.position.y];
-		if (spacecoCell.ground.type) {
-			worldLog.warning('SpaceCo outpost placed inside solid rock - potential gameplay issues');
-		}
-
-		// Count mineral distribution for debugging
-		let totalMinerals = 0;
-		const mineralCounts = {};
-
-		for (let x = 0; x < world.width; x++) {
-			for (let y = 0; y < world.depth; y++) {
-				const cell = world.grid[x][y];
-				if (cell.ground.type) {
-					mineralCounts[cell.ground.type] = (mineralCounts[cell.ground.type] || 0) + 1;
-					totalMinerals++;
-				}
-				cell.items.forEach(item => {
-					if (item.name.startsWith('mineral_')) {
-						const mineralType = item.name.replace('mineral_', '');
-						mineralCounts[`pure_${mineralType}`] = (mineralCounts[`pure_${mineralType}`] || 0) + 1;
-					}
-				});
-			}
-		}
-
-		worldLog.info('World generation completed', {
-			worldName: world.name,
-			totalMinerals,
-			mineralDistribution: mineralCounts,
-		});
-
-		// Check for reasonable mineral distribution
-		if (totalMinerals === 0) {
-			throw new Error('Generated world has no mineable minerals');
-		}
-
-		// Check for reasonable connectivity
-		const reachableCells = this.countReachableCells(world, world.spaceco.position);
-		const totalCells = world.width * world.depth;
-		if (reachableCells < totalCells * 0.1) {
-			worldLog.warning('Low connectivity from SpaceCo outpost', { reachableCells, totalCells });
-		}
-	}
-
-	// Helper method to count reachable cells (basic connectivity check)
-	countReachableCells(world, startPos) {
-		const visited = new Set();
-		const queue = [startPos];
-		const key = pos => `${pos.x},${pos.y}`;
-
-		visited.add(key(startPos));
-
-		while (queue.length > 0) {
-			const pos = queue.shift();
-
-			// Check all 4 directions
-			[
-				[0, 1],
-				[0, -1],
-				[1, 0],
-				[-1, 0],
-			].forEach(([dx, dy]) => {
-				const newPos = { x: pos.x + dx, y: pos.y + dy };
-				const cellKey = key(newPos);
-
-				if (
-					newPos.x >= 0 &&
-					newPos.x < world.width &&
-					newPos.y >= 0 &&
-					newPos.y < world.depth &&
-					!visited.has(cellKey)
-				) {
-					const cell = world.grid[newPos.x][newPos.y];
-					// Count cells as reachable if they're not solid rock or if players can mine them
-					if (!cell.ground.type || cell.ground.type) {
-						visited.add(cellKey);
-						queue.push(newPos);
-					}
-				}
-			});
+		for (const [mineralName, quantity] of Object.entries(offer.minerals || {})) {
+			if (!isCount(quantity)) return { valid: false, error: `${mineralName} must be a whole number` };
+			if (quantity > (player.hull[mineralName] || 0)) return { valid: false, error: `Insufficient ${mineralName}` };
 		}
 
 		return visited.size;
