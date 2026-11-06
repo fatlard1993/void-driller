@@ -1,9 +1,9 @@
 import { Link, failureReason } from '@vanilla-bean/components';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import Notify from '../shared/Notify';
-import { getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import WatchGame from './WatchGame';
+import { getGameWhenLoaded } from '../Play/reconcile';
 
 export default class Watch extends View {
 	static schema = {
@@ -47,7 +47,7 @@ export default class Watch extends View {
 		gameContext.playerId = null;
 		gameContext.isWatchMode = true;
 
-		this.game = await getGame(gameContext.gameId);
+		this.game = await getGameWhenLoaded(gameContext.gameId);
 
 		if (this.game.status === 'error') {
 			new Notify({ intent: 'danger', content: failureReason(this.game) });

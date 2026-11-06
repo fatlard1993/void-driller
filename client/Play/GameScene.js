@@ -764,33 +764,39 @@ export default class GameScene extends Phaser.Scene {
 
 		// After fade completes, rebuild the world
 		setTimeout(() => {
-			// Destroy all existing sprites
-			Object.values(gameContext.sceneLayers).forEach(layer => {
-				layer.removeAll(true); // Remove and destroy all children
-				layer.alpha = 0; // Keep layers invisible
-			});
-
-			// Clear player sprites
-			gameContext.players.forEach(player => {
-				if (player.sprite) {
-					player.sprite.destroy();
-				}
-			});
-			gameContext.players.clear();
-
-			if (gameContext.spaceco) {
-				gameContext.spaceco.destroy();
-				gameContext.spaceco = null;
-			}
-
-			// The hover cursor went with the interfaces layer; the pointer makes a new one
-			gameContext.cursor = null;
-
-			gameContext.serverState.world = newWorldState;
-			gameContext.serverState.players = newWorldState.players;
-
-			this.createWorldFromState();
+			this.rebuildWorld({ world: newWorldState, players: newWorldState.players, hidden: true });
 		}, fadeDelay + fadeDuration);
+	}
+
+	/**
+	 * Tear the drawn world down and draw this one: after a transport (hidden, for the fade-in) or when a reconnect
+	 * finds the game on another asteroid
+	 * @param {object} state - The world and players to draw
+	 * @param {object} state.world - The world
+	 * @param {Array} state.players - The players
+	 * @param {boolean} [state.hidden] - Whether to leave the layers invisible for a fade-in
+	 */
+	rebuildWorld({ world, players, hidden = false }) {
+		Object.values(gameContext.sceneLayers).forEach(layer => {
+			layer.removeAll(true);
+			layer.alpha = hidden ? 0 : 1;
+		});
+
+		gameContext.players.forEach(player => player.sprite?.destroy());
+		gameContext.players.clear();
+
+		gameContext.spaceco?.destroy();
+		gameContext.spaceco = null;
+
+		// The hover cursor went with the interfaces layer; the pointer makes a new one
+		gameContext.cursor = null;
+
+		gameContext.serverState.world = world;
+		gameContext.serverState.players = players;
+
+		this.createWorldFromState();
+
+		if (!hidden) gameContext.spaceco?.setAlpha(1);
 	}
 
 	fadeInWorld() {
@@ -942,7 +948,7 @@ export default class GameScene extends Phaser.Scene {
 		}
 
 		// Recreate players
-		gameContext.serverState.world.players.forEach(player => {
+		gameContext.serverState.players.forEach(player => {
 			if (!player || !player.position) {
 				console.error('Invalid player data:', player);
 				return;

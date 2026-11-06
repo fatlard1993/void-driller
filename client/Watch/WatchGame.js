@@ -1,7 +1,10 @@
 import { styled } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
+import socket from '@fatlard1993/web-game-framework/client/socket';
+
 import gameContext, { teardownGame } from '../shared/gameContext';
+import { refetchGame } from '../Play/reconcile';
 import WatchScene from './WatchScene';
 import setupWatchRouter from './watchSocketRouter';
 
@@ -47,6 +50,15 @@ export default class WatchGame extends (styled.Component`
 	build() {
 		const eventRouter = setupWatchRouter();
 		this.addCleanup('eventRouter', () => eventRouter.destroy());
+
+		// Broadcasts missed while the socket was down are not replayed: a socket that opens again fetches the game
+		let connected = socket.readyState === socket.OPEN;
+		const onOpen = () => {
+			if (connected) refetchGame();
+			connected = true;
+		};
+		socket.addEventListener('open', onOpen);
+		this.addCleanup('reconnect', () => socket.removeEventListener('open', onOpen));
 
 		// The canvas fills the view's body, below its toolbar
 		const fit = new ResizeObserver(

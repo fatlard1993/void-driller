@@ -303,24 +303,21 @@ export default class WatchScene extends Phaser.Scene {
 
 		// Rebuild the world after fade completes (matching Play mode timing)
 		setTimeout(() => {
-			this.rebuildWorld(newWorldState);
+			this.rebuildWorld({ world: newWorldState, hidden: true });
 		}, fadeDelay + fadeDuration);
 	}
 
-	rebuildWorld(newWorldState) {
-		// Update server state - newWorldState might be the full state or just the world
-		// Check if it has a 'world' property or if it IS the world
-		if (newWorldState.world) {
-			// Full game state
-			gameContext.serverState = newWorldState;
-		} else if (newWorldState.grid) {
-			// The world, with the players where the transport set them down
-			gameContext.serverState.world = newWorldState;
-			if (newWorldState.players) gameContext.serverState.players = newWorldState.players;
-		} else {
-			console.error('[WatchScene] Invalid newWorldState structure:', newWorldState);
-			return;
-		}
+	/**
+	 * Tear the drawn world down and draw this one: after a transport (hidden, for the fade-in) or when a reconnect
+	 * finds the game on another asteroid
+	 * @param {object} state - The world and players to draw
+	 * @param {object} state.world - The world
+	 * @param {Array} [state.players] - The players, when the world does not carry them
+	 * @param {boolean} [state.hidden] - Whether to leave the layers invisible for a fade-in
+	 */
+	rebuildWorld({ world, players = world.players, hidden = false }) {
+		gameContext.serverState.world = world;
+		if (players) gameContext.serverState.players = players;
 
 		// Clear existing layers
 		Object.values(gameContext.sceneLayers).forEach(layer => {
@@ -335,13 +332,6 @@ export default class WatchScene extends Phaser.Scene {
 		gameContext.players.clear();
 
 		// Rebuild the world (same logic as create())
-		const { world } = gameContext.serverState;
-
-		if (!world) {
-			console.error('[WatchScene] No world data after processing newWorldState');
-			return;
-		}
-
 		const { grid, spaceco } = world;
 
 		this.fitCamera();
@@ -409,9 +399,8 @@ export default class WatchScene extends Phaser.Scene {
 			this.addPlayer(player);
 		});
 
-		// Set layers to alpha 0 initially
 		Object.values(gameContext.sceneLayers).forEach(layer => {
-			layer.alpha = 0;
+			layer.alpha = hidden ? 0 : 1;
 		});
 	}
 

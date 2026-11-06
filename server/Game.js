@@ -122,6 +122,7 @@ export default class Game extends BaseGame {
 			world: this.world,
 			url: this.url,
 			players: [...this.players.values()],
+			trades: [...this.activeTrades.values()],
 		};
 	}
 

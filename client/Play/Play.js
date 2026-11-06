@@ -3,12 +3,12 @@ import { Button, failureReason, styled } from '@vanilla-bean/components';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import { ExitDialog } from '@fatlard1993/web-game-framework/ui/GameRoom';
 import Notify from '../shared/Notify';
-import { getGame } from '../api';
 import gameContext, { teardownGame } from '../shared/gameContext';
 import { releaseInputOnClose } from '../shared/BaseDialog';
 import { frameAttributes, frameCorner, frameDialogStyles } from '../shared/frame';
 import Game from './Game';
 import ConsoleDialog from './ConsoleDialog';
+import { getGameWhenLoaded } from './reconcile';
 
 const AbortDialog = styled(ExitDialog)`
 	${frameDialogStyles(frameCorner.small)}
@@ -73,7 +73,7 @@ export default class Play extends View {
 			return;
 		}
 
-		this.game = await getGame(gameContext.gameId);
+		this.game = await getGameWhenLoaded(gameContext.gameId);
 
 		if (this.game.status === 'error') {
 			new Notify({ intent: 'danger', content: failureReason(this.game) });

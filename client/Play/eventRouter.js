@@ -477,6 +477,23 @@ export function registerWorldEvents(router) {
 	});
 }
 
+// Another player's rig, drawn from the constants with its name
+export const addDrill = player => {
+	const sprite = new Drill(
+		gameContext.scene,
+		player.position.x,
+		player.position.y,
+		player.orientation,
+		vehicles[player.configuration.vehicle].spriteIndex,
+		drills[player.configuration.drill].spriteIndex,
+		player.name,
+	);
+
+	gameContext.players.set(player.id, { ...gameContext.players.get(player.id), ...player, sprite });
+
+	return sprite;
+};
+
 /**
  * Setup EventRouter for void-driller client
  * @returns {EventRouter} Configured router instance
@@ -504,22 +521,6 @@ export function setupEventRouter() {
 	}
 
 	// === Player Events ===
-
-	const addDrill = player => {
-		const sprite = new Drill(
-			gameContext.scene,
-			player.position.x,
-			player.position.y,
-			player.orientation,
-			vehicles[player.configuration.vehicle].spriteIndex,
-			drills[player.configuration.drill].spriteIndex,
-			player.name,
-		);
-
-		gameContext.players.set(player.id, { ...gameContext.players.get(player.id), ...player, sprite });
-
-		return sprite;
-	};
 
 	router.on('playerMove', data => {
 		if (!gameContext.players.get(data.player.id)?.sprite) addDrill(data.player);
