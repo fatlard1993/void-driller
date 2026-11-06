@@ -28,19 +28,21 @@ export default class MusicManager {
 	 * @param {object} config - Music timing configuration
 	 */
 	async play(levelName, config) {
-		// Stop any currently playing music
 		this.stop();
 
 		this.currentTrack = levelName;
 		const soundKey = `music/${levelName}`;
+		const request = (this.playRequest = (this.playRequest || 0) + 1);
 
-		// Load music on-demand if needed
 		try {
 			await this.scene.loadMusicIfNeeded(soundKey);
 		} catch (error) {
 			console.error('[MusicManager] Failed to load music:', error);
 			return;
 		}
+
+		// Another play() started while this track loaded; it owns the speakers now
+		if (request !== this.playRequest) return;
 
 		// Check if sound exists
 		if (!this.scene.sound.get(soundKey)) {

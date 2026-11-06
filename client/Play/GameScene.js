@@ -95,7 +95,6 @@ export default class GameScene extends Phaser.Scene {
 
 			this.load.once('complete', () => {
 				// Add to gameContext.sounds for consistency
-				gameContext.sounds[musicKey] = this.sound.add(musicKey);
 				resolve();
 			});
 
