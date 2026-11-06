@@ -729,10 +729,8 @@ export default class Game extends BaseGame {
 			return { success: true };
 		}
 
-		// Calculate sell price (70% of current market value due to 30% restocking fee)
-		const basePrice = items[item].price;
-		const currentMarketPrice = Math.floor(basePrice * (1.0 + this.world.spaceco.xp / 100000));
-		const unitSellPrice = Math.floor(currentMarketPrice * 0.7);
+		// 70% of the current market price: a 30% restocking fee
+		const unitSellPrice = Math.floor(getScaledItemPrice(items[item].price, this.world.spaceco.xp) * 0.7);
 		const sellValue = unitSellPrice * count;
 
 		// Update player inventory and credits
@@ -1412,26 +1410,8 @@ export default class Game extends BaseGame {
 		Object.entries(this.world.config?.spaceco?.shop || {}).forEach(([itemName, stockValue]) => {
 			const newStock = Array.isArray(stockValue) ? randInt(stockValue[0], stockValue[1]) : stockValue;
 
-		const worldConfig = this.world.config; // Store original config in world during generation
-			place(item);
-
-		if (worldConfig?.spaceco?.shop) {
-			Object.entries(worldConfig.spaceco.shop).forEach(([itemName, stockValue]) => {
-				// If stock is an array [min, max], pick random value in range
-				if (Array.isArray(stockValue)) {
-					const newStock = randInt(stockValue[0], stockValue[1]);
-					// Add to existing stock (don't replace)
-					const currentStock = this.world.spaceco.shop[itemName] || 0;
-					const finalStock = Array.isArray(currentStock) ? newStock : currentStock + newStock;
-					this.world.spaceco.shop[itemName] = finalStock;
-				} else if (typeof stockValue === 'number') {
-					// If single number, add that amount
-					const currentStock = this.world.spaceco.shop[itemName] || 0;
-					const finalStock = Array.isArray(currentStock) ? stockValue : currentStock + stockValue;
-					this.world.spaceco.shop[itemName] = finalStock;
-				}
-			});
-		}
+			this.world.spaceco.shop[itemName] = (this.world.spaceco.shop[itemName] || 0) + newStock;
+		});
 
 		// Update SpaceCo stats
 		this.world.spaceco.stats.creditsEarned += resupplyCost;
