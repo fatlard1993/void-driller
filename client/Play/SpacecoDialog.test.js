@@ -29,8 +29,18 @@ beforeAll(async () => {
 			transportChoices: [],
 		},
 	};
-	gameContext.players = new Map();
-	gameContext.players.currentPlayer = { hull: {}, items: {}, fuel: 1, maxFuel: 1, health: 1, maxHealth: 1, credits: 0 };
+	gameContext.playerId = 'me';
+	gameContext.players.clear();
+	gameContext.players.set('me', {
+		id: 'me',
+		hull: {},
+		items: {},
+		fuel: 1,
+		maxFuel: 1,
+		health: 1,
+		maxHealth: 1,
+		credits: 0,
+	});
 });
 
 describe('SpacecoDialog', () => {

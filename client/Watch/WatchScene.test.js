@@ -23,7 +23,8 @@ beforeAll(async () => {
 
 // A 390 wide phone view: the canvas sits below a 75px toolbar, the camera zoomed out on a world wider than the view
 const scene = ({ spriteX, spriteY }) => {
-	gameContext.players = new Map([['p1', { sprite: { x: spriteX, y: spriteY } }]]);
+	gameContext.players.clear();
+	gameContext.players.set('p1', { sprite: { x: spriteX, y: spriteY } });
 
 	return {
 		cameras: { main: { width: 390, height: 769, zoom: 0.1, midPoint: { x: 3200, y: 3200 } } },
