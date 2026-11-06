@@ -9,7 +9,7 @@
  */
 
 import { randFromArray, randInt, shuffleArray, weightedChance } from '../utils/index.js';
-import { worlds } from '../constants/index.js';
+import { aliens, worlds } from '../constants/index.js';
 import { worldLog } from '../utils/logger.js';
 
 /**
@@ -51,10 +51,9 @@ function calculateDimensions(size, shape) {
 /**
  * Generate a complete asteroid world using layered generation
  * @param {object} worldConfig - World configuration from constants/worlds.js
- * @param {object} gameData - Game data (items, aliens, etc.)
  * @returns {object} Generated world
  */
-export function generateAsteroid(worldConfig, gameData = {}) {
+export function generateAsteroid(worldConfig) {
 	// Resolve dimensions using size & shape system
 	const size = worldConfig.size || 'medium'; // small/medium/large/huge
 	const shape = worldConfig.shape || 'balanced'; // wide/deep/square/balanced
@@ -122,12 +121,12 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 	placeAliens(world, worldConfig);
 
 	// 4.2: Place items using budget system
-	placeItems(world, worldConfig, gameData.items || {});
+	placeItems(world, worldConfig);
 
 	// 4.3: Generate pure mineral crystals from veins (if using vein-based ground)
 	const groundFormat = worldConfig.groundFormat || 'veins';
 	if (groundFormat === 'veins') {
-		const pureMineralCrystals = generatePureMineralCrystals(world, worldConfig.ground);
+		const pureMineralCrystals = generatePureMineralCrystals(world);
 		// Group crystals by location and type for efficient placement
 		const crystalsByLocation = {};
 		pureMineralCrystals.forEach(crystal => {
@@ -249,6 +248,7 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 			upgradesSoldByType: {},
 		},
 		...worldConfig.spaceco,
+		position: world.spaceco.position, // Restore generated position after merge
 		vehicles: [...(worldConfig.spaceco?.vehicles || [])],
 		drills: [...(worldConfig.spaceco?.drills || [])],
 		engines: [...(worldConfig.spaceco?.engines || [])],
@@ -260,7 +260,6 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 				Array.isArray(stock) ? randInt(stock[0], stock[1]) : stock,
 			]),
 		),
-		position: world.spaceco.position, // Restore generated position after merge
 	};
 
 	return world;
@@ -1078,8 +1077,8 @@ function generateBranchingVein(
 				asteroidShape,
 				holePattern,
 				tunnelSet,
-				veinIndex,
 				depth + 1,
+				veinIndex,
 			);
 		}
 
@@ -1473,8 +1472,8 @@ function generateLightningVeins(world, color, size, numVeins, asteroidShape, hol
 			holePattern,
 			tunnelSet,
 			0,
-			veinIndex,
 			Math.random() * Math.PI * 2,
+			veinIndex,
 		);
 	}
 }
@@ -1502,8 +1501,8 @@ function generateLightningBranch(
 	holePattern,
 	tunnelSet,
 	depth,
-	veinIndex = 0,
 	direction,
+	veinIndex = 0,
 ) {
 	if (depth > 4) return;
 
@@ -1538,8 +1537,8 @@ function generateLightningBranch(
 				holePattern,
 				tunnelSet,
 				depth + 1,
-				veinIndex,
 				branchDirection,
+				veinIndex,
 			);
 		}
 
@@ -1936,6 +1935,7 @@ function generateGeologicalFormations(world, worldConfig, asteroidShape, holePat
 		}
 	}
 }
+
 /**
  * Rock somewhere in the ten cells above: a cave pocket rather than an open crater
  * @param {object} world - The world being generated
@@ -1950,7 +1950,6 @@ function hasRoof(world, x, y) {
 
 	return false;
 }
-
 
 /**
  * Place aliens using budget system
@@ -1968,9 +1967,6 @@ function placeAliens(world, worldConfig) {
 
 	// Initialize aliens object for level editor and other systems
 	world.aliens = {};
-
-	// Import alien types from constants
-	const { aliens } = require('../constants/aliens.js');
 
 	// Find valid placement locations (enclosed caves with ground support)
 	const validLocations = [];
@@ -2138,7 +2134,6 @@ function placeItems(world, worldConfig) {
 	const minDistance = 6; // Minimum distance between items
 
 	while (remainingBudget > 0 && validLocations.length > 0) {
-		// Choose random item type based on weights
 		let itemTypes = itemConfig.types || { oil: 100 };
 
 		if (
@@ -2286,7 +2281,7 @@ function applyHazardsByPickingSpots(world, worldConfig, asteroidShape, holePatte
 				world.grid[x][y].terrain === 'space' &&
 				asteroidShape(x, y) && // Must be within asteroid boundary
 				holePattern(x, y) && // Must be part of a hole/cave, not open space
-				isEnclosedCave(world, x, y, asteroidShape, holePattern)
+				isEnclosedCave(world, x, y, asteroidShape)
 			) {
 				// Must be enclosed, not exposed surface
 				caveSpaces.push({ x, y });
