@@ -191,6 +191,7 @@ export class Achievement extends styled.Popover(
 	`,
 ) {
 	static schema = {
+		xpLabel: { default: 'GMS' },
 		achievement: {},
 	};
 
@@ -286,7 +287,7 @@ export class Achievement extends styled.Popover(
 					if (type === 'xp') {
 						return new Elem({
 							className: 'reward-item',
-							textContent: `+${amount} GMS`,
+							textContent: `+${amount} ${this.options.xpLabel}`,
 						});
 					} else if (type === 'credits') {
 						return new Elem(

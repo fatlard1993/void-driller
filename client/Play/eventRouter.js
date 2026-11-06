@@ -339,7 +339,7 @@ export function setupEventRouter() {
 	router.on('achievement', data => {
 		// The popup belongs to the earner alone; the state lands for everyone
 		if (data.playerId === gameContext.playerId) {
-			new Achievement({ achievement: data.achievement });
+			new Achievement({ achievement: data.achievement, xpLabel: 'Pension Credits' });
 		}
 
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.player }));
