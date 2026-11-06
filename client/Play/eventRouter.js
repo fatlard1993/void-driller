@@ -266,17 +266,7 @@ export function setupEventRouter() {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 	});
 
-	router.on('playerMovementComplete', data => {
-		const player = gameContext.players.get(data.playerId);
-		if (player) {
-			gameContext.players.set(data.playerId, { ...player, moving: false });
-		}
-	});
-
-	// Every rejection path clears the local movement flags (moving,
-	// _movingStartTime, _stuckClickCount) the way the old socketRouter did -
-	// the stubs left them set, so one refused path swallowed every click
-	// after it until a reload resynced.
+	// Every end of a path clears the local movement flags, so the next click is not swallowed as impatience
 	const clearMovementState = playerId =>
 		gameContext.players.update(playerId, _ => ({
 			..._,
@@ -285,7 +275,7 @@ export function setupEventRouter() {
 			_stuckClickCount: 0,
 		}));
 
-	router.on('playerCantMove', data => {
+	router.on('playerMovementComplete', data => {
 		clearMovementState(data.playerId);
 
 		if (data.playerId === gameContext.playerId) {
@@ -310,7 +300,9 @@ export function setupEventRouter() {
 			const notify = () =>
 				new Notify({ intent: 'warning', content: reasons[data.reason] || 'Movement interrupted', timeout: 2000 });
 
-			// The stranded-pod lifeline the migration dropped; its toast follows it, so it stacks clear of the dialog
+			if (gameContext.statusBarHUD) gameContext.statusBarHUD.update(gameContext.players.get(data.playerId));
+
+			// The stranded rig's lifeline; its toast follows it, so it stacks clear of the dialog
 			if (reasons[data.reason]) {
 				import('./RescueDialog.js').then(module => {
 					gameContext.openDialog = new module.default();

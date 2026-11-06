@@ -491,7 +491,7 @@ export const playerAchievements = [
 		summary: 'Run out of fuel at least once.',
 		flavor: 'Fuel reserves fully depleted. Emergency protocols engaged.',
 		hidden: true, // Reveals failure state mechanic
-		trigger: { type: 'playerCantMove', check: ({ player }) => player.stats.outOfFuelEvents >= 1 },
+		trigger: { type: 'playerMovementInterrupted', check: ({ event }) => event.reason === 'no_fuel' },
 		awards: [['xp', 30]],
 	},
 	{

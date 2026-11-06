@@ -39,20 +39,6 @@ const WORLDS = {
 };
 
 const fuelItems = ['oil', 'battery', 'super_oxygen_liquid_nitrogen'];
-const usableItems = new Set([
-	...fuelItems,
-	'spaceco_teleporter',
-	'repair_nanites',
-	'timed_charge',
-	'remote_charge',
-	'detonator',
-	'gravity_charge',
-	'void_implosion',
-	'void_detonator',
-	'advanced_teleporter',
-	'activated_teleporter',
-	'spaceco_teleport_station',
-]);
 
 /**
  *
@@ -963,9 +949,9 @@ export default class Game extends BaseGame {
 			return { success: false, error: 'Insufficient credits' };
 		}
 
-		// Check inventory space
+		// Check inventory space (a pension buy-up converts to XP and takes no slot)
 		const currentItemCount = Object.values(player.items).reduce((sum, count) => sum + count, 0);
-		if (currentItemCount + count > player.maxItemSlots) {
+		if (item !== 'pension_credit_buyup' && currentItemCount + count > player.maxItemSlots) {
 			return { success: false, error: 'Insufficient inventory space' };
 		}
 
@@ -1464,7 +1450,9 @@ export default class Game extends BaseGame {
 
 		const baseItem = item.replace(/_\d+_\d+$/, '');
 
-		if (!usableItems.has(baseItem)) return { success: false, error: 'That item is not used by hand' };
+		if (baseItem !== 'activated_teleporter' && (!items[baseItem] || items[baseItem].passive)) {
+			return { success: false, error: 'That item is not used by hand' };
+		}
 
 		if (fuelItems.includes(item) && engines[player.configuration.engine].fuelType !== item) {
 			return { success: false, error: 'Incompatible fuel type' };
@@ -3324,12 +3312,7 @@ export default class Game extends BaseGame {
 		const fuelConsumption = stepFuelCost(player, cell);
 
 		if (fuelConsumption > player.fuel) {
-			this.players.update(playerId, _ => ({
-				..._,
-				stats: { ..._.stats, outOfFuelEvents: _.stats.outOfFuelEvents + 1 },
-			}));
-			this.stopMovement(playerId);
-			this.broadcast('playerCantMove', { playerId, player: this.players.get(playerId) });
+			this.strand(playerId, 'no_fuel');
 			return;
 		}
 
@@ -3394,18 +3377,9 @@ export default class Game extends BaseGame {
 		if (damage) {
 			this.hurtPlayers({ players: [playerId], damage });
 
-			const damagedPlayer = this.players.get(playerId);
-			if (damagedPlayer.health <= 0) {
-				this.stopMovement(playerId);
-
-				this.broadcast('playerMovementInterrupted', {
-					playerId,
-					reason: 'no_health',
-					finalPosition: damagedPlayer.position,
-					player: damagedPlayer, // Include full player state
-				});
-
-				return; // Stop movement execution
+			if (this.players.get(playerId).health <= 0) {
+				this.strand(playerId, 'no_health');
+				return;
 			}
 		}
 
@@ -3416,6 +3390,22 @@ export default class Game extends BaseGame {
 		clearTimeout(this.movementTimeouts.get(playerId));
 		this.movementTimeouts.delete(playerId);
 		this.players.update(playerId, _ => ({ ..._, moving: false, _movementSessionId: null }));
+	}
+
+	// The rig stops where it is, out of fuel or out of health, and everyone hears why
+	strand(playerId, reason) {
+		if (reason === 'no_fuel') {
+			this.players.update(playerId, _ => ({
+				..._,
+				stats: { ..._.stats, outOfFuelEvents: _.stats.outOfFuelEvents + 1 },
+			}));
+		}
+
+		this.stopMovement(playerId);
+
+		const player = this.players.get(playerId);
+
+		this.broadcast('playerMovementInterrupted', { playerId, reason, finalPosition: player.position, player });
 	}
 
 	movePlayer(playerId, path) {
@@ -3482,19 +3472,7 @@ export default class Game extends BaseGame {
 		const nextCell = getGridCell(this.world.grid, path[stepIndex].x, path[stepIndex].y);
 
 		if (player.health <= 0 || stepFuelCost(player, nextCell) > player.fuel) {
-			this.stopMovement(playerId);
-
-			const stopped = this.players.get(playerId);
-
-			this.broadcast('playerMovementInterrupted', {
-				playerId,
-				reason: player.health <= 0 ? 'no_health' : 'no_fuel',
-				finalPosition: stopped.position,
-				player: stopped,
-			});
-
-			if (player.health > 0) this.broadcast('playerCantMove', { playerId, player: stopped });
-
+			this.strand(playerId, player.health <= 0 ? 'no_health' : 'no_fuel');
 			return;
 		}
 

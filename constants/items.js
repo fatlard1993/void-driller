@@ -87,6 +87,7 @@ export const items = {
 	},
 
 	teleport_station: {
+		passive: true,
 		spriteIndex: 3,
 		price: 0,
 		summary: 'Deployed teleportation station.',
@@ -112,6 +113,7 @@ export const items = {
 
 	// UNIVERSAL ITEMS - Available throughout
 	transport_insurance: {
+		passive: true,
 		spriteIndex: 11,
 		price: 15,
 		summary: 'Protects items during inter-asteroid transport.',
@@ -120,6 +122,7 @@ export const items = {
 	},
 
 	pension_credit_buyup: {
+		passive: true,
 		spriteIndex: 16,
 		price: 100,
 		summary: 'Convert credits to Pension Credits (XP).',
@@ -129,6 +132,7 @@ export const items = {
 
 	// ALIEN ERA ITEMS (Level 11+) - Post-takeover
 	psykick_egg: {
+		passive: true,
 		spriteIndex: 14,
 		price: 0,
 		summary: 'High-density resonant mineral.',
