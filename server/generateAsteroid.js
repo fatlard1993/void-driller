@@ -8,7 +8,7 @@
  * Phase 4: Life & Artifacts (aliens, items with precise budgets)
  */
 
-import { randFromArray, randInt, shuffleArray, weightedChance } from '../utils/index.js';
+import { randFromArray, randInt, weightedChance } from '../utils/index.js';
 import { aliens, worlds } from '../constants/index.js';
 import { worldLog } from '../utils/logger.js';
 
@@ -441,14 +441,6 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 		tiny: [3, 6], // Default: 3-6 tiny caves
 	};
 
-	// Generate caves by size category with lava/gas integration
-	const lavaConfig = worldConfig.lava_pools || { count: [0, 0] };
-	const gasConfig = worldConfig.gas_pockets || { count: [0, 0] };
-	const lavaCount = randInt(lavaConfig.count[0], lavaConfig.count[1]);
-	const gasCount = randInt(gasConfig.count[0], gasConfig.count[1]);
-
-	const caveList = []; // Track caves for hazard placement
-
 	Object.entries(caveConfig).forEach(([size, count]) => {
 		const actualCount = Array.isArray(count) ? randInt(count[0], count[1]) : count;
 		const sizeConfig = caveSizes[size];
@@ -494,49 +486,11 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 				radiusY: Math.max(1, radiusY),
 				irregularity: size === 'tiny' ? 0.3 : 0.4 + Math.random() * 0.4,
 				size: size,
-				hasLava: false,
-				hasGas: false,
 			};
 
 			holes.push(cave);
-			caveList.push(cave);
 		}
 	});
-
-	// Assign lava to suitable caves (deeper, larger caves preferred)
-	if (lavaCount > 0) {
-		const lavaEligibleCaves = caveList
-			.filter(
-				cave =>
-					cave.centerY > depth * 0.4 && // Lower half
-					['medium', 'big', 'huge'].includes(cave.size), // Medium or larger
-			)
-			.sort((a, b) => b.centerY - a.centerY); // Prefer deeper
-
-		for (let i = 0; i < Math.min(lavaCount, lavaEligibleCaves.length); i++) {
-			lavaEligibleCaves[i].hasLava = true;
-		}
-	}
-
-	// Assign gas to suitable caves (no overlap with lava)
-	if (gasCount > 0) {
-		const gasEligibleCaves = shuffleArray(
-			caveList.filter(
-				cave =>
-					['small', 'medium', 'big', 'huge'].includes(cave.size) &&
-					// Prevent any cave from having both lava and gas
-					!cave.hasLava,
-			),
-		);
-
-		for (let i = 0; i < Math.min(gasCount, gasEligibleCaves.length); i++) {
-			gasEligibleCaves[i].hasGas = true;
-		}
-	}
-
-	// Cave data will be attached to the returned function
-
-	// Caves are now handled by the configurable system above
 
 	return (x, y) => {
 		// Check if point is inside any hole system
@@ -594,11 +548,7 @@ function generateHolePattern(width, depth, worldConfig, asteroidShape) {
 				const ny = y / depth;
 				let noiseIntensity;
 
-				if (hole.type === 'edge_crater') {
-					noiseIntensity = 0.18; // More organic crater shapes
-				} else if (hole.type === 'large_cave') {
-					noiseIntensity = 0.25;
-				} else if (hole.type === 'medium_cave') {
+				if (hole.type === 'medium_cave') {
 					noiseIntensity = 0.35;
 				} else {
 					noiseIntensity = 0.3;
@@ -2449,7 +2399,6 @@ function placeBubbles(world, hazardType, count, asteroidShape) {
 		// Convert solid ground cell to space with hazard
 		world.grid[x][y].terrain = 'space';
 		world.grid[x][y].ground = null;
-		world.grid[x][y].items = []; // Remove any mineral items that were on this ground
 
 		if (!world.grid[x][y].hazards) {
 			world.grid[x][y].hazards = [];
