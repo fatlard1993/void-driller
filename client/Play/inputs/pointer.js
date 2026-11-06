@@ -6,6 +6,7 @@ import {
 	gridToPxPosition,
 	moveHasSupport,
 	pxToGridPosition,
+	stepFuelCost,
 	validateMovement,
 	validateMovementPath,
 } from '../../../utils';
@@ -72,18 +73,7 @@ const calculateFuelCost = (position, player, grid) => {
 	const cell = grid[position.x]?.[position.y];
 	if (!cell) return Infinity;
 
-	let baseFuelConsumption = 0.1 / player.fuelEfficiency;
-
-	if (cell.ground?.type) {
-		const mineralConfig = minerals[cell.ground.type];
-		const miningPenalty = 0.3 + mineralConfig.density * 0.5;
-		baseFuelConsumption = Math.max(baseFuelConsumption, miningPenalty / player.fuelEfficiency);
-	}
-
-	const cargoWeightRatio = player.cargo / player.maxCargo;
-	const cargoFuelMultiplier = 1.0 + cargoWeightRatio * 0.2;
-
-	return baseFuelConsumption * cargoFuelMultiplier;
+	return stepFuelCost(player, cell);
 };
 
 // Enhanced path calculation that considers both fuel and cargo limits
@@ -97,7 +87,7 @@ const calculatePathResourceInfo = (pathPositions, player, grid) => {
 		const cell = grid[position.x]?.[position.y];
 
 		// Calculate fuel cost for this step
-		const stepFuelCost = calculateFuelCost(position, player, grid, pathPositions.slice(0, i));
+		const stepFuelCost = calculateFuelCost(position, player, grid);
 		cumulativeFuelUsed += stepFuelCost;
 
 		// Calculate cargo addition for this step
@@ -304,7 +294,7 @@ const generateOptimizedAStar = (start, end, player, grid) => {
 			return Infinity;
 		}
 
-		const fuelCost = calculateFuelCost(to, player, grid, pathSoFar);
+		const fuelCost = calculateFuelCost(to, player, grid);
 
 		// Calculate cumulative resource usage for path validation
 		const pathInfo = calculatePathResourceInfo([...pathSoFar, to], player, grid);
@@ -745,7 +735,7 @@ const generateDirectPath = (start, end, player, grid) => {
 
 		const position = { x: currentX, y: currentY };
 
-		const fuelCost = calculateFuelCost(position, player, grid, path);
+		const fuelCost = calculateFuelCost(position, player, grid);
 		totalFuelUsed += fuelCost;
 
 		// Calculate cargo increase

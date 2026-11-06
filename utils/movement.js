@@ -1,6 +1,25 @@
 import { drills, minerals } from '../constants/index.js';
 import { findBestOrientation, hasWheelSupport } from './grid.js';
 
+/**
+ * Fuel one step costs: more for digging, more for a heavier hold. The server charges this and the client previews it
+ * @param {object} rig - The rig taking the step
+ * @param {number} rig.fuelEfficiency - Fuel efficiency of the rig
+ * @param {number} rig.cargo - Weight in the hold
+ * @param {number} rig.maxCargo - Weight the hold carries
+ * @param {object} cell - The grid cell stepped into
+ * @returns {number} Fuel units
+ */
+export const stepFuelCost = ({ fuelEfficiency, cargo, maxCargo }, cell) => {
+	let base = 0.3 / fuelEfficiency;
+
+	if (cell?.ground?.type) {
+		base = Math.max(base, (0.9 + minerals[cell.ground.type].density * 1.2) / fuelEfficiency);
+	}
+
+	return base * (1 + (cargo / maxCargo) * 0.2);
+};
+
 export const calculateDrillOrientation = (currentPosition, targetPosition, grid, player) => {
 	const delta = {
 		x: targetPosition.x - currentPosition.x,
@@ -130,45 +149,18 @@ export const validateMovement = ({ player, targetPosition, currentPath = [], gri
 		}
 	}
 
-	// Calculate fuel cost for this new step (not the entire path)
-	let baseFuelConsumption = 0.1 / player.fuelEfficiency;
-	if (targetCell?.ground?.type) {
-		const mineralConfig = minerals[targetCell.ground.type];
-		const miningPenalty = 0.3 + mineralConfig.density * 0.5;
-		baseFuelConsumption = Math.max(baseFuelConsumption, miningPenalty / player.fuelEfficiency);
-	}
-
-	const cargoWeightRatio = cumulativeCargo / player.maxCargo;
-	const cargoFuelMultiplier = 1.0 + cargoWeightRatio * 0.2;
-	const stepFuelCost = baseFuelConsumption * cargoFuelMultiplier;
-
-	// Calculate cumulative fuel from current path ONLY
+	// Fuel already spent along the path, each step priced at the hold it was carrying
 	let cumulativeFuel = 0;
 	let tempCargo = player.cargo;
 	for (const pathStep of currentPath) {
 		const stepCell = grid[pathStep.x]?.[pathStep.y];
 
-		// Calculate fuel cost for this previous step
-		let stepBaseFuel = 0.1 / player.fuelEfficiency;
-		if (stepCell?.ground?.type) {
-			const mineralConfig = minerals[stepCell.ground.type];
-			const miningPenalty = 0.3 + mineralConfig.density * 0.5;
-			stepBaseFuel = Math.max(stepBaseFuel, miningPenalty / player.fuelEfficiency);
-		}
+		cumulativeFuel += stepFuelCost({ ...player, cargo: tempCargo }, stepCell);
 
-		const stepCargoRatio = tempCargo / player.maxCargo;
-		const stepCargoMultiplier = 1.0 + stepCargoRatio * 0.2;
-		cumulativeFuel += stepBaseFuel * stepCargoMultiplier;
-
-		// Update temp cargo for next calculation
-		if (stepCell?.ground?.type) {
-			const mineralConfig = minerals[stepCell.ground.type];
-			tempCargo += mineralConfig.weight || 0.1;
-		}
+		if (stepCell?.ground?.type) tempCargo += minerals[stepCell.ground.type].weight || 0.1;
 	}
 
-	// Check if adding this step would exceed fuel
-	if (cumulativeFuel + stepFuelCost > player.fuel) {
+	if (cumulativeFuel + stepFuelCost({ ...player, cargo: cumulativeCargo }, targetCell) > player.fuel) {
 		return { valid: false, reason: 'insufficient_fuel' };
 	}
 

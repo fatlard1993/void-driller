@@ -11,6 +11,7 @@ import {
 	positionIsOccupied,
 	validateMovementPath,
 	calculateDrillOrientation,
+	stepFuelCost,
 	hasWheelSupport,
 	getGridCell,
 	getScaledTransportCost,
@@ -4558,21 +4559,8 @@ export default class Game extends BaseGame {
 		}
 
 		const surrounds = getImmediateSurrounds(position, ['left', 'right', 'bottom', 'top'], this.world.grid);
-		const orientation = calculateDrillOrientation(player.position, position, this.world.grid, player, nextPosition);
-
-		const updatedPlayer = { ...player, position, orientation };
-
-		let fuelConsumption = 0.3 / player.fuelEfficiency;
-
-		if (this.world.grid[position.x][position.y].ground?.type) {
-			const { type } = this.world.grid[position.x][position.y].ground;
-			const miningPenalty = 0.9 + minerals[type].density * 1.2;
-			fuelConsumption = Math.max(fuelConsumption, miningPenalty / player.fuelEfficiency);
-		}
-
-		const cargoWeightRatio = player.cargo / player.maxCargo;
-		const cargoFuelMultiplier = 1.0 + cargoWeightRatio * 0.2;
-		fuelConsumption *= cargoFuelMultiplier;
+		const orientation = calculateDrillOrientation(player.position, position, this.world.grid, player);
+		const fuelConsumption = stepFuelCost(player, cell);
 
 		if (fuelConsumption > player.fuel) {
 			++updatedPlayer.stats.outOfFuelEvents;
@@ -4810,33 +4798,10 @@ export default class Game extends BaseGame {
 			return;
 		}
 
-		// Calculate fuel consumption for next step to check if player can continue
-		let nextStepFuelConsumption = 0.3 / player.fuelEfficiency;
+		const nextCell = getGridCell(this.world.grid, path[stepIndex].x, path[stepIndex].y);
 
-		if (stepIndex < path.length) {
-			const nextPosition = path[stepIndex];
-			if (
-				nextPosition &&
-				this.world.grid[nextPosition.x] &&
-				this.world.grid[nextPosition.x][nextPosition.y]?.ground?.type
-			) {
-				const { type } = this.world.grid[nextPosition.x][nextPosition.y].ground;
-				const miningPenalty = 0.9 + minerals[type].density * 1.2;
-				nextStepFuelConsumption = Math.max(nextStepFuelConsumption, miningPenalty / player.fuelEfficiency);
-			}
-		}
-
-		const cargoWeightRatio = player.cargo / player.maxCargo;
-		const cargoFuelMultiplier = 1.0 + cargoWeightRatio * 0.2;
-		nextStepFuelConsumption *= cargoFuelMultiplier;
-
-		if (player.health <= 0 || nextStepFuelConsumption > player.fuel) {
-			gameLog.info('Player cannot continue movement', { playerId, health: player.health, fuel: player.fuel });
-
-			// Clear any existing timeout
-			if (player._movementTimeout) {
-				clearTimeout(player._movementTimeout);
-			}
+		if (player.health <= 0 || stepFuelCost(player, nextCell) > player.fuel) {
+			this.stopMovement(playerId);
 
 			// Clear movement state and invalidate session to prevent stale timeouts
 			this.players.update(playerId, _ => ({
@@ -4853,10 +4818,7 @@ export default class Game extends BaseGame {
 				player: player, // Include full player state
 			});
 
-			// Also broadcast playerCantMove to trigger rescue dialog on client if interrupted due to fuel
-			if (nextStepFuelConsumption > player.fuel) {
-				this.broadcast('playerCantMove', { playerId, player: player });
-			}
+			if (player.health > 0) this.broadcast('playerCantMove', { playerId, player: stopped });
 
 			this.save();
 			return;
