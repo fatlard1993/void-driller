@@ -127,7 +127,7 @@ class TradeItemsList extends (styled.Component`
 							}),
 					),
 					editable
-						? tradeDialog.renderQuantityControls(offer, 'credits')
+						? tradeDialog.renderQuantityControls(null, 'credits')
 						: new Elem({
 								tag: 'div',
 								content: offer.credits.toString(),
@@ -161,7 +161,7 @@ class TradeItemsList extends (styled.Component`
 							}),
 					),
 					editable
-						? tradeDialog.renderQuantityControls(offer.items, itemName)
+						? tradeDialog.renderQuantityControls('items', itemName)
 						: new Elem({
 								tag: 'div',
 								content: `x${quantity}`,
@@ -195,7 +195,7 @@ class TradeItemsList extends (styled.Component`
 							}),
 					),
 					editable
-						? tradeDialog.renderQuantityControls(offer.minerals, mineralName)
+						? tradeDialog.renderQuantityControls('minerals', mineralName)
 						: new Elem({
 								tag: 'div',
 								content: `x${quantity}`,
@@ -420,13 +420,8 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		this.tradeContext.iAccepted = this.iAccepted;
 		this.tradeContext.theyAccepted = this.theyAccepted;
 
-		// Manually update the list components
-		if (this.myOfferList) {
-			this.myOfferList.options.offer = this.myOffer;
-		}
-		if (this.theirOfferList) {
-			this.theirOfferList.options.offer = this.theirOffer;
-		}
+		if (this.myOfferList) this.myOfferList.options.offer = this.tradeContext.myOffer;
+		if (this.theirOfferList) this.theirOfferList.options.offer = this.tradeContext.theirOffer;
 
 		// Update acceptance bar
 		this.updateAcceptanceBar();
@@ -522,61 +517,54 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		);
 	}
 
-	renderQuantityControls(dataObject, key) {
-		const currentValue = dataObject[key] || 0;
-		let maxValue;
+	// How much of a key the offer holds: credits at the root, items and minerals in their sections
+	offered(section, key) {
+		return (section ? this.tradeContext.myOffer[section]?.[key] : this.tradeContext.myOffer.credits) || 0;
+	}
 
-		if (key === 'credits') {
-			maxValue = this.currentPlayer.credits;
-		} else if (Object.keys(items).includes(key)) {
-			maxValue = this.currentPlayer.items[key] || 0;
-		} else {
-			maxValue = this.currentPlayer.hull[key] || 0;
-		}
+	// The offer is replaced, not mutated: the list redraws now, the server hears once the edits settle
+	setOffered(section, key, value) {
+		const offer = { ...this.tradeContext.myOffer };
+
+		if (section) {
+			offer[section] = { ...offer[section] };
+			if (value > 0) offer[section][key] = value;
+			else delete offer[section][key];
+		} else offer.credits = value;
+
+		this.tradeContext.myOffer = offer;
+		if (this.myOfferList) this.myOfferList.options.offer = offer;
+		this.sendOffer(offer);
+	}
+
+	renderQuantityControls(section, key) {
+		const current = this.offered(section, key);
+		const maxValue = section
+			? this.currentPlayer[section === 'items' ? 'items' : 'hull'][key] || 0
+			: this.currentPlayer.credits;
+		const set = value => this.setOffered(section, key, Math.max(0, Math.min(value, maxValue)));
 
 		return new Elem(
 			{ className: 'quantity-controls' },
 			new Button({
 				content: '-',
 				className: 'quantity-button',
-				onPointerPress: async () => {
-					if (currentValue > 0) {
-						if (currentValue === 1) {
-							delete dataObject[key];
-						} else {
-							dataObject[key] = currentValue - 1;
-						}
-						await this.sendOfferUpdate();
-					}
-				},
-				disabled: currentValue <= 0,
+				onPointerPress: () => set(this.offered(section, key) - 1),
+				disabled: current <= 0,
 			}),
 			new Input({
 				className: 'quantity-input',
 				type: 'number',
 				min: 0,
 				max: maxValue,
-				value: currentValue,
-				onChange: async ({ value }) => {
-					const numValue = parseInt(value, 10) || 0;
-					if (numValue <= 0) {
-						delete dataObject[key];
-					} else {
-						dataObject[key] = Math.min(numValue, maxValue);
-					}
-					await this.sendOfferUpdate();
-				},
+				value: current,
+				onChange: ({ value }) => set(parseInt(value, 10) || 0),
 			}),
 			new Button({
 				content: '+',
 				className: 'quantity-button',
-				onPointerPress: async () => {
-					if (currentValue < maxValue) {
-						dataObject[key] = currentValue + 1;
-						await this.sendOfferUpdate();
-					}
-				},
-				disabled: currentValue >= maxValue,
+				onPointerPress: () => set(this.offered(section, key) + 1),
+				disabled: current >= maxValue,
 			}),
 		);
 	}
@@ -594,13 +582,9 @@ export default class TradeDialog extends (styled(BaseDialog)`
 					min: 0,
 					max: this.currentPlayer.credits,
 					value: this.tradeContext.myOffer.credits || 0,
-					onChange: async ({ value }) => {
-						const numValue = parseInt(value, 10) || 0;
-						this.tradeContext.myOffer = {
-							...this.tradeContext.myOffer,
-							credits: Math.max(0, Math.min(numValue, this.currentPlayer.credits)),
-						};
-						await this.sendOfferUpdate();
+					onChange: ({ value }) => {
+						const credits = parseInt(value, 10) || 0;
+						this.setOffered(null, 'credits', Math.max(0, Math.min(credits, this.currentPlayer.credits)));
 					},
 				}),
 			),
@@ -616,16 +600,8 @@ export default class TradeDialog extends (styled(BaseDialog)`
 							value: item,
 						})),
 					],
-					onChange: async ({ value }) => {
-						if (value) {
-							const currentItems = { ...(this.tradeContext.myOffer.items || {}) };
-							currentItems[value] = (currentItems[value] || 0) + 1;
-							this.tradeContext.myOffer = {
-								...this.tradeContext.myOffer,
-								items: currentItems,
-							};
-							await this.sendOfferUpdate();
-						}
+					onChange: ({ value }) => {
+						if (value) this.setOffered('items', value, this.offered('items', value) + 1);
 					},
 				}),
 			),
@@ -643,24 +619,12 @@ export default class TradeDialog extends (styled(BaseDialog)`
 							value: mineral,
 						})),
 					],
-					onChange: async ({ value }) => {
-						if (value) {
-							const currentMinerals = { ...(this.tradeContext.myOffer.minerals || {}) };
-							currentMinerals[value] = (currentMinerals[value] || 0) + 1;
-							this.tradeContext.myOffer = {
-								...this.tradeContext.myOffer,
-								minerals: currentMinerals,
-							};
-							await this.sendOfferUpdate();
-						}
+					onChange: ({ value }) => {
+						if (value) this.setOffered('minerals', value, this.offered('minerals', value) + 1);
 					},
 				}),
 			),
 		);
-	}
-
-	sendOfferUpdate() {
-		this.sendOffer({ ...this.tradeContext.myOffer });
 	}
 
 	getAvailableItems() {
