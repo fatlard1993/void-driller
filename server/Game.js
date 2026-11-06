@@ -2921,6 +2921,7 @@ export default class Game extends BaseGame {
 					cell.hazards.push({ type: 'gas' });
 					// Check if SpaceCo is at this position and take hazard damage
 					if (
+			state.lastActionTime = now;
 						this.world?.spaceco?.position &&
 						this.world.spaceco.position.x === spawnPosition.x &&
 						this.world.spaceco.position.y === spawnPosition.y
@@ -3698,7 +3699,11 @@ export default class Game extends BaseGame {
 		};
 	}
 
-	handleAmbushAction(name, position, triggeringPlayer, distanceToPlayer, state, behavior) {
+	handleAmbushAction(name, position, triggeringPlayer, distanceToPlayer, state, behavior, now) {
+		if (state.hasAttacked && distanceToPlayer <= behavior.detectionRange) {
+			return this.handleMeleeAction(name, position, triggeringPlayer, distanceToPlayer, state, behavior, now);
+		}
+
 		// Only act within ambush radius
 		if (distanceToPlayer > behavior.ambushRadius) {
 			if (state.isRevealed) {
@@ -3735,7 +3740,6 @@ export default class Game extends BaseGame {
 			this.hurtPlayers({ players: [triggeringPlayer.id], damage });
 			state.hasAttacked = true;
 
-			// Convert to melee after ambush
 			return {
 				scheduleNext: true,
 				delay: randInt(500, 1000),
