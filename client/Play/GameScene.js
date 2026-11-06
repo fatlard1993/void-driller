@@ -779,18 +779,19 @@ export default class GameScene extends Phaser.Scene {
 			});
 			gameContext.players.clear();
 
-			// Destroy SpaceCo sprite
 			if (gameContext.spaceco) {
 				gameContext.spaceco.destroy();
 				gameContext.spaceco = null;
 			}
 
-			// Update server state with new world
+			// The hover cursor went with the interfaces layer; the pointer makes a new one
+			gameContext.cursor = null;
+
+			gameContext.serverState.players = newWorldState.players;
 			gameContext.serverState.world = newWorldState;
 
-			// Recreate the world
 			this.createWorldFromState();
-		}, fadeDuration);
+		}, fadeDelay + fadeDuration);
 	}
 
 	fadeInWorld() {
@@ -930,6 +931,7 @@ export default class GameScene extends Phaser.Scene {
 			gameContext.spaceco = new Spaceco(
 				this,
 				gameContext.serverState.world.spaceco.position.x,
+				gameContext.serverState.world.spaceco.variant,
 				gameContext.serverState.world.spaceco.position.y,
 			);
 			gameContext.sceneLayers.hazards.add(gameContext.spaceco);
