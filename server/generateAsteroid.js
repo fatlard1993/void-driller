@@ -816,31 +816,31 @@ function generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, v
 				generateConcentricVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'grid':
-				generateGridVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateGridVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'spiral':
-				generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'faults':
-				generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'lightning':
-				generateLightningVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateLightningVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'cellular':
-				generateCellularVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateCellularVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'flow':
-				generateFlowVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateFlowVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'percolation':
-				generatePercolationVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generatePercolationVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'maze':
-				generateMazeVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateMazeVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'noise_bands':
-				generateNoiseBandVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet);
+				generateNoiseBandVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
 			case 'organic':
 			default:
@@ -906,7 +906,7 @@ function generateSingleVeinPath(
 			world.grid[currentX][currentY].ground = {
 				type: color,
 				veinSource: true,
-				veinIndex: veinIndex || 0, // Track which specific vein created this cell
+				veinIndex,
 			};
 			// Record this position as part of the path
 			pathCoords.push({ x: currentX, y: currentY, step: step });
@@ -932,7 +932,7 @@ function generateSingleVeinPath(
 						dx * dx + dy * dy <= thickness * thickness && // Circular thickness
 						isValidGroundCell(world, thickX, thickY, asteroidShape, holePattern, tunnelSet)
 					) {
-						world.grid[thickX][thickY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+						world.grid[thickX][thickY].ground = { type: color, veinSource: true, veinIndex };
 						// Record thickness cells as part of the path too
 						pathCoords.push({ x: thickX, y: thickY, step: step, isThickness: true });
 					}
@@ -1003,7 +1003,7 @@ function generateOrganicVeins(world, color, size, numVeins, asteroidShape, holeP
  * @param holePattern
  * @param tunnelSet
  */
-function generateFractalVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
+function generateFractalVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex = 0) {
 	// Branching fractal pattern - fewer starting points but with branches
 	const mainVeins = Math.max(1, Math.round(numVeins / 3));
 
@@ -1020,7 +1020,7 @@ function generateFractalVeins(world, color, size, numVeins, asteroidShape, holeP
 		if (attempts >= 100) continue;
 
 		// Generate main trunk
-		generateBranchingVein(world, startX, startY, color, size, asteroidShape, holePattern, tunnelSet, 0);
+		generateBranchingVein(world, startX, startY, color, size, asteroidShape, holePattern, tunnelSet, 0, veinIndex);
 	}
 }
 
@@ -1036,7 +1036,18 @@ function generateFractalVeins(world, color, size, numVeins, asteroidShape, holeP
  * @param tunnelSet
  * @param depth
  */
-function generateBranchingVein(world, startX, startY, color, size, asteroidShape, holePattern, tunnelSet, depth) {
+function generateBranchingVein(
+	world,
+	startX,
+	startY,
+	color,
+	size,
+	asteroidShape,
+	holePattern,
+	tunnelSet,
+	depth,
+	veinIndex = 0,
+) {
 	if (depth > 3) return; // Limit recursion depth
 
 	const branchLength = Math.round((8 + Math.random() * 8) * size * (1 - depth * 0.2));
@@ -1049,7 +1060,7 @@ function generateBranchingVein(world, startX, startY, color, size, asteroidShape
 			world.grid[currentX][currentY].ground = {
 				type: color,
 				veinSource: true,
-				veinIndex: 0, // Track which specific vein created this cell
+				veinIndex,
 			};
 		}
 
@@ -1067,6 +1078,7 @@ function generateBranchingVein(world, startX, startY, color, size, asteroidShape
 				asteroidShape,
 				holePattern,
 				tunnelSet,
+				veinIndex,
 				depth + 1,
 			);
 		}
@@ -1103,7 +1115,7 @@ function generateLayeredVeins(world, color, size, numVeins, asteroidShape, holeP
 				const y = layerY + dy + Math.round((Math.random() - 0.5) * 4); // Some vertical noise
 				if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.8) {
 					// 80% density for natural look
-					world.grid[x][y].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+					world.grid[x][y].ground = { type: color, veinSource: true, veinIndex };
 				}
 			}
 		}
@@ -1136,7 +1148,7 @@ function generateRadialVeins(world, color, size, numVeins, asteroidShape, holePa
 
 		for (let step = 0; step < spokeLength; step++) {
 			if (isValidGroundCell(world, currentX, currentY, asteroidShape, holePattern, tunnelSet)) {
-				world.grid[currentX][currentY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+				world.grid[currentX][currentY].ground = { type: color, veinSource: true, veinIndex };
 			}
 
 			// Add some thickness and variation
@@ -1150,7 +1162,7 @@ function generateRadialVeins(world, color, size, numVeins, asteroidShape, holePa
 						isValidGroundCell(world, thickX, thickY, asteroidShape, holePattern, tunnelSet) &&
 						Math.random() < 0.7
 					) {
-						world.grid[thickX][thickY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+						world.grid[thickX][thickY].ground = { type: color, veinSource: true, veinIndex };
 					}
 				}
 			}
@@ -1206,7 +1218,7 @@ function generateScatteredVeins(world, color, size, numVeins, asteroidShape, hol
 					const x = centerX + dx;
 					const y = centerY + dy;
 					if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet)) {
-						world.grid[x][y].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+						world.grid[x][y].ground = { type: color, veinSource: true, veinIndex };
 						// Record this position as part of the cluster path
 						clusterPath.push({ x: x, y: y, step: Math.round(distance), isCluster: true });
 					}
@@ -1263,7 +1275,7 @@ function generateConcentricVeins(world, color, size, numVeins, asteroidShape, ho
 					const ringY = y + Math.round(Math.sin(angle) * dr);
 
 					if (isValidGroundCell(world, ringX, ringY, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.7) {
-						world.grid[ringX][ringY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+						world.grid[ringX][ringY].ground = { type: color, veinSource: true, veinIndex };
 					}
 				}
 			}
@@ -1281,7 +1293,7 @@ function generateConcentricVeins(world, color, size, numVeins, asteroidShape, ho
  * @param holePattern
  * @param tunnelSet
  */
-function generateGridVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
+function generateGridVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex = 0) {
 	// Crystalline grid pattern
 	const gridSpacing = Math.max(8, Math.round(12 / size));
 	const lineThickness = Math.max(1, Math.round(2 * size));
@@ -1295,7 +1307,7 @@ function generateGridVeins(world, color, size, numVeins, asteroidShape, holePatt
 			for (let thickness = -Math.round(lineThickness / 2); thickness <= Math.round(lineThickness / 2); thickness++) {
 				const lineX = actualX + thickness;
 				if (isValidGroundCell(world, lineX, y, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.8) {
-					world.grid[lineX][y].ground = { type: color, veinSource: true, veinIndex: 0 };
+					world.grid[lineX][y].ground = { type: color, veinSource: true, veinIndex };
 				}
 			}
 		}
@@ -1310,7 +1322,7 @@ function generateGridVeins(world, color, size, numVeins, asteroidShape, holePatt
 			for (let thickness = -Math.round(lineThickness / 2); thickness <= Math.round(lineThickness / 2); thickness++) {
 				const lineY = actualY + thickness;
 				if (isValidGroundCell(world, x, lineY, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.8) {
-					world.grid[x][lineY].ground = { type: color, veinSource: true, veinIndex: 0 };
+					world.grid[x][lineY].ground = { type: color, veinSource: true, veinIndex };
 				}
 			}
 		}
@@ -1354,7 +1366,7 @@ function generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePa
 							isValidGroundCell(world, spiralX, spiralY, asteroidShape, holePattern, tunnelSet) &&
 							Math.random() < 0.8
 						) {
-							world.grid[spiralX][spiralY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+							world.grid[spiralX][spiralY].ground = { type: color, veinSource: true, veinIndex };
 						}
 					}
 				}
@@ -1373,7 +1385,7 @@ function generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePa
  * @param holePattern
  * @param tunnelSet
  */
-function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
+function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex = 0) {
 	// Fault pattern - ultra-subtle traces, mostly empty at low density
 
 	// Only show faults at moderate to high densities, nearly empty at low density
@@ -1421,7 +1433,7 @@ function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePat
 			const fillProbability = 0.005; // Extremely sparse
 
 			if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) && Math.random() < fillProbability) {
-				world.grid[x][y].ground = { type: color, veinSource: true, veinIndex: 0 };
+				world.grid[x][y].ground = { type: color, veinSource: true, veinIndex };
 			}
 		}
 	}
@@ -1437,7 +1449,7 @@ function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePat
  * @param holePattern
  * @param tunnelSet
  */
-function generateLightningVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet) {
+function generateLightningVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex = 0) {
 	// Jagged lightning-like branching patterns
 	for (let i = 0; i < numVeins; i++) {
 		let startX,
@@ -1461,6 +1473,7 @@ function generateLightningVeins(world, color, size, numVeins, asteroidShape, hol
 			holePattern,
 			tunnelSet,
 			0,
+			veinIndex,
 			Math.random() * Math.PI * 2,
 		);
 	}
@@ -1489,6 +1502,7 @@ function generateLightningBranch(
 	holePattern,
 	tunnelSet,
 	depth,
+	veinIndex = 0,
 	direction,
 ) {
 	if (depth > 4) return;
@@ -1502,7 +1516,7 @@ function generateLightningBranch(
 			world.grid[currentX][currentY].ground = {
 				type: color,
 				veinSource: true,
-				veinIndex: 0, // Track which specific vein created this cell
+				veinIndex,
 			};
 		}
 
@@ -1524,6 +1538,7 @@ function generateLightningBranch(
 				holePattern,
 				tunnelSet,
 				depth + 1,
+				veinIndex,
 				branchDirection,
 			);
 		}
@@ -1566,7 +1581,7 @@ function generateCellularVeins(world, color, size, numVeins, asteroidShape, hole
 					const wallY = Math.round(centerY + Math.sin(angle) * r);
 
 					if (isValidGroundCell(world, wallX, wallY, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.7) {
-						world.grid[wallX][wallY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+						world.grid[wallX][wallY].ground = { type: color, veinSource: true, veinIndex };
 					}
 				}
 			}
@@ -1603,7 +1618,7 @@ function generateFlowVeins(world, color, size, numVeins, asteroidShape, holePatt
 				const flowX = x + Math.round((Math.random() - 0.5) * 2); // Small horizontal variation
 
 				if (isValidGroundCell(world, flowX, flowY, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.8) {
-					world.grid[flowX][flowY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+					world.grid[flowX][flowY].ground = { type: color, veinSource: true, veinIndex };
 				}
 			}
 		}
@@ -1645,7 +1660,7 @@ function generatePercolationVeins(world, color, size, numVeins, asteroidShape, h
 			visited.add(key);
 
 			if (isValidGroundCell(world, currentX, currentY, asteroidShape, holePattern, tunnelSet)) {
-				world.grid[currentX][currentY].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+				world.grid[currentX][currentY].ground = { type: color, veinSource: true, veinIndex };
 			}
 
 			// Random walk with slight downward bias
@@ -1748,7 +1763,7 @@ function generateMazeVeins(world, color, size, numVeins, asteroidShape, holePatt
 						const y = worldY + dy;
 
 						if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.9) {
-							world.grid[x][y].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+							world.grid[x][y].ground = { type: color, veinSource: true, veinIndex };
 						}
 					}
 				}
@@ -1793,7 +1808,7 @@ function generateNoiseBandVeins(world, color, size, numVeins, asteroidShape, hol
 				const probability = Math.max(0, (1 - fadeDistance) * 0.9);
 
 				if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) && Math.random() < probability) {
-					world.grid[x][y].ground = { type: color, veinSource: true, veinIndex: veinIndex || 0 };
+					world.grid[x][y].ground = { type: color, veinSource: true, veinIndex };
 				}
 			}
 		}
