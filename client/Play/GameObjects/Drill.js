@@ -11,11 +11,11 @@ export class Drill extends Phaser.GameObjects.Sprite {
 	 * @param {number} x - Grid x
 	 * @param {number} y - Grid y
 	 * @param { "left" | "right" | "up" | "down" | "up_left" | "down_right" | "down_left" | "up_right" } orientation - The orientation of the drill
-	 * @param {number} vehicle - vehicle index 0-14
-	 * @param {number} drill - vehicle index 0-12
+	 * @param {number} vehicle - vehicle index 0-13
+	 * @param {number} drill - drill index 0-12
 	 * @param {string} name - The name of the driver
 	 */
-	constructor(scene, x, y, orientation = 'right', vehicle = randInt(0, 14), drill = randInt(0, 12), name) {
+	constructor(scene, x, y, orientation = 'right', vehicle = randInt(0, 13), drill = randInt(0, 12), name = '') {
 		// Defensive check - this should never happen if validation is working properly
 		if (typeof x !== 'number' || typeof y !== 'number') {
 			gameLog.error('Drill constructor called with invalid position', { x, y, name, vehicle, drill });
@@ -24,6 +24,7 @@ export class Drill extends Phaser.GameObjects.Sprite {
 
 		super(scene, gridToPxPosition(x), gridToPxPosition(y), 'vehicles', vehicle);
 
+		this.vehicle = vehicle;
 		this.drill = scene.add.image(gridToPxPosition(x), gridToPxPosition(y), 'drills', drill);
 
 		this.drill.setScale(0.5);
@@ -86,6 +87,8 @@ export class Drill extends Phaser.GameObjects.Sprite {
 
 		const pxPosition = gridToPxPosition(position);
 
+		this.flipTimers?.forEach(clearTimeout);
+
 		this.scene.tweens.add({
 			targets: this,
 			delay: 200,
@@ -107,13 +110,8 @@ export class Drill extends Phaser.GameObjects.Sprite {
 
 		const flips = 9;
 
-		[...Array(flips)].forEach((_, index) =>
-			setTimeout(
-				() => {
-					this.drill.setFlipY(!this.drill.flipY);
-				},
-				index * (speed / flips),
-			),
+		this.flipTimers = [...Array(flips)].map((_, index) =>
+			setTimeout(() => this.drill.setFlipY(!this.drill.flipY), index * (speed / flips)),
 		);
 	}
 
@@ -129,7 +127,7 @@ export class Drill extends Phaser.GameObjects.Sprite {
 			onComplete: () => {
 				this.anims.stop();
 				this.drill.visible = true;
-				this.setTexture('vehicles', randInt(0, 12));
+				this.setTexture('vehicles', this.vehicle);
 				this.move(position, 0, this.orientation);
 			},
 		});
@@ -139,8 +137,8 @@ export class Drill extends Phaser.GameObjects.Sprite {
 		const pxPosition = gridToPxPosition(position);
 
 		this.scene.tweens.add({ targets: this, duration: speed, ...pxPosition });
-
 		this.scene.tweens.add({ targets: this.drill, duration: speed, ...pxPosition });
+		this.updateNameTag({ position, speed });
 	}
 
 	/**
@@ -237,7 +235,8 @@ export class Drill extends Phaser.GameObjects.Sprite {
 	}
 
 	destroy() {
-		// Clean up name tags before destroying sprite
+		this.flipTimers?.forEach(clearTimeout);
+
 		if (this.nameTag) {
 			this.nameTag.destroy();
 		}

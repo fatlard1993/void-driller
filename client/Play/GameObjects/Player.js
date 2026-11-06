@@ -208,8 +208,9 @@ export class Player extends Drill {
 			this.updateTradePromptPosition();
 		}
 
-		// Check for nearby players for trading after a short delay
-		setTimeout(() => {
+		clearTimeout(this.nearbyTimer);
+		this.nearbyTimer = setTimeout(() => {
+			if (!this.scene) return;
 			this.checkForNearbyPlayers();
 			this.checkForNearbyItems();
 		}, 200);
@@ -220,9 +221,10 @@ export class Player extends Drill {
 
 		this.updateStatusBars({ position, speed });
 
-		// Update position and check for trades after teleport
 		this.currentGridPosition = { x: position.x, y: position.y };
-		setTimeout(() => {
+		clearTimeout(this.nearbyTimer);
+		this.nearbyTimer = setTimeout(() => {
+			if (!this.scene) return;
 			this.checkForNearbyPlayers();
 			this.checkForNearbyItems();
 		}, speed + 100);
@@ -231,9 +233,11 @@ export class Player extends Drill {
 	fall(position, speed) {
 		super.fall(position, speed);
 
-		this.showStatusBars(false);
-		this.hideTradePrompt(); // Hide trade prompt when falling
-		this.hideItemPrompts(); // Hide item prompts when falling
+		this.updateStatusBars({ position, speed });
+		this.currentGridPosition = { x: position.x, y: position.y };
+		this.hideTradePrompt();
+		this.hideItemPrompts();
+		gameContext.spaceco.checkForNearbyPlayer();
 	}
 
 	checkForNearbyItems() {
@@ -332,9 +336,11 @@ export class Player extends Drill {
 	}
 
 	destroy() {
-		// Clean up trade-related objects
+		clearTimeout(this.nearbyTimer);
 		this.hideTradePrompt();
 		this.hideItemPrompts();
+		this.healthBar.destroy();
+		this.healthBarFrame.destroy();
 		super.destroy();
 	}
 }
