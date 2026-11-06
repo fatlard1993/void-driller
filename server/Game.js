@@ -560,10 +560,23 @@ export default class Game extends BaseGame {
 		}
 	}
 
-	spacecoSell(playerId) {
+	// The rig beside the outpost (the same reach as the client's Trade prompt), or the reason it is not served
+	spacecoPatron(playerId) {
 		const player = this.players.get(playerId);
 
-		if (!player) return { success: false, error: 'Player not found' };
+		if (!player) return { error: { success: false, error: 'Player not found' } };
+
+		const { position } = this.world.spaceco;
+		const distance = Math.abs(player.position.x - position.x) + Math.abs(player.position.y - position.y);
+
+		if (distance > 1) return { error: { success: false, error: 'You must be at the SpaceCo outpost' } };
+
+		return { player };
+	}
+
+	spacecoSell(playerId) {
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
 
 		if (!Object.values(player.hull || {}).some(count => count > 0)) {
 			return { success: false, error: 'No minerals to sell' };
@@ -656,21 +669,18 @@ export default class Game extends BaseGame {
 	}
 
 	spacecoSellItem(playerId, item, count = 1) {
-		const player = this.players.get(playerId);
-
-		if (!player) {
-			return { success: false, error: 'Player not found' };
-		}
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
 
 		// Check if item exists in items config
 		if (!items[item]) {
-			return { success: false, error: 'Invalid item' };
+			return { success: false, error: 'Item not recognized by SpaceCo systems' };
 		}
 
 		// Check if player has enough of the item
 		const playerItemCount = player.items[item] || 0;
 		if (playerItemCount < count) {
-			return { success: false, error: 'Insufficient items' };
+			return { success: false, error: 'Insufficient items in inventory' };
 		}
 
 		// Special handling for psykick_egg - endgame egg hunt submission
@@ -765,8 +775,8 @@ export default class Game extends BaseGame {
 	}
 
 	spacecoRefuel(playerId, amount) {
-		const player = this.players.get(playerId);
-		if (!player) return { success: false, error: 'Player not found' };
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
 
 		const engineConfig = engines[player.configuration.engine];
 		const pricePerUnit = getScaledServiceCosts(this.world.spaceco.xp).fuelPricePerUnit[engineConfig.fuelType];
@@ -821,7 +831,8 @@ export default class Game extends BaseGame {
 	}
 
 	spacecoRepair(playerId, amount, type = 'player') {
-		const player = this.players.get(playerId);
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
 
 		if (type === 'player') {
 			// Check if player needs repair
@@ -918,25 +929,23 @@ export default class Game extends BaseGame {
 	}
 
 	validateItemPurchase(playerId, item, count = 1) {
-		const player = this.players.get(playerId);
-		if (!player) {
-			return { success: false, error: 'Player not found' };
-		}
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
 
 		// Validate item exists in items config
 		if (!items[item]) {
-			return { success: false, error: 'Invalid item' };
+			return { success: false, error: 'Requested item not recognized by SpaceCo systems' };
 		}
 
 		// Check if item is available in shop
 		const availableStock = this.world.spaceco.shop[item];
 		if (availableStock === undefined) {
-			return { success: false, error: 'Item not available' };
+			return { success: false, error: 'Item temporarily out of stock at this outpost' };
 		}
 
 		// Validate stock availability
 		if (availableStock < count) {
-			return { success: false, error: 'Insufficient stock' };
+			return { success: false, error: 'Insufficient inventory remaining' };
 		}
 
 		// Calculate total cost with inflation
@@ -946,13 +955,13 @@ export default class Game extends BaseGame {
 
 		// Check player affordability
 		if (player.credits < totalCost) {
-			return { success: false, error: 'Insufficient credits' };
+			return { success: false, error: 'Insufficient funds for this transaction' };
 		}
 
 		// Check inventory space (a pension buy-up converts to XP and takes no slot)
 		const currentItemCount = Object.values(player.items).reduce((sum, count) => sum + count, 0);
 		if (item !== 'pension_credit_buyup' && currentItemCount + count > player.maxItemSlots) {
-			return { success: false, error: 'Insufficient inventory space' };
+			return { success: false, error: 'Inventory slots full - upgrade storage capacity or use items' };
 		}
 
 		return {
@@ -1047,11 +1056,8 @@ export default class Game extends BaseGame {
 	}
 
 	spacecoBuyUpgrade(playerId, upgrade, type) {
-		const player = this.players.get(playerId);
-		if (!player) {
-			spacecoLog.warning('Player not found for upgrade');
-			return { success: false, error: 'Contractor credentials invalid' };
-		}
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
 
 		const validTypes = ['vehicles', 'drills', 'engines', 'parts'];
 		if (!validTypes.includes(type)) {
@@ -1244,11 +1250,12 @@ export default class Game extends BaseGame {
 	}
 
 	spacecoBuyTransport(playerId, world) {
-		const player = this.players.get(playerId);
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
+
 		const newWorld = WORLDS[world];
 		const transportConfig = this.world.transports[world];
 
-		if (!player) return { success: false, error: 'Player not found' };
 		if (!newWorld || !transportConfig) {
 			return { success: false, error: 'Requested destination not available from current asteroid.' };
 		}
@@ -1361,8 +1368,8 @@ export default class Game extends BaseGame {
 	}
 
 	spacecoResupply(playerId) {
-		const player = this.players.get(playerId);
-		if (!player) return { success: false, error: 'Player not found' };
+		const { player, error } = this.spacecoPatron(playerId);
+		if (error) return error;
 
 		const resupplyCost = Math.floor(this.world.transportPrice * 0.9);
 

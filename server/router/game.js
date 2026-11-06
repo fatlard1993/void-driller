@@ -131,20 +131,7 @@ const _game = async (request, server) => {
 			return Response.json({ message: 'Invalid quantity specified' }, { status: 400 });
 		}
 
-		const result = server.games[gameId].spacecoSellItem(playerId, item, count);
-
-		if (!result.success) {
-			const errorMessages = {
-				'Player not found': 'Contractor credentials invalid',
-				'Invalid item': 'Item not recognized by SpaceCo systems',
-				'Insufficient items': 'Insufficient items in inventory',
-			};
-
-			const message = errorMessages[result.error] || 'Transaction failed';
-			return Response.json({ message }, { status: 400 });
-		}
-
-		return Response.json({ success: true }, { status: 200 });
+		return respond(server.games[gameId].spacecoSellItem(playerId, item, count));
 	}
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/sell', request);
@@ -232,23 +219,7 @@ const _game = async (request, server) => {
 		try {
 			const result = server.games[gameId].spacecoBuyItem(playerId, item, count);
 
-			if (!result.success) {
-				const errorMessages = {
-					'Player not found': 'Contractor credentials invalid',
-					'Invalid item': 'Requested item not recognized by SpaceCo systems',
-					'Item not available': 'Item temporarily out of stock at this outpost',
-					'Insufficient stock': 'Insufficient inventory remaining',
-					'Insufficient credits': 'Insufficient funds for this transaction',
-					'Insufficient inventory space': 'Inventory slots full - upgrade storage capacity or use items',
-				};
-
-				const message = errorMessages[result.error] || 'Transaction failed';
-				const statusCode = result.error === 'Insufficient credits' ? 402 : 400;
-
-				return Response.json({ message }, { status: statusCode });
-			}
-
-			return Response.json({ success: true }, { status: 200 });
+			return respond(result);
 		} catch (buyError) {
 			gameLog.error('Buy item error', { playerId, gameId, item, count, error: buyError.message });
 			return Response.json({ message: 'Purchase system malfunction. Please try again.' }, { status: 500 });
