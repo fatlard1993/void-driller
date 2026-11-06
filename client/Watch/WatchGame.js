@@ -1,7 +1,7 @@
 import { styled } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
-import gameContext from '../shared/gameContext';
+import gameContext, { teardownGame } from '../shared/gameContext';
 import WatchScene from './WatchScene';
 import setupWatchRouter from './watchSocketRouter';
 
@@ -54,5 +54,6 @@ export default class WatchGame extends (styled.Component`
 		);
 		fit.observe(this.elem);
 		this.addCleanup('fit', () => fit.disconnect());
+		this.addCleanup('phaser', () => teardownGame());
 	}
 }

@@ -53,32 +53,21 @@ export default class DebugLog extends (styled.Component`
 		window.debugLogComponent = this;
 	}
 
+	// The console is wrapped once per page; each Play mount takes over as the log that receives it
 	setupGlobalDebugLog() {
-		// Store original console methods
-		const originalLog = console.log;
-		const originalError = console.error;
-		const originalWarn = console.warn;
+		window.debugLog = (message, type = 'info') => this.addLog(message, type);
 
-		// Set up the global debug log function
-		window.debugLog = (message, type = 'info') => {
-			this.addLog(message, type);
-		};
+		if (console.log.debugLogWrapped) return;
 
-		// Override console methods to capture all logging
-		console.log = (...args) => {
-			originalLog(...args);
-			this.addLog('LOG: ' + args.join(' '), 'log');
-		};
+		const original = { log: console.log, error: console.error, warn: console.warn };
 
-		console.error = (...args) => {
-			originalError(...args);
-			this.addLog('ERROR: ' + args.join(' '), 'error');
-		};
-
-		console.warn = (...args) => {
-			originalWarn(...args);
-			this.addLog('WARN: ' + args.join(' '), 'warn');
-		};
+		Object.entries({ log: 'LOG', error: 'ERROR', warn: 'WARN' }).forEach(([method, label]) => {
+			console[method] = (...args) => {
+				original[method](...args);
+				window.debugLogComponent?.addLog(`${label}: ${args.join(' ')}`, method);
+			};
+			console[method].debugLogWrapped = true;
+		});
 	}
 
 	addLog(message, type = 'info') {

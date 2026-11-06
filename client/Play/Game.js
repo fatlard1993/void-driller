@@ -1,7 +1,8 @@
 import { styled, throttle, debounce } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
-import gameContext from '../shared/gameContext';
+import gameContext, { teardownGame } from '../shared/gameContext';
+import audioPlayer from '../shared/AudioPlayer';
 import DebugLog from '../shared/DebugLog';
 import { onKeyDown, onKeyUp, onPointerDown, onPointerMove, onPointerOut, onPointerUp } from './inputs';
 import GameScene from './GameScene';
@@ -110,6 +111,10 @@ export default class Game extends (styled.Component`
 		);
 		fit.observe(this.elem);
 		this.addCleanup('fit', () => fit.disconnect());
+		this.addCleanup('phaser', () => {
+			audioPlayer.stop();
+			teardownGame();
+		});
 
 		gameContext.scene.input.on('pointerdown', onPointerDown);
 		gameContext.scene.input.on('pointermove', throttle(onPointerMove, 30));

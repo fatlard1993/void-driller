@@ -4,7 +4,7 @@ import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import { ExitDialog } from '@fatlard1993/web-game-framework/ui/GameRoom';
 import Notify from '../shared/Notify';
 import { getGame } from '../api';
-import gameContext from '../shared/gameContext';
+import gameContext, { teardownGame } from '../shared/gameContext';
 import { releaseInputOnClose } from '../shared/BaseDialog';
 import { frameAttributes, frameCorner, frameDialogStyles } from '../shared/frame';
 import Game from './Game';
@@ -38,10 +38,7 @@ export default class Play extends View {
 										confirmLabel: 'Abort Contract',
 										label:
 											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
-										onExit: () => {
-											gameContext.audioPlayer?.stop();
-											gameContext.musicManager?.stop();
-										},
+										onExit: () => teardownGame(),
 									}),
 								);
 							},

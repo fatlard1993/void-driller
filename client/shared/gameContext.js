@@ -33,6 +33,31 @@ gameContext.autoPath = {
 };
 
 /**
+ * Leaving the game: the Phaser instance, its sounds and music, and every handle into the old scene go, so the next
+ * Play or Watch builds on a clean context instead of a HUD and music manager bound to a dead scene
+ */
+export const teardownGame = () => {
+	gameContext.musicManager?.stop();
+	gameContext.openDialog?.close?.();
+	gameContext.game?.destroy(true);
+	gameContext.players.clear();
+
+	Object.assign(gameContext, {
+		game: null,
+		scene: null,
+		spaceco: null,
+		cursor: null,
+		statusBarHUD: null,
+		musicManager: null,
+		openDialog: null,
+		pendingTradeInvitation: null,
+		transitioning: false,
+		sounds: {},
+		sceneLayers: {},
+	});
+};
+
+/**
  * @type {{
  * 	game: Phaser.Game,
  *  scene: Phaser.Scene,
