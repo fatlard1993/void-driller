@@ -1243,7 +1243,6 @@ export class LevelEditor extends Component {
 						{ value: 'concentric', label: 'Concentric (rings)' },
 						{ value: 'grid', label: 'Grid (crystalline)' },
 						{ value: 'spiral', label: 'Spiral (curved arms)' },
-						{ value: 'faults', label: 'Fault Lines (cracks)' },
 						{ value: 'lightning', label: 'Lightning (jagged branches)' },
 						{ value: 'cellular', label: 'Cellular (honeycomb)' },
 						{ value: 'flow', label: 'Flow (curved streams)' },

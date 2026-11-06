@@ -741,9 +741,6 @@ function generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, v
 			case 'spiral':
 				generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
-			case 'faults':
-				generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
-				break;
 			case 'lightning':
 				generateLightningVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex);
 				break;
@@ -1260,70 +1257,6 @@ function generateSpiralVeins(world, color, size, numVeins, asteroidShape, holePa
 						}
 					}
 				}
-			}
-		}
-	}
-}
-
-/**
- *
- * @param world
- * @param color
- * @param size
- * @param numVeins
- * @param asteroidShape
- * @param holePattern
- * @param tunnelSet
- */
-function generateFaultVeins(world, color, size, numVeins, asteroidShape, holePattern, tunnelSet, veinIndex = 0) {
-	// Fault pattern - ultra-subtle traces, mostly empty at low density
-
-	// Only show faults at moderate to high densities, nearly empty at low density
-	if (numVeins < 8) {
-		// For low vein counts, place very few scattered pixels
-		const scatteredPixels = Math.max(0, Math.round(numVeins * 0.02)); // Even fewer
-
-		for (let i = 0; i < scatteredPixels; i++) {
-			const x = Math.floor(Math.random() * world.width);
-			const y = Math.floor(Math.random() * world.depth);
-
-			if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) && Math.random() < 0.001) {
-				// Ultra-extremely rare
-				world.grid[x][y].ground = { type: color };
-			}
-		}
-		return;
-	}
-
-	const maxFaults = 2; // Maximum 2 fault traces
-	const faultLength = Math.min(6, Math.max(2, size * 1.5)); // Short traces
-
-	// Scale based on vein count with threshold
-	const numFaults = Math.max(1, Math.min(maxFaults, Math.round(numVeins / 10)));
-
-	for (let i = 0; i < numFaults; i++) {
-		// Random starting point
-		const startX = Math.random() * (world.width - 12) + 6;
-		const startY = Math.random() * (world.depth - 12) + 6;
-
-		// Random direction for fault trace
-		const angle = Math.random() * Math.PI * 2;
-		const endX = startX + Math.cos(angle) * faultLength;
-		const endY = startY + Math.sin(angle) * faultLength;
-
-		// Draw minimal fault trace with ultra-sparse fill
-		const steps = Math.max(1, faultLength);
-		for (let step = 0; step <= steps; step += 4) {
-			// Every 4th pixel
-			const t = step / steps;
-			const x = Math.round(startX + (endX - startX) * t);
-			const y = Math.round(startY + (endY - startY) * t);
-
-			// Very minimal fill probability
-			const fillProbability = 0.005; // Extremely sparse
-
-			if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet) && Math.random() < fillProbability) {
-				world.grid[x][y].ground = { type: color, veinSource: true, veinIndex };
 			}
 		}
 	}
