@@ -39,7 +39,12 @@ import {
 	spacecoSell,
 	spacecoSellItem,
 } from '../api';
-import { getScaledServiceCosts, getScaledItemPrice, formatSpacecoAchievementRewards } from '../../utils';
+import {
+	getScaledServiceCosts,
+	getScaledItemPrice,
+	getScaledTransportCost,
+	formatSpacecoAchievementRewards,
+} from '../../utils';
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
 import { inventoryItem } from '../shared/inventoryItem';
@@ -62,6 +67,13 @@ function calculateTradeInDiscount(currentEquipmentId, upgradeConfigs, type) {
 	return Math.floor(currentEquipmentConfig.price * 0.25);
 }
 
+// What SpaceCo charges to bring the outpost back to full health, as the server computes it
+const outpostRepairCost = () => {
+	const { spaceco } = gameContext.serverState.world;
+
+	return Math.floor((9 - spaceco.health) * getScaledServiceCosts(spaceco.xp).spacecoRepairCostPerHealthPoint);
+};
+
 const generateAsteroidPreview = (worldDef, options = {}) => {
 	const {
 		size = 96, // Canvas size in pixels (larger for more detail)
@@ -77,6 +89,7 @@ const generateAsteroidPreview = (worldDef, options = {}) => {
 	canvas.style.display = 'block';
 	canvas.style.imageRendering = 'pixelated'; // Keep pixels crisp
 	const ctx = canvas.getContext('2d');
+	if (!ctx?.fillRect) return null;
 
 	// Calculate cell size
 	const cellSize = size / resolution;
@@ -603,8 +616,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 
 		const player = gameContext.players.currentPlayer;
-
-		const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
+		const spacecoRepairCost = outpostRepairCost();
 
 		new Button({
 			content: new Elem(
@@ -655,11 +667,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 				if (!dirtyCount && !pureCount) return [];
 
-				const demandDrop = (gameContext.serverState.world.spaceco.hull?.[name] || 0) / 1000;
+				const { hull = {} } = gameContext.serverState.world.spaceco;
 				const baseValue = minerals[name].value;
 
-				const dirtyUnitPrice = Math.floor(Math.max(0, baseValue / 2 - demandDrop));
-				const pureUnitPrice = Math.floor(Math.max(0, baseValue - demandDrop));
+				const dirtyUnitPrice = Math.floor(Math.max(0, baseValue / 2 - (hull[name] || 0) / 1000));
+				const pureUnitPrice = Math.floor(Math.max(0, baseValue - (hull[`mineral_${name}`] || 0) / 1000));
 				const dirtyPrice = dirtyCount ? dirtyUnitPrice * dirtyCount : 0;
 				const purePrice = pureCount ? pureUnitPrice * pureCount : 0;
 
@@ -1054,7 +1066,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		const player = gameContext.players.currentPlayer;
 		const drillConfig = drills[player.configuration.drill];
-		const engineConfig = engines[player.configuration.engine];
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
 		new CardGrid({
@@ -1062,7 +1073,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			content: gameContext.serverState.world.spaceco.drills.map(id => {
 				const { name, price, summary, spriteIndex, maxHealth, fuelEfficiency, strength, requirements } = drills[id];
 
-				const missingRequirements = requirements?.some(([key, goal]) => (engineConfig?.[key] ?? 0) <= goal);
+				const missingRequirements = requirements?.some(([key, goal]) => (player[key] ?? 0) < goal);
 
 				// Calculate trade-in discount
 				const tradeInDiscount = calculateTradeInDiscount(player.configuration.drill, upgradeConfigs, 'drills');
@@ -1104,7 +1115,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									className: 'description',
 								},
 								new List({
-									items: requirements.map(([key, goal]) => `${capitalize(key)}: ${engineConfig[key] ?? 0} / ${goal}`),
+									items: requirements.map(([key, goal]) => `${capitalize(key)}: ${player[key] ?? 0} / ${goal}`),
 								}),
 							),
 							new UpgradePricing({
@@ -1336,11 +1347,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		const player = gameContext.players.currentPlayer;
 
-		const pricePerHealth = 1.3;
+		const { repairCostPerHealthPoint } = getScaledServiceCosts(gameContext.serverState.world.spaceco.xp);
 		const neededHealth = player.maxHealth - player.health;
-		const cost = neededHealth * pricePerHealth;
+		const cost = Math.floor(neededHealth * repairCostPerHealthPoint);
 
-		if (neededHealth === 0) {
+		if (neededHealth < 0.01) {
 			new Elem({ tag: 'p', content: `You're in good shape`, appendTo: playerRepairs });
 		} else {
 			new SubPanel(
@@ -1367,7 +1378,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		if (gameContext.serverState.world.spaceco.health >= 9) {
 			new Elem({ tag: 'p', content: `This outpost is in good shape`, appendTo: spacecoRepairs });
 		} else {
-			const spacecoRepairCost = (9 - gameContext.serverState.world.spaceco.health) * 10;
+			const spacecoRepairCost = outpostRepairCost();
 
 			new Button({
 				content: new Elem(
@@ -1770,10 +1781,18 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		new CardGrid({
 			appendTo: this._menuBody,
 			content: gameContext.serverState.world.transportChoices.map(key => {
-				const { price, requirements } = gameContext.serverState.world.transports[key];
-				const missingRequirements = requirements?.some(
-					([key, goal]) => (gameContext.serverState.world.spaceco.hull?.[key] ?? 0) < goal,
-				);
+				const { spaceco } = gameContext.serverState.world;
+				const { requirements } = gameContext.serverState.world.transports[key];
+				const price = getScaledTransportCost(gameContext.serverState.world.transports[key].price, spaceco.xp);
+				const requirementProgress = ([key, goal]) => ({
+					current: key === 'xp' ? spaceco.xp : (spaceco.hull?.[key] ?? 0),
+					goal,
+					label: key === 'xp' ? 'Galactic Market Share' : capitalize(minerals[key].name),
+				});
+				const missingRequirements = requirements?.some(requirement => {
+					const { current, goal } = requirementProgress(requirement);
+					return current < goal;
+				});
 				const locked = price > player.credits || missingRequirements;
 
 				const worldDef = worlds.find(world => world.name === key);
@@ -1829,12 +1848,9 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 														textAlign: 'center',
 													},
 												}),
-												...requirements.map(([key, goal]) => {
-													const current = minerals[key]
-														? (gameContext.serverState.world.spaceco.hull?.[key] ?? 0)
-														: (gameContext.serverState.world.spaceco?.[key] ?? 0);
+												...requirements.map(requirement => {
+													const { current, goal, label } = requirementProgress(requirement);
 													const percentage = Math.min((current / goal) * 100, 100);
-													const label = minerals[key] ? capitalize(minerals[key].name) : 'Pension Credits';
 
 													return new Elem({
 														style: {
