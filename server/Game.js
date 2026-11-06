@@ -4417,7 +4417,7 @@ export default class Game extends BaseGame {
 		// Broadcast the bomb removal
 		this.broadcast('useItem', {
 			playerId,
-			updates: { items: player.items },
+			updates: { items: this.players.get(playerId).items },
 			item: 'disarm_bomb',
 			bombPosition: position,
 		});
@@ -4463,7 +4463,7 @@ export default class Game extends BaseGame {
 		// Broadcast the teleporter removal
 		this.broadcast('useItem', {
 			playerId,
-			updates: { items: player.items },
+			updates: { items: this.players.get(playerId).items },
 			item: 'deactivate_teleporter',
 			stationPosition: position,
 		});
