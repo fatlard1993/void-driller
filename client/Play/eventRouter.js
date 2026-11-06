@@ -144,10 +144,10 @@ export function setupEventRouter() {
 			player.name,
 		);
 
-		player = gameContext.players.get(data.player.id);
-		const gridConfig = gameContext.serverState.world.grid[player.position.x][player.position.y];
+		gameContext.players.set(player.id, { ...gameContext.players.get(player.id), ...player, sprite });
 
-		destroyGround(player.position);
+		return sprite;
+	};
 
 	router.on('playerMove', data => {
 		if (!gameContext.players.get(data.player.id)?.sprite) addDrill(data.player);
@@ -171,11 +171,9 @@ export function setupEventRouter() {
 		if (player.id === gameContext.playerId && gameContext.statusBarHUD) {
 			gameContext.statusBarHUD.update(player);
 		}
-
-		gameContext.serverState.world.grid[player.position.x][player.position.y].ground = {};
-		gameContext.serverState.world.grid[player.position.x][player.position.y].items = [];
 	});
 
+	// The joining player's own scene is built from the game state; everyone else draws the newcomer here
 	router.on('addPlayer', data => {
 		if (data.newPlayer.id !== gameContext.playerId) addDrill(data.newPlayer);
 	});
@@ -206,9 +204,6 @@ export function setupEventRouter() {
 		});
 	});
 
-	// Ported from the deleted socketRouter/player.js (ae7e4b9) - the
-	// migration's stub applied self-updates and dropped every visible
-	// effect: teleports, station placement, heal sounds, bomb sprites.
 	router.on('useItem', data => {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
@@ -237,20 +232,20 @@ export function setupEventRouter() {
 			const player = gameContext.players.get(data.playerId);
 
 			player.sprite.move(player.position, 0, player.orientation);
-				placed: true,
 		} else if (data.item === 'advanced_teleporter') {
 			const sprite = new Item(gameContext.scene, data.stationPosition.x, data.stationPosition.y, 'teleport_station');
 
 			gameContext.serverState.world.grid[data.stationPosition.x][data.stationPosition.y].items.push({
 				name: 'teleport_station',
+				placed: true,
 				sprite,
 			});
-				placed: true,
 		} else if (data.bombPosition && data.item !== 'disarm_bomb') {
 			const sprite = new Item(gameContext.scene, data.bombPosition.x, data.bombPosition.y, data.item);
 
 			gameContext.serverState.world.grid[data.bombPosition.x][data.bombPosition.y].items.push({
 				name: data.item,
+				placed: true,
 				sprite,
 			});
 		} else if (data.item === 'disarm_bomb' || data.item === 'deactivate_teleporter') {
@@ -268,7 +263,6 @@ export function setupEventRouter() {
 		}
 	});
 
-	router.on('updatePlayer', data => {
 	router.on('spacecoRescue', data => {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 		updateSpacecoState(data);
@@ -282,6 +276,13 @@ export function setupEventRouter() {
 		new Notify({ intent: 'info', content: `SpaceCo rescue: ${data.cost} credits`, timeout: 3000 });
 	});
 
+	router.on('playerFall', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		gameContext.players.get(data.playerId).sprite.fall(data.updates.position);
+	});
+
+	router.on('updatePlayer', data => {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 	});
 
@@ -296,10 +297,6 @@ export function setupEventRouter() {
 
 	router.on('playerMovementComplete', data => {
 		clearMovementState(data.playerId);
-
-		if (data.playerId === gameContext.playerId) {
-			new Notify({ intent: 'danger', content: data.reason || 'Cannot move there', timeout: 2000 });
-		}
 	});
 
 	router.on('invalidMovement', data => {
@@ -426,22 +423,15 @@ export function setupEventRouter() {
 			}
 		}
 
-		// The visible half the migration stub dropped: the outpost actually
-		// falling - without it the sprite floats over the hole until reload
 		gameContext.spaceco.fall(data.position);
 	});
 
 	router.on('spacecoEggSubmission', data => {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
-		if (!gameContext.serverState.world.spaceco.eggHunt) {
-			gameContext.serverState.world.spaceco.eggHunt = {
-				totalEggsSubmitted: 0,
-				playerSubmissions: new Map(),
-			};
-		}
+		gameContext.serverState.world.spaceco.eggHunt ??= { totalEggsSubmitted: 0, playerSubmissions: {} };
 		gameContext.serverState.world.spaceco.eggHunt.totalEggsSubmitted = data.totalEggsSubmitted;
-		gameContext.serverState.world.spaceco.eggHunt.playerSubmissions.set(data.playerId, data.playerSubmissions);
+		gameContext.serverState.world.spaceco.eggHunt.playerSubmissions[data.playerId] = data.playerSubmissions;
 
 		if (data.spaceco) {
 			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
@@ -462,13 +452,7 @@ export function setupEventRouter() {
 		}
 	});
 
-	// The commerce handlers below were ported from the deleted
-	// socketRouter/spaceco.js (ae7e4b9) - the eventRouter migration brought
-	// movement, aliens, and trades across but left the whole shop behind:
-	// every purchase applied server-side and echoed into a void.
-	// State updates apply for any player; sounds, toasts, and dialog moves
-	// only for the one at the register.
-
+	// State updates apply for any player; sounds, toasts, and dialog moves only for the one at the register
 	const updateSpacecoState = data => {
 		if (!data.spaceco) return;
 		gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
@@ -525,16 +509,6 @@ export function setupEventRouter() {
 		if (data.type === 'player') {
 			gameContext.players.get(data.playerId).sprite.updateStatusBars();
 			checkResourceAlerts(gameContext.players.get(data.playerId));
-	router.on('spacecoResupply', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		playRegisterFeedback(data.cost, { content: 'Shelves restocked!' });
-		gameContext.spaceco.dialog.options.view = 'shop';
-	});
-
 			gameContext.dismissedAlerts.health = false;
 		}
 
@@ -543,6 +517,16 @@ export function setupEventRouter() {
 		);
 		playRegisterFeedback(data.cost);
 		gameContext.spaceco.dialog.options.view = 'repair';
+	});
+
+	router.on('spacecoResupply', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		playRegisterFeedback(data.cost, { content: 'Shelves restocked!' });
+		gameContext.spaceco.dialog.options.view = 'shop';
 	});
 
 	router.on('spacecoBuyItem', data => {
@@ -726,6 +710,22 @@ export function setupEventRouter() {
 				...oldAlien,
 				sprite: oldAlien.sprite,
 			});
+		}
+	});
+
+	router.on('alien_spawn', data => {
+		const { spawnPosition, spawnType, spawnTarget } = data;
+		const cell = gameContext.serverState.world.grid[spawnPosition.x]?.[spawnPosition.y];
+
+		if (!cell) return;
+
+		if (spawnType === 'alien') {
+			const sprite = createAlien(gameContext.scene, spawnPosition.x, spawnPosition.y, spawnTarget, 'right');
+
+			if (sprite) {
+				cell.hazards.push({ type: 'alien', name: spawnTarget, sprite });
+				gameContext.sceneLayers.hazards.add(sprite);
+			}
 		} else if (spawnType === 'item') {
 			const sprite = spawnTarget.startsWith('mineral_')
 				? new Mineral(gameContext.scene, spawnPosition.x, spawnPosition.y, spawnTarget.replace('mineral_', ''))
@@ -740,28 +740,6 @@ export function setupEventRouter() {
 				sprite: new Ground(gameContext.scene, spawnPosition.x, spawnPosition.y, spawnTarget),
 			};
 			gameContext.sceneLayers.ground.add(cell.ground.sprite);
-		}
-	});
-
-	router.on('alien_spawn', data => {
-		const { spawnPosition, spawnType, spawnTarget } = data;
-
-		if (spawnType === 'alien') {
-			const sprite = createAlien(gameContext.scene, spawnPosition.x, spawnPosition.y, spawnTarget, 'right');
-
-			if (sprite) {
-				if (!gameContext.serverState.world.grid[spawnPosition.x][spawnPosition.y].hazards) {
-					gameContext.serverState.world.grid[spawnPosition.x][spawnPosition.y].hazards = [];
-				}
-
-				gameContext.serverState.world.grid[spawnPosition.x][spawnPosition.y].hazards.push({
-					type: 'alien',
-					name: spawnTarget,
-					sprite: sprite,
-				});
-
-				gameContext.sceneLayers.hazards.add(sprite);
-			}
 		}
 	});
 
@@ -815,10 +793,6 @@ export function setupEventRouter() {
 					intent: 'warning',
 					content: 'Byzanium released gas when stressed!',
 					timeout: 2000,
-		} else if (data.type === 'psychicPulse' && data.playerId === gameContext.playerId) {
-			gameContext.scene.cameras.main.flash(900, 0xff66cc);
-			gameContext.scene.sound.play('psykick_attack', { volume: gameContext.volume.effects * 0.4, rate: 0.6 });
-			new Notify({ intent: 'info', content: 'The saronite pulses. A memory that is not yours.', timeout: 3000 });
 				});
 			}
 		} else if (data.type === 'explosionWarning') {
@@ -841,6 +815,10 @@ export function setupEventRouter() {
 					timeout: 2000,
 				});
 			}
+		} else if (data.type === 'psychicPulse' && data.playerId === gameContext.playerId) {
+			gameContext.scene.cameras.main.flash(900, 0xff66cc);
+			gameContext.scene.sound.play('psykick_attack', { volume: gameContext.volume.effects * 0.4, rate: 0.6 });
+			new Notify({ intent: 'info', content: 'The saronite pulses. A memory that is not yours.', timeout: 3000 });
 		}
 	});
 
