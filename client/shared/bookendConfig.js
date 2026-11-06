@@ -16,15 +16,6 @@ const bookendConfig = {
 	// Second half timing (outro jingle)
 	secondHalfStart: 13000, // Where the outro starts in the file (13 seconds)
 	secondHalfEnd: null, // Play to end of file
-
-	// Fade durations
-	fadeOutDuration: 3500, // How long to fade out intro bookend (3-4 seconds)
-	fadeInDuration: 0, // No fade-in for bulletin (abrupt start)
-	transitionDelay: 1750, // Start bulletin halfway through intro fade (fadeOutDuration / 2)
-
-	// Outro fade settings
-	outroFadeInDuration: 3500, // How long to fade in outro bookend (3-4 seconds)
-	outroStartBeforeEnd: 1750, // Start outro halfway through its fade (outroFadeInDuration / 2)
 };
 
 export default bookendConfig;

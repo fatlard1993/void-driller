@@ -305,7 +305,7 @@ class AudioPlayer extends styled.Component(
 		this.isPaused = false;
 
 		// Set volume from gameContext
-		this.currentAudio.volume = gameContext.volume.briefings || 0.5;
+		this.currentAudio.volume = gameContext.volume.briefings ?? 0.5;
 
 		// Setup event listeners
 		this.currentAudio.addEventListener('ended', async () => {
@@ -492,7 +492,7 @@ class AudioPlayer extends styled.Component(
 		this.currentWorldName = worldName;
 		this.isPlaying = true;
 		this.isPaused = false;
-		this.currentAudio.volume = gameContext.volume.briefings || 0.5;
+		this.currentAudio.volume = gameContext.volume.briefings ?? 0.5;
 
 		// Setup ended listener
 		this.currentAudio.addEventListener('ended', () => {
@@ -502,30 +502,6 @@ class AudioPlayer extends styled.Component(
 		// Start playback
 		await this.currentAudio.play();
 		this.updateUI();
-	}
-
-	/**
-	 * Fade audio to target volume
-	 * @param {HTMLAudioElement} audio - Audio element
-	 * @param {number} targetVolume - Target volume (0-1)
-	 * @param {number} duration - Fade duration in ms
-	 */
-	fadeAudio(audio, targetVolume, duration) {
-		const startVolume = audio.volume;
-		const volumeChange = targetVolume - startVolume;
-		const steps = 50; // 50 steps for smooth fade
-		const stepDuration = duration / steps;
-		let currentStep = 0;
-
-		const fadeInterval = setInterval(() => {
-			currentStep++;
-			audio.volume = startVolume + (volumeChange * currentStep) / steps;
-
-			if (currentStep >= steps) {
-				clearInterval(fadeInterval);
-				audio.volume = targetVolume;
-			}
-		}, stepDuration);
 	}
 
 	/**
@@ -582,12 +558,6 @@ class AudioPlayer extends styled.Component(
 	 */
 	stop() {
 		if (this.currentAudio) {
-			// Remove event listeners before clearing audio reference
-			if (this.timeupdateHandler) {
-				this.currentAudio.removeEventListener('timeupdate', this.timeupdateHandler);
-				this.timeupdateHandler = null;
-			}
-
 			this.currentAudio.pause();
 			this.currentAudio.currentTime = 0;
 			this.currentAudio = null;
@@ -603,7 +573,6 @@ class AudioPlayer extends styled.Component(
 		this.isPaused = false;
 		this.currentType = null;
 		this.currentWorldName = null;
-		this.outroStarted = false;
 
 		this.elem.remove();
 	}
@@ -644,10 +613,7 @@ class AudioPlayerManager {
 	}
 
 	async play(worldName, type, options = {}) {
-		// Remove existing player if present
-		if (this.player) {
-			this.player.elem.remove();
-		}
+		this.player?.stop();
 
 		// Create new player and render to document body
 		this.player = new AudioPlayer({ appendTo: document.body });
