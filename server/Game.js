@@ -2493,7 +2493,7 @@ export default class Game extends BaseGame {
 		if (!hazard) return;
 
 		from.hazards = from.hazards.filter(other => other !== hazard);
-		hazard.orientation = toPos.x > fromPos.x ? 'right' : 'left';
+		Object.assign(hazard, { x: toPos.x, y: toPos.y, orientation: toPos.x > fromPos.x ? 'right' : 'left' });
 		this.world.grid[toPos.x][toPos.y].hazards.push(hazard);
 
 		this.broadcast('alien_move', { name, from: fromPos, to: toPos, orientation: hazard.orientation });

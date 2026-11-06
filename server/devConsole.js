@@ -98,7 +98,7 @@ export const handleDevCommand = async (command, server) => {
 
 	if (command === 'stats') {
 		console.log('\n=== SERVER STATS ===');
-		console.log(`Node.js version: ${process.version}`);
+		console.log(`Bun version: ${Bun.version}`);
 		console.log(`Memory usage: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`);
 		console.log(`Uptime: ${Math.round(process.uptime())}s`);
 		console.log(`Active games: ${Object.keys(server.games).length}`);
@@ -121,9 +121,8 @@ export const handleDevCommand = async (command, server) => {
 				console.log('  No aliens found');
 			} else {
 				Object.entries(aliens).forEach(([alienId, alien]) => {
-					console.log(`  ${alienId}: ${alien.type} at (${alien.position.x}, ${alien.position.y})`);
-					console.log(`    Health: ${alien.health}/${alien.maxHealth}, State: ${alien.state}`);
-					console.log(`    Awake: ${alien.awake}, Last Action: ${alien.lastActionTime || 'none'}`);
+					console.log(`  ${alienId}: ${alien.name} at (${alien.x}, ${alien.y}), health ${alien.health}`);
+					if (alien.state) console.log(`    State: ${JSON.stringify(alien.state)}`);
 				});
 			}
 		});
@@ -523,7 +522,7 @@ export const handleDevCommand = async (command, server) => {
 
 		// 5. Check for common Node.js/Bun issues
 		console.log('\n=== QUICK HEALTH CHECK ===');
-		console.log(`Node.js version: ${process.version}`);
+		console.log(`Bun version: ${Bun.version}`);
 		console.log(`Memory usage: ${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`);
 		console.log(`Uptime: ${Math.round(process.uptime())}s`);
 		console.log(`Active games: ${Object.keys(server.games).length}`);
