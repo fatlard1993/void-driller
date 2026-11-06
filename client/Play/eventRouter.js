@@ -16,8 +16,8 @@ import { Achievement } from '../shared/Achievement';
 import Notify from '../shared/Notify';
 import { vehicles, drills } from '../../constants';
 import { gridToPxPosition } from '../../utils';
-import { destroyGround, explode, implode } from './effects';
-import { Drill, Gas, Item, Lava } from './GameObjects';
+import { explode, implode } from './effects';
+import { Drill, Gas, Ground, Item, Lava, Mineral } from './GameObjects';
 import { createAlien } from './GameObjects/aliens';
 import TradeDialog from './TradeDialog';
 
@@ -133,37 +133,37 @@ export function setupEventRouter() {
 
 	// === Player Events ===
 
-	router.on('playerMove', data => {
-		let player = gameContext.players.get(data.player.id);
-
-		if (!player?.sprite) {
-			const sprite = new Drill(
-				gameContext.scene,
-				data.player.position.x,
-				data.player.position.y,
-				data.player.orientation,
-				gameContext.serverState.world.vehicles[data.player.configuration.vehicle].spriteIndex,
-				gameContext.serverState.world.drills[data.player.configuration.drill].spriteIndex,
-			);
-
-			gameContext.players.set(data.player.id, { ...player, ...data.player, sprite });
-			gameContext.sceneLayers.players.add(sprite);
-		} else {
-			gameContext.players.set(data.player.id, { ...player, ...data.player });
-		}
+	const addDrill = player => {
+		const sprite = new Drill(
+			gameContext.scene,
+			player.position.x,
+			player.position.y,
+			player.orientation,
+			vehicles[player.configuration.vehicle].spriteIndex,
+			drills[player.configuration.drill].spriteIndex,
+			player.name,
+		);
 
 		player = gameContext.players.get(data.player.id);
 		const gridConfig = gameContext.serverState.world.grid[player.position.x][player.position.y];
 
 		destroyGround(player.position);
 
-		if (gridConfig.items.length) {
-			gridConfig.items.forEach(({ sprite }) => {
-				if (sprite.scene) {
-					sprite[player.id === gameContext.playerId ? 'collect' : 'destroy']();
-				}
-			});
-		}
+	router.on('playerMove', data => {
+		if (!gameContext.players.get(data.player.id)?.sprite) addDrill(data.player);
+		else gameContext.players.update(data.player.id, _ => ({ ..._, ...data.player }));
+
+		const player = gameContext.players.get(data.player.id);
+		const cell = gameContext.serverState.world.grid[player.position.x][player.position.y];
+
+		// The rig takes the ground and the loot; a device set down there, and any hazard, stays
+		cell.ground?.sprite?.dig();
+		cell.ground = {};
+		cell.items = cell.items.filter(item => {
+			if (item.placed) return true;
+			if (item.sprite?.scene) item.sprite[player.id === gameContext.playerId ? 'collect' : 'destroy']();
+			return false;
+		});
 
 		player.sprite.move(player.position, 500, player.orientation);
 		checkResourceAlerts(player);
@@ -177,21 +177,7 @@ export function setupEventRouter() {
 	});
 
 	router.on('addPlayer', data => {
-		const sprite = new Drill(
-			gameContext.scene,
-			data.newPlayer.position.x,
-			data.newPlayer.position.y,
-			data.newPlayer.orientation,
-			vehicles[data.newPlayer.configuration.vehicle].spriteIndex,
-			drills[data.newPlayer.configuration.drill].spriteIndex,
-		);
-
-		gameContext.players.set(data.newPlayer.id, { ...data.newPlayer, sprite });
-		gameContext.sceneLayers.players.add(sprite);
-
-		if (data.newPlayer.id === gameContext.playerId) {
-			gameContext.camera.follow(sprite);
-		}
+		if (data.newPlayer.id !== gameContext.playerId) addDrill(data.newPlayer);
 	});
 
 	router.on('removePlayer', data => {
