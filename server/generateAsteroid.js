@@ -104,7 +104,7 @@ export function generateAsteroid(worldConfig) {
 	// =================================================================
 
 	// 2.1: Generate geological formations (ground colors + mineral veins together)
-	generateGeologicalFormations(world, worldConfig, asteroidShape, holePattern, tunnelPositions);
+	generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern, tunnelPositions);
 
 	// =================================================================
 	// PHASE 3: ENVIRONMENTAL SYSTEMS
@@ -123,9 +123,8 @@ export function generateAsteroid(worldConfig) {
 	// 4.2: Place items using budget system
 	placeItems(world, worldConfig);
 
-	// 4.3: Generate pure mineral crystals from veins (if using vein-based ground)
-	const groundFormat = worldConfig.groundFormat || 'veins';
-	if (groundFormat === 'veins') {
+	// 4.3: Pure mineral crystals along the veins
+	{
 		const pureMineralCrystals = generatePureMineralCrystals(world);
 		// Group crystals by location and type for efficient placement
 		const crystalsByLocation = {};
@@ -1776,56 +1775,6 @@ function generatePureMineralCrystals(world) {
 	}
 
 	return crystals;
-}
-
-/**
- * Generate geological formations (unified ground colors + mineral veins)
- * This combines the ground color generation with vein pattern generation
- * for a more cohesive geological system
- * @param world
- * @param worldConfig
- * @param asteroidShape
- * @param holePattern
- * @param tunnelPositions
- */
-function generateGeologicalFormations(world, worldConfig, asteroidShape, holePattern, tunnelPositions) {
-	// Default to vein-based ground format if not specified
-	const groundFormat = worldConfig.groundFormat || 'veins';
-	if (groundFormat === 'veins') {
-		return generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern, tunnelPositions);
-	}
-
-	// Legacy percentage-based formats are no longer supported
-	console.error(
-		'❌ ERROR: Only vein-based ground format is supported. Please update your world configuration to use the new format.',
-	);
-	console.error('🔧 Expected format: { base: "color", veins: [{ density: X, yield: Y, size: Z, color: "color" }] }');
-
-	// Fallback: create a simple white base if no valid format is found
-	for (let x = 0; x < world.width; x++) {
-		for (let y = 0; y < world.depth; y++) {
-			if (!world.grid[x]) world.grid[x] = {};
-			if (!world.grid[x][y]) {
-				world.grid[x][y] = { terrain: 'solid', ground: null };
-			}
-
-			// Apply asteroid shape and hole patterns
-			const shapeResult = asteroidShape(x, y);
-			const holeResult = holePattern(x, y);
-			const airGapResult = y <= world.airGap;
-
-			if (!shapeResult || holeResult || airGapResult) {
-				world.grid[x][y].terrain = 'space';
-				world.grid[x][y].ground = null;
-			} else {
-				// Set white ground for all valid cells
-				const tunnelSet = new Set((tunnelPositions || []).map(pos => `${pos.x},${pos.y}`));
-				if (!tunnelSet.has(`${x},${y}`)) {
-					world.grid[x][y].ground = { type: 'white' };
-				}
-			}
-		}
-	}
 }
 
 /**

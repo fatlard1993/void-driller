@@ -65,13 +65,7 @@ export default async request => {
 			});
 			const serverConfig = JSON.parse(JSON.stringify(merged));
 
-			// Detect ground format
-			if (serverConfig.ground?.base && serverConfig.ground?.veins) {
-				serverConfig.groundFormat = 'veins';
-			}
-
-			// Generate asteroid
-			const result = generateAsteroid(serverConfig, {});
+			const result = generateAsteroid(serverConfig);
 
 			serverLog.debug('DevTools: Generation complete', {
 				dimensions: `${result.width}x${result.depth}`,
