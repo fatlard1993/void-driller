@@ -466,28 +466,16 @@ export default class Game extends BaseGame {
 		Object.entries({ vehicles, drills, engines, parts }).forEach(([type, configs]) => {
 			spaceco[type] ??= [];
 
-			while (this.world.spaceco.engines.length < targetEngines) {
-				const availableEngines = allEngines.filter(e => !this.world.spaceco.engines.includes(e));
-				if (availableEngines.length > 0) {
-					this.world.spaceco.engines.push(randFromArray(availableEngines));
-				} else {
+			for (let i = 0; i < extraListings; i++) {
+				const unlisted = Object.keys(configs).filter(id => !spaceco[type].includes(id));
+
+				if (unlisted.length === 0) break;
+
 
 		spaceco.stockedForPlayers = playerCount;
 
 		spacecoLog.info('Stocked SpaceCo for more players', { playerCount, shop: spaceco.shop });
-					break;
-				}
-			}
-
-				if (unlisted.length === 0) break;
-
-			while (this.world.spaceco.parts.length < targetParts) {
-				const availableParts = allParts.filter(p => !this.world.spaceco.parts.includes(p));
-				if (availableParts.length > 0) {
-					this.world.spaceco.parts.push(randFromArray(availableParts));
-				} else {
-					break;
-				}
+				spaceco[type].push(randFromArray(unlisted));
 			}
 		});
 	}
@@ -1368,6 +1356,8 @@ export default class Game extends BaseGame {
 			return;
 		}
 
+		this.updateSpacecoStock();
+
 		const requirementsMet = transportConfig.requirements.every(([requirementType, amount]) => {
 			if (requirementType === 'xp') {
 				return this.world.spaceco.xp >= amount;
@@ -1874,7 +1864,6 @@ export default class Game extends BaseGame {
 		}
 
 		this.players.delete(id);
-		this.updateSpacecoStock();
 		this.broadcast('removePlayer', { id });
 
 		return id;
