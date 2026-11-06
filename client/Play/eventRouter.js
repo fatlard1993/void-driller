@@ -263,6 +263,19 @@ export function setupEventRouter() {
 	});
 
 	router.on('updatePlayer', data => {
+	router.on('spacecoRescue', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		gameContext.players.get(data.playerId).sprite.teleport(data.updates.position, 1000);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		if (gameContext.statusBarHUD) gameContext.statusBarHUD.update(gameContext.players.get(data.playerId));
+		new Notify({ intent: 'info', content: `SpaceCo rescue: ${data.cost} credits`, timeout: 3000 });
+	});
+
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 	});
 
@@ -496,10 +509,9 @@ export function setupEventRouter() {
 		updateSpacecoState(data);
 
 		if (data.type === 'outpost') {
-			if (!data.spaceco || data.spaceco.health === undefined) {
-				gameContext.serverState.world.spaceco.health = 9;
-			}
-			gameContext.spaceco.hurt();
+			gameContext.serverState.world.spaceco.health = data.spaceco?.health ?? 9;
+			gameContext.spaceco.updateStatusBars();
+			gameContext.scene.sound.play('repair', { volume: gameContext.volume.effects });
 		}
 
 		if (data.playerId !== gameContext.playerId) return;
@@ -507,6 +519,16 @@ export function setupEventRouter() {
 		if (data.type === 'player') {
 			gameContext.players.get(data.playerId).sprite.updateStatusBars();
 			checkResourceAlerts(gameContext.players.get(data.playerId));
+	router.on('spacecoResupply', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		playRegisterFeedback(data.cost, { content: 'Shelves restocked!' });
+		gameContext.spaceco.dialog.options.view = 'shop';
+	});
+
 			gameContext.dismissedAlerts.health = false;
 		}
 
