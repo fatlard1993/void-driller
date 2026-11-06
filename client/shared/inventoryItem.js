@@ -1,6 +1,6 @@
 import { capitalize } from '@vanilla-bean/components';
 
-import { items } from '../../constants';
+import { engines, items } from '../../constants';
 
 // What placing a charge or a beacon leaves in the inventory, its key carrying the position: detonator_x_y,
 // void_detonator_x_y, activated_teleporter_x_y. Each shows as the item it came from, unless its own look is given here.
@@ -38,4 +38,27 @@ export const inventoryItem = key => {
 		state: placed?.state,
 		where: placed && `${placed.at} ${x}, ${y}`,
 	};
+};
+
+const fuelItems = ['oil', 'battery', 'super_oxygen_liquid_nitrogen'];
+
+/**
+ * Why an inventory entry cannot be used by hand right now, or null when it can
+ * @param {string} key - The inventory key
+ * @param {object} player - The player holding it
+ * @returns {string|null} The reason shown on a disabled Use button
+ */
+export const itemUseBlocker = (key, player) => {
+	const { itemKey } = inventoryItem(key);
+
+	if (items[itemKey]?.passive) return 'Not used by hand';
+
+	if (fuelItems.includes(itemKey)) {
+		if (engines[player.configuration.engine].fuelType !== itemKey) return 'Incompatible fuel type';
+		if (player.fuel >= player.maxFuel) return 'Fuel tank full';
+	}
+
+	if (itemKey === 'repair_nanites' && player.health >= player.maxHealth) return 'Health already full';
+
+	return null;
 };

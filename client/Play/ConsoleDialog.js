@@ -28,7 +28,7 @@ import gameContext from '../shared/gameContext';
 import { drills, engines, items, minerals, parts, playerAchievements, vehicles } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
 import { DescriptionText } from '../shared/DescriptionText';
-import { inventoryItem } from '../shared/inventoryItem';
+import { inventoryItem, itemUseBlocker } from '../shared/inventoryItem';
 import Notify from '../shared/Notify';
 import PriceDisplay from '../shared/PriceDisplay';
 import { formatPlayerAchievementRewards, getScaledServiceCosts, stepFuelCost } from '../../utils';
@@ -1017,8 +1017,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				const { name: itemName, image: imageName, summary, description, where } = inventoryItem(key);
 
 				// Check if player can use item
-				const canUse = this.canUseItem(key, player);
-				const disabledReason = this.getItemDisabledReason(key, player);
+				const disabledReason = itemUseBlocker(key, player);
+				const canUse = !disabledReason;
 
 				return [
 					new Card({
@@ -1099,50 +1099,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				];
 			}),
 		});
-	}
-
-	canUseItem(itemKey, player) {
-		// Fuel items require compatible engine
-		if (['oil', 'battery', 'super_oxygen_liquid_nitrogen'].includes(itemKey)) {
-			const engineConfig = engines[player.configuration.engine];
-			return engineConfig.fuelType === itemKey && player.fuel < player.maxFuel;
-		}
-
-		// Repair nanites require damaged health
-		if (itemKey === 'repair_nanites') {
-			return player.health < player.maxHealth;
-		}
-
-		// Players can always use SpaceCo teleport station (relocates outpost)
-		if (itemKey === 'spaceco_teleport_station') {
-			return true;
-		}
-
-		// Players can always use most other items
-		return true;
-	}
-
-	getItemDisabledReason(itemKey, player) {
-		if (['oil', 'battery', 'super_oxygen_liquid_nitrogen'].includes(itemKey)) {
-			const engineConfig = engines[player.configuration.engine];
-			if (engineConfig.fuelType !== itemKey) {
-				return 'Incompatible fuel type';
-			}
-			if (player.fuel >= player.maxFuel) {
-				return 'Fuel tank full';
-			}
-		}
-
-		if (itemKey === 'repair_nanites' && player.health >= player.maxHealth) {
-			return 'Health already full';
-		}
-
-		// SpaceCo teleport station never has disabled reasons
-		if (itemKey === 'spaceco_teleport_station') {
-			return null;
-		}
-
-		return null;
 	}
 
 	render_settings() {
