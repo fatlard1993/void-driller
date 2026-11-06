@@ -386,10 +386,10 @@ export class LevelEditor extends Component {
 					type: 'select',
 					value: worldConfig.size || 'medium',
 					options: [
-						{ value: 'small', label: 'Small (30-40)' },
-						{ value: 'medium', label: 'Medium (45-55)' },
-						{ value: 'large', label: 'Large (65-75)' },
-						{ value: 'huge', label: 'Huge (85-95)' },
+						{ value: 'small', label: 'Small (40-50)' },
+						{ value: 'medium', label: 'Medium (55-65)' },
+						{ value: 'large', label: 'Large (75-85)' },
+						{ value: 'huge', label: 'Huge (95-105)' },
 					],
 					onChange: value => {
 						worldConfig.size = value;
@@ -550,7 +550,7 @@ export class LevelEditor extends Component {
 			title: '// TUNNEL SYSTEM',
 			color: 'teal',
 			onClear: () => {
-				worldConfig.tunnels = {
+				worldConfig.tunnelSystems = {
 					count: [0, 0],
 					branchProbability: 0,
 					maxBranches: 0,
@@ -560,7 +560,7 @@ export class LevelEditor extends Component {
 				this.refresh();
 			},
 			onReset: () => {
-				worldConfig.tunnels = {
+				worldConfig.tunnelSystems = {
 					count: [2, 4],
 					branchProbability: 0.3,
 					maxBranches: 3,
@@ -573,50 +573,50 @@ export class LevelEditor extends Component {
 				{
 					label: 'Count',
 					type: 'range',
-					min: worldConfig.tunnels?.count?.[0] ?? 2,
-					max: worldConfig.tunnels?.count?.[1] ?? 4,
+					min: worldConfig.tunnelSystems?.count?.[0] ?? 2,
+					max: worldConfig.tunnelSystems?.count?.[1] ?? 4,
 					onChange: (min, max) => {
-						if (!worldConfig.tunnels) worldConfig.tunnels = {};
-						worldConfig.tunnels.count = [min, max];
+						if (!worldConfig.tunnelSystems) worldConfig.tunnelSystems = {};
+						worldConfig.tunnelSystems.count = [min, max];
 					},
 				},
 				{
 					label: 'Branch Prob.',
 					type: 'number',
-					value: worldConfig.tunnels?.branchProbability ?? 0.3,
+					value: worldConfig.tunnelSystems?.branchProbability ?? 0.3,
 					step: 0.1,
 					onChange: value => {
-						if (!worldConfig.tunnels) worldConfig.tunnels = {};
-						worldConfig.tunnels.branchProbability = parseFloat(value);
+						if (!worldConfig.tunnelSystems) worldConfig.tunnelSystems = {};
+						worldConfig.tunnelSystems.branchProbability = parseFloat(value);
 					},
 				},
 				{
 					label: 'Max Branches',
 					type: 'number',
-					value: worldConfig.tunnels?.maxBranches ?? 3,
+					value: worldConfig.tunnelSystems?.maxBranches ?? 3,
 					onChange: value => {
-						if (!worldConfig.tunnels) worldConfig.tunnels = {};
-						worldConfig.tunnels.maxBranches = parseInt(value);
+						if (!worldConfig.tunnelSystems) worldConfig.tunnelSystems = {};
+						worldConfig.tunnelSystems.maxBranches = parseInt(value);
 					},
 				},
 				{
 					label: 'Segment Length',
 					type: 'range',
-					min: worldConfig.tunnels?.segmentLength?.[0] ?? 4,
-					max: worldConfig.tunnels?.segmentLength?.[1] ?? 8,
+					min: worldConfig.tunnelSystems?.segmentLength?.[0] ?? 4,
+					max: worldConfig.tunnelSystems?.segmentLength?.[1] ?? 8,
 					onChange: (min, max) => {
-						if (!worldConfig.tunnels) worldConfig.tunnels = {};
-						worldConfig.tunnels.segmentLength = [min, max];
+						if (!worldConfig.tunnelSystems) worldConfig.tunnelSystems = {};
+						worldConfig.tunnelSystems.segmentLength = [min, max];
 					},
 				},
 				{
 					label: 'Wander',
 					type: 'number',
-					value: worldConfig.tunnels?.wanderStrength ?? 0.4,
+					value: worldConfig.tunnelSystems?.wanderStrength ?? 0.4,
 					step: 0.1,
 					onChange: value => {
-						if (!worldConfig.tunnels) worldConfig.tunnels = {};
-						worldConfig.tunnels.wanderStrength = parseFloat(value);
+						if (!worldConfig.tunnelSystems) worldConfig.tunnelSystems = {};
+						worldConfig.tunnelSystems.wanderStrength = parseFloat(value);
 					},
 				},
 			],
@@ -630,52 +630,58 @@ export class LevelEditor extends Component {
 			title: '// ENVIRONMENTAL HAZARDS',
 			color: 'red',
 			onClear: () => {
-				worldConfig.hazards = { lavaPool: [0, 0], gasPocket: [0, 0], lavaBubble: [0, 0], gasBubble: [0, 0] };
+				Object.assign(worldConfig, {
+					lava_pools: { count: [0, 0] },
+					gas_pockets: { count: [0, 0] },
+					lava_bubbles: { count: [0, 0] },
+					gas_bubbles: { count: [0, 0] },
+				});
 				this.refresh();
 			},
 			onReset: () => {
-				worldConfig.hazards = { lavaPool: [2, 3], gasPocket: [1, 2], lavaBubble: [0, 0], gasBubble: [0, 0] };
+				Object.assign(worldConfig, {
+					lava_pools: { count: [2, 3] },
+					gas_pockets: { count: [1, 2] },
+					lava_bubbles: { count: [0, 0] },
+					gas_bubbles: { count: [0, 0] },
+				});
 				this.refresh();
 			},
 			controls: [
 				{
 					label: 'Lava Pools',
 					type: 'range',
-					min: worldConfig.hazards?.lavaPool?.[0] ?? 2,
-					max: worldConfig.hazards?.lavaPool?.[1] ?? 3,
+					min: worldConfig.lava_pools?.count?.[0] ?? 2,
+					max: worldConfig.lava_pools?.count?.[1] ?? 3,
 					onChange: (min, max) => {
-						if (!worldConfig.hazards) worldConfig.hazards = {};
-						worldConfig.hazards.lavaPool = [min, max];
+						worldConfig.lava_pools = { ...worldConfig.lava_pools, count: [min, max] };
 					},
 				},
 				{
 					label: 'Gas Pockets',
 					type: 'range',
-					min: worldConfig.hazards?.gasPocket?.[0] ?? 1,
-					max: worldConfig.hazards?.gasPocket?.[1] ?? 2,
+					min: worldConfig.gas_pockets?.count?.[0] ?? 1,
+					max: worldConfig.gas_pockets?.count?.[1] ?? 2,
 					onChange: (min, max) => {
-						if (!worldConfig.hazards) worldConfig.hazards = {};
-						worldConfig.hazards.gasPocket = [min, max];
+						worldConfig.gas_pockets = { ...worldConfig.gas_pockets, count: [min, max] };
 					},
 				},
 				{
 					label: 'Lava Bubbles',
 					type: 'range',
-					min: worldConfig.hazards?.lavaBubble?.[0] ?? 0,
-					max: worldConfig.hazards?.lavaBubble?.[1] ?? 0,
+					min: worldConfig.lava_bubbles?.count?.[0] ?? 0,
+					max: worldConfig.lava_bubbles?.count?.[1] ?? 0,
 					onChange: (min, max) => {
-						if (!worldConfig.hazards) worldConfig.hazards = {};
-						worldConfig.hazards.lavaBubble = [min, max];
+						worldConfig.lava_bubbles = { ...worldConfig.lava_bubbles, count: [min, max] };
 					},
 				},
 				{
 					label: 'Gas Bubbles',
 					type: 'range',
-					min: worldConfig.hazards?.gasBubble?.[0] ?? 0,
-					max: worldConfig.hazards?.gasBubble?.[1] ?? 0,
+					min: worldConfig.gas_bubbles?.count?.[0] ?? 0,
+					max: worldConfig.gas_bubbles?.count?.[1] ?? 0,
 					onChange: (min, max) => {
-						if (!worldConfig.hazards) worldConfig.hazards = {};
-						worldConfig.hazards.gasBubble = [min, max];
+						worldConfig.gas_bubbles = { ...worldConfig.gas_bubbles, count: [min, max] };
 					},
 				},
 			],
@@ -686,36 +692,32 @@ export class LevelEditor extends Component {
 			title: '// ALIENS & ITEMS',
 			color: 'green',
 			onClear: () => {
-				worldConfig.alienBudget = [0, 0];
-				worldConfig.itemBudget = [0, 0];
-				worldConfig.alienTypes = [];
-				worldConfig.items.types = [];
+				worldConfig.aliens = { ...worldConfig.aliens, budget: [0, 0] };
+				worldConfig.items = { ...worldConfig.items, budget: [0, 0] };
 				this.refresh();
 			},
 			onReset: () => {
-				worldConfig.alienBudget = [2, 6];
-				worldConfig.itemBudget = [4, 8];
-				worldConfig.alienTypes = [];
-				worldConfig.items.types = [];
+				worldConfig.aliens = { ...worldConfig.aliens, budget: [2, 6] };
+				worldConfig.items = { ...worldConfig.items, budget: [4, 8] };
 				this.refresh();
 			},
 			controls: [
 				{
 					label: 'Alien Budget',
 					type: 'range',
-					min: worldConfig.alienBudget?.[0] ?? 2,
-					max: worldConfig.alienBudget?.[1] ?? 6,
+					min: worldConfig.aliens?.budget?.[0] ?? 2,
+					max: worldConfig.aliens?.budget?.[1] ?? 6,
 					onChange: (min, max) => {
-						worldConfig.alienBudget = [min, max];
+						worldConfig.aliens = { ...worldConfig.aliens, budget: [min, max] };
 					},
 				},
 				{
 					label: 'Item Budget',
 					type: 'range',
-					min: worldConfig.itemBudget?.[0] ?? 4,
-					max: worldConfig.itemBudget?.[1] ?? 8,
+					min: worldConfig.items?.budget?.[0] ?? 4,
+					max: worldConfig.items?.budget?.[1] ?? 8,
 					onChange: (min, max) => {
-						worldConfig.itemBudget = [min, max];
+						worldConfig.items = { ...worldConfig.items, budget: [min, max] };
 					},
 				},
 			],
@@ -2242,7 +2244,7 @@ export class LevelEditor extends Component {
 	}
 
 	async handleSave() {
-		const { selectedWorld, asteroid } = this.state;
+		const { selectedWorld, worldConfig } = this.state;
 		this.state.saving = true;
 		this.refresh();
 
@@ -2250,11 +2252,11 @@ export class LevelEditor extends Component {
 			const response = await fetch('/api/dev/save-world', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ worldId: selectedWorld, asteroid }),
+				body: JSON.stringify({ worldId: selectedWorld, config: worldConfig }),
 			});
 
 			const result = await response.json();
-			if (result.status === 'success') {
+			if (result.success) {
 				alert('World saved successfully!');
 			} else {
 				alert('Save failed: ' + result.message);
