@@ -280,33 +280,7 @@ const _game = async (request, server) => {
 
 		if (error) return error;
 
-		const player = game.players.get(playerId);
-
-		const rescueCost = getScaledServiceCosts(game.world.spaceco.xp).rescueCost;
-
-		// Log the rescue operation for audit purposes
-		playerLog.info('Player rescued by SpaceCo', {
-			playerId,
-			gameId,
-			cost: rescueCost,
-			playerCredits: player.credits,
-			rescuePosition: game.world.spaceco.position,
-			emergencyTeleportsTotal: player.stats.emergencyTeleports + 1,
-		});
-
-		const updates = {
-			position: game.world.spaceco.position,
-			stats: {
-				...player.stats,
-				emergencyTeleports: player.stats.emergencyTeleports + 1,
-			},
-			credits: player.credits - rescueCost,
-		};
-		game.players.update(playerId, _ => ({ ..._, ...updates }));
-		game.broadcast('useItem', { playerId, updates, item: 'spaceco_teleporter' });
-		game.broadcast('spacecoRescue', { playerId });
-
-		return Response.json({}, { status: 200 });
+		return respond(server.games[gameId].spacecoRescue(playerId));
 	}
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/transport', request);
@@ -402,18 +376,7 @@ const _game = async (request, server) => {
 		const { body, error: parseError } = await parseRequestBody(request);
 		if (parseError) return parseError;
 
-		const { item } = body;
-
-		if (item === 'spaceco_teleport_station') {
-			const validation = server.games[gameId].validateSpacecoTeleportStation(playerId);
-			if (!validation.success) {
-				return Response.json({ message: validation.error }, { status: 400 });
-			}
-		}
-
-		server.games[gameId].useItem(playerId, item);
-
-		return Response.json({}, { status: 200 });
+		return respond(server.games[gameId].useItem(playerId, body.item));
 	}
 
 	// Update trade offer (must come before base /trade route)

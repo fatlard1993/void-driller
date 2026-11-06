@@ -38,12 +38,21 @@ const WORLDS = {
 	...Object.fromEntries(worlds.map(world => [world.name, world])),
 };
 
-const mineralColors = Object.keys(minerals);
-const itemNames = Object.keys(items);
-
-const alienNames = Object.keys(aliens);
-
-const hazardTypes = ['alien', 'gas', 'lava'];
+const fuelItems = ['oil', 'battery', 'super_oxygen_liquid_nitrogen'];
+const usableItems = new Set([
+	...fuelItems,
+	'spaceco_teleporter',
+	'repair_nanites',
+	'timed_charge',
+	'remote_charge',
+	'detonator',
+	'gravity_charge',
+	'void_implosion',
+	'void_detonator',
+	'advanced_teleporter',
+	'activated_teleporter',
+	'spaceco_teleport_station',
+]);
 
 /**
  *
@@ -1483,7 +1492,8 @@ export default class Game extends BaseGame {
 	}
 
 	spacecoResupply(playerId) {
-		const player = this.players.get(playerId);
+		const validation = this.validateItemUsage(playerId, item);
+		if (!validation.success) return validation;
 		const resupplyCost = Math.floor(this.world.transportPrice * 0.9);
 
 		if (player.credits < resupplyCost) {
@@ -1494,6 +1504,13 @@ export default class Game extends BaseGame {
 			});
 			return;
 		}
+		// A device set down where the rig stands; driving over it later does not pick it back up
+		const place = name => this.world.grid[position.x][position.y].items.push({ name, placed: true });
+		const teleport = to => {
+			updates.position = to;
+			this.stopMovement(playerId);
+		};
+
 
 		// Deduct cost
 		const updates = {
@@ -1502,16 +1519,12 @@ export default class Game extends BaseGame {
 
 		this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-		// Regenerate shop stock from world config
-		const { randInt } = require('../utils');
-		// A device set down where the rig stands; driving over it later does not pick it back up
-		const place = name => this.world.grid[position.x][position.y].items.push({ name, placed: true });
-		const teleport = to => {
-			updates.position = to;
-			this.stopMovement(playerId);
-		};
+		// A fresh roll of the world's stock, on top of what is left
+		Object.entries(this.world.config?.spaceco?.shop || {}).forEach(([itemName, stockValue]) => {
+			const newStock = Array.isArray(stockValue) ? randInt(stockValue[0], stockValue[1]) : stockValue;
 
 		const worldConfig = this.world.config; // Store original config in world during generation
+			place(item);
 
 		if (worldConfig?.spaceco?.shop) {
 			Object.entries(worldConfig.spaceco.shop).forEach(([itemName, stockValue]) => {
@@ -1541,6 +1554,7 @@ export default class Game extends BaseGame {
 			newShopStock: this.world.spaceco.shop,
 		});
 
+			place(item);
 		this.broadcastWithSpacecoState('spacecoResupply', { playerId, updates, cost: resupplyCost }, ['shop']);
 
 		return { success: true };
@@ -1559,6 +1573,8 @@ export default class Game extends BaseGame {
 		if (player.credits < cost) {
 			return { success: false, error: `Insufficient credits. Rescue costs ${cost}, you have ${player.credits}` };
 		}
+			teleport(station);
+			updates.items.advanced_teleporter = (player.items.advanced_teleporter || 0) + 1;
 
 		this.stopMovement(playerId);
 
@@ -1584,15 +1600,20 @@ export default class Game extends BaseGame {
 			return { success: false, error: 'Item not in inventory' };
 		}
 
-		if (!items[item]) {
-			return { success: false, error: 'Invalid item' };
+		const baseItem = item.replace(/_\d+_\d+$/, '');
+
+		if (!usableItems.has(baseItem)) return { success: false, error: 'That item is not used by hand' };
+
+		if (fuelItems.includes(item) && engines[player.configuration.engine].fuelType !== item) {
+			return { success: false, error: 'Incompatible fuel type' };
 		}
 
-		if (['oil', 'battery', 'super_oxygen_liquid_nitrogen'].includes(item)) {
-			const engineConfig = engines[player.configuration.engine];
-			if (engineConfig.fuelType !== item) {
-				return { success: false, error: 'Incompatible fuel type' };
-			}
+		if (item === 'spaceco_teleport_station') {
+			const distance =
+				Math.abs(player.position.x - this.world.spaceco.position.x) +
+				Math.abs(player.position.y - this.world.spaceco.position.y);
+
+			if (distance < 3) return { success: false, error: 'Too close to current outpost location' };
 		}
 
 		return { success: true };
@@ -1615,7 +1636,7 @@ export default class Game extends BaseGame {
 		}
 
 		const updates = {
-			items: { ...player.items, [item]: (player.items[item] -= 1) },
+			items: { ...player.items, [item]: player.items[item] - 1 },
 			stats: {
 				...player.stats,
 				itemsUsed: { ...player.stats.itemsUsed, [item]: (player.stats.itemsUsed[item] ?? 0) + 1 },
@@ -1623,7 +1644,7 @@ export default class Game extends BaseGame {
 		};
 
 		if (item === 'spaceco_teleporter') {
-			updates.position = { ...this.world.spaceco.position };
+			teleport({ ...this.world.spaceco.position });
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
 		} else if (item === 'repair_nanites') {
@@ -1636,29 +1657,15 @@ export default class Game extends BaseGame {
 			this.broadcast('useItem', { playerId, updates, item });
 		} else if (item === 'timed_charge') {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
-			const bombPosition = { ...player.position };
+			this.broadcast('useItem', { playerId, updates, item, bombPosition: position });
 
-			const cell = this.safeGetGridCell(bombPosition.x, bombPosition.y);
-			if (!cell) {
-				gameLog.error('Invalid bomb position', { position: bombPosition });
-				return;
-			}
-
-			cell.items.push({ name: item });
-
-			this.broadcast('useItem', { playerId, updates, item, bombPosition });
-
-			setTimeout(() => explode({ game: this, position: bombPosition, radius: 3, playerId }), 3000);
+			setTimeout(() => explode({ game: this, position, radius: 3, playerId }), 3000);
 		} else if (item === 'remote_charge') {
-			const bombPosition = { ...player.position };
-
-			this.world.grid[bombPosition.x][bombPosition.y].items.push({ name: item });
-
-			updates.items = { ...updates.items, [`detonator_${bombPosition.x}_${bombPosition.y}`]: 1 };
+			place(item);
+			updates.items[`detonator_${position.x}_${position.y}`] = 1;
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
-
-			this.broadcast('useItem', { playerId, updates, item, bombPosition });
-		} else if (item.startsWith('detonator')) {
+			this.broadcast('useItem', { playerId, updates, item, bombPosition: position });
+		} else if (item.startsWith('detonator_')) {
 			const [, x, y] = item.split('_');
 
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
@@ -1666,7 +1673,7 @@ export default class Game extends BaseGame {
 			this.broadcast('useItem', { playerId, updates, item });
 
 			explode({ game: this, position: { x: parseInt(x, 10), y: parseInt(y, 10) }, radius: 5, playerId });
-		} else if (item.startsWith('void_detonator')) {
+		} else if (item.startsWith('void_detonator_')) {
 			const [, , x, y] = item.split('_');
 
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
@@ -1682,56 +1689,29 @@ export default class Game extends BaseGame {
 			});
 		} else if (item === 'gravity_charge') {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
-			const bombPosition = { ...player.position };
+			this.broadcast('useItem', { playerId, updates, item, bombPosition: position });
 
-			this.world.grid[bombPosition.x][bombPosition.y].items.push({ name: item });
-
-			this.broadcast('useItem', { playerId, updates, item, bombPosition });
-
-			setTimeout(
-				() =>
-					this.implode({
-						game: this,
-						position: bombPosition,
-						radius: 4,
-						playerId: playerId,
-						implosionType: 'gravity',
-					}),
-				2000,
-			); // 2 second delay
+			setTimeout(() => this.implode({ position, radius: 4, playerId, implosionType: 'gravity' }), 2000);
 		} else if (item === 'void_implosion') {
-			const bombPosition = { ...player.position };
-
-			this.world.grid[bombPosition.x][bombPosition.y].items.push({ name: item });
-			updates.items = { ...updates.items, [`void_detonator_${bombPosition.x}_${bombPosition.y}`]: 1 };
+			place(item);
+			updates.items[`void_detonator_${position.x}_${position.y}`] = 1;
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
-			this.broadcast('useItem', { playerId, updates, item, bombPosition });
+			this.broadcast('useItem', { playerId, updates, item, bombPosition: position });
 		} else if (item === 'advanced_teleporter') {
-			const stationPosition = { ...player.position };
-
-			this.world.grid[stationPosition.x][stationPosition.y].items.push({ name: 'teleport_station' });
-
-			updates.items = { ...updates.items, [`activated_teleporter_${stationPosition.x}_${stationPosition.y}`]: 1 };
+			place('teleport_station');
+			updates.items[`activated_teleporter_${position.x}_${position.y}`] = 1;
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
-
-			this.broadcast('useItem', { playerId, updates, item, stationPosition });
-		} else if (item.startsWith('activated_teleporter')) {
+			this.broadcast('useItem', { playerId, updates, item, stationPosition: position });
+		} else if (item.startsWith('activated_teleporter_')) {
 			const [, , x, y] = item.split('_');
-			const stationX = parseInt(x, 10);
-			const stationY = parseInt(y, 10);
-			updates.position = { x: stationX, y: stationY };
-
-			// Restore advanced_teleporter to inventory
-			updates.items = { ...updates.items, advanced_teleporter: (player.items.advanced_teleporter || 0) + 1 };
+			const station = { x: parseInt(x, 10), y: parseInt(y, 10) };
 
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 
-			// Clean up the teleport station from the world grid (use parsed integers, not string indices)
-			this.world.grid[stationX][stationY].items = this.world.grid[stationX][stationY].items.filter(
-				item => item.name !== 'teleport_station',
-			);
+			const cell = this.safeGetGridCell(station.x, station.y);
+			if (cell) cell.items = cell.items.filter(item => item.name !== 'teleport_station');
 
-			this.broadcast('useItem', { playerId, updates, item, stationPosition: { x: stationX, y: stationY } });
+			this.broadcast('useItem', { playerId, updates, item, stationPosition: station });
 		} else if (item === 'spaceco_teleport_station') {
 			// Teleport SpaceCo to the player's position
 			const newPosition = { ...player.position };
@@ -1884,29 +1864,6 @@ export default class Game extends BaseGame {
 
 		// Save the game state
 		this.save();
-	}
-
-	validateSpacecoTeleportStation(playerId) {
-		const player = this.players.get(playerId);
-		if (!player) {
-			return { success: false, error: 'Player not found' };
-		}
-
-		const itemCount = player.items.spaceco_teleport_station || 0;
-		if (itemCount <= 0) {
-			return { success: false, error: 'Item not in inventory' };
-		}
-
-		// Check if player is too close to current SpaceCo position
-		const distance =
-			Math.abs(player.position.x - this.world.spaceco.position.x) +
-			Math.abs(player.position.y - this.world.spaceco.position.y);
-
-		if (distance < 3) {
-			return { success: false, error: 'Too close to current outpost location' };
-		}
-
-		return { success: true };
 	}
 
 	removePlayer(id) {
@@ -4309,7 +4266,8 @@ export default class Game extends BaseGame {
 
 		const ground = { ...this.world.grid[position.x][position.y] };
 
-		this.world.grid[position.x][position.y].items.forEach(({ name }) => {
+		this.world.grid[position.x][position.y].items.forEach(({ name, placed }) => {
+			if (placed) return;
 			if (name.startsWith('mineral')) {
 				updatedPlayer.hull[name] = updatedPlayer.hull[name] || 0;
 				++updatedPlayer.hull[name];
@@ -4331,7 +4289,7 @@ export default class Game extends BaseGame {
 			}
 
 			cell.ground = {};
-			cell.items = [];
+			cell.items = cell.items.filter(item => item.placed);
 
 			cell.hazards.forEach(hazard => {
 				if (hazard.type === 'lava') damage += 10;
