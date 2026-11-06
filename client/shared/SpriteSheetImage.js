@@ -181,14 +181,12 @@ export class DrillImage extends SpriteSheetImage {
 export class EngineImage extends SpriteSheetImage {
 	constructor(index, options = {}) {
 		const { displaySize, displayWidth, displayHeight, ...style } = options;
-		const w = 3;
-		const y = index > w ? Math.ceil(index / w - 1) : 0;
-		const x = index > w ? index - w * y : index;
+		const cols = 4;
 		super({
 			url: 'img/engines.png',
+			x: index % cols,
+			y: Math.floor(index / cols),
 			size: 128,
-			x,
-			y,
 			displaySize,
 			displayWidth,
 			displayHeight,
