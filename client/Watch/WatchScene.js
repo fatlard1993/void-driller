@@ -123,13 +123,12 @@ export default class WatchScene extends Phaser.Scene {
 
 		// Render SpaceCo
 		if (spaceco) {
-			const spacecoSprite = new Spaceco(this, spaceco.position.x, spaceco.position.y, spaceco.variant);
-			gameContext.sceneLayers.hazards.add(spacecoSprite);
-			spaceco.sprite = spacecoSprite;
+			gameContext.spaceco = new Spaceco(this, spaceco.position.x, spaceco.position.y, spaceco.variant);
+			gameContext.sceneLayers.hazards.add(gameContext.spaceco);
 		}
 
 		// Render all players
-		gameContext.players = new Map();
+		gameContext.players.clear();
 		gameContext.serverState.players.forEach(player => {
 			this.addPlayer(player);
 		});
@@ -315,8 +314,9 @@ export default class WatchScene extends Phaser.Scene {
 			// Full game state
 			gameContext.serverState = newWorldState;
 		} else if (newWorldState.grid) {
-			// Just the world data - wrap it
+			// The world, with the players where the transport set them down
 			gameContext.serverState.world = newWorldState;
+			if (newWorldState.players) gameContext.serverState.players = newWorldState.players;
 		} else {
 			console.error('[WatchScene] Invalid newWorldState structure:', newWorldState);
 			return;
@@ -400,9 +400,8 @@ export default class WatchScene extends Phaser.Scene {
 
 		// Render SpaceCo
 		if (spaceco) {
-			const spacecoSprite = new Spaceco(this, spaceco.position.x, spaceco.position.y, spaceco.variant);
-			gameContext.sceneLayers.hazards.add(spacecoSprite);
-			spaceco.sprite = spacecoSprite;
+			gameContext.spaceco = new Spaceco(this, spaceco.position.x, spaceco.position.y, spaceco.variant);
+			gameContext.sceneLayers.hazards.add(gameContext.spaceco);
 		}
 
 		// Render all players

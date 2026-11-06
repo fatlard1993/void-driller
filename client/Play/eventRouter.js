@@ -105,105 +105,27 @@ function checkResourceAlerts(player) {
 	}
 }
 
+// SpaceCo state carried on a broadcast lands for every viewer
+const updateSpacecoState = data => {
+	if (!data.spaceco) return;
+	gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
+	gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+	if (data.spaceco.hull) gameContext.serverState.world.spaceco.hull = data.spaceco.hull;
+	if (data.spaceco.shop) gameContext.serverState.world.spaceco.shop = data.spaceco.shop;
+	if (data.spaceco.health !== undefined) gameContext.serverState.world.spaceco.health = data.spaceco.health;
+};
+
+const alienSpriteAt = (position, name) =>
+	gameContext.serverState.world.grid[position.x]?.[position.y]?.hazards.find(
+		hazard => hazard.type === 'alien' && hazard.name === name,
+	)?.sprite;
+
 /**
- * Setup EventRouter for void-driller client
- * @returns {EventRouter} Configured router instance
+ * Everything the world does on its own, drawn the same for a player and for a spectator: items used and placed,
+ * falls, the outpost moving, hazards spreading, aliens, blasts and ground effects
+ * @param {object} router - The client event router to register on
  */
-export function setupEventRouter() {
-	const router = createClientEventRouter({
-		gameId: gameContext.gameId,
-		logger: console,
-	});
-
-	// Add validation middleware
-	router.use(
-		createValidationMiddleware({
-			requiredFields: ['id', 'update'],
-		}),
-	);
-
-	// Add logging middleware (only for development)
-	if (process.env.NODE_ENV === 'development') {
-		router.use(
-			createLoggingMiddleware({
-				exclude: ['playerMove'], // Don't log every movement
-			}),
-		);
-	}
-
-	// === Player Events ===
-
-	const addDrill = player => {
-		const sprite = new Drill(
-			gameContext.scene,
-			player.position.x,
-			player.position.y,
-			player.orientation,
-			vehicles[player.configuration.vehicle].spriteIndex,
-			drills[player.configuration.drill].spriteIndex,
-			player.name,
-		);
-
-		gameContext.players.set(player.id, { ...gameContext.players.get(player.id), ...player, sprite });
-
-		return sprite;
-	};
-
-	router.on('playerMove', data => {
-		if (!gameContext.players.get(data.player.id)?.sprite) addDrill(data.player);
-		else gameContext.players.update(data.player.id, _ => ({ ..._, ...data.player }));
-
-		const player = gameContext.players.get(data.player.id);
-		const cell = gameContext.serverState.world.grid[player.position.x][player.position.y];
-
-		// The rig takes the ground and the loot; a device set down there, and any hazard, stays
-		cell.ground?.sprite?.dig();
-		cell.ground = {};
-		cell.items = cell.items.filter(item => {
-			if (item.placed) return true;
-			if (item.sprite?.scene) item.sprite[player.id === gameContext.playerId ? 'collect' : 'destroy']();
-			return false;
-		});
-
-		player.sprite.move(player.position, 500, player.orientation);
-		checkResourceAlerts(player);
-
-		if (player.id === gameContext.playerId && gameContext.statusBarHUD) {
-			gameContext.statusBarHUD.update(player);
-		}
-	});
-
-	// The joining player's own scene is built from the game state; everyone else draws the newcomer here
-	router.on('addPlayer', data => {
-		if (data.newPlayer.id !== gameContext.playerId) addDrill(data.newPlayer);
-	});
-
-	router.on('removePlayer', data => {
-		const player = gameContext.players.get(data.id);
-
-		if (player?.sprite?.scene) {
-			player.sprite.destroy();
-		}
-
-		gameContext.players.delete(data.id);
-	});
-
-	router.on('hurtPlayers', data => {
-		data.players.forEach(playerData => {
-			const player = gameContext.players.get(playerData.id);
-			if (player) {
-				gameContext.players.set(playerData.id, { ...player, ...playerData });
-
-				if (playerData.id === gameContext.playerId) {
-					checkResourceAlerts(gameContext.players.get(playerData.id));
-					if (gameContext.statusBarHUD) {
-						gameContext.statusBarHUD.update(gameContext.players.get(playerData.id));
-					}
-				}
-			}
-		});
-	});
-
+export function registerWorldEvents(router) {
 	router.on('useItem', data => {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
@@ -227,7 +149,10 @@ export function setupEventRouter() {
 			}
 		} else if (data.item === 'repair_nanites') {
 			[...Array(randInt(2, 40))].forEach((_, index) =>
-				setTimeout(() => gameContext.sounds.heal.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+				setTimeout(
+					() => gameContext.sounds.heal?.play({ volume: gameContext.volume.effects }),
+					index * randInt(40, 70),
+				),
 			);
 			const player = gameContext.players.get(data.playerId);
 
@@ -286,131 +211,6 @@ export function setupEventRouter() {
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 	});
 
-	// Every end of a path clears the local movement flags, so the next click is not swallowed as impatience
-	const clearMovementState = playerId =>
-		gameContext.players.update(playerId, _ => ({
-			..._,
-			moving: false,
-			_movingStartTime: null,
-			_stuckClickCount: 0,
-		}));
-
-	router.on('playerMovementComplete', data => {
-		clearMovementState(data.playerId);
-	});
-
-	router.on('invalidMovement', data => {
-		clearMovementState(data.playerId);
-
-		if (data.playerId === gameContext.playerId) {
-			new Notify({ intent: 'warning', content: data.reason || 'Path blocked', timeout: 2000 });
-		}
-	});
-
-	router.on('playerMovementInterrupted', data => {
-		clearMovementState(data.playerId);
-		if (data.player) gameContext.players.update(data.playerId, _ => ({ ..._, ...data.player }));
-
-		if (data.playerId === gameContext.playerId) {
-			const reasons = { no_fuel: 'Out of fuel', no_health: 'Hull breached' };
-			const notify = () =>
-				new Notify({ intent: 'warning', content: reasons[data.reason] || 'Movement interrupted', timeout: 2000 });
-
-			if (gameContext.statusBarHUD) gameContext.statusBarHUD.update(gameContext.players.get(data.playerId));
-
-			// The stranded rig's lifeline; its toast follows it, so it stacks clear of the dialog
-			if (reasons[data.reason]) {
-				import('./RescueDialog.js').then(module => {
-					gameContext.openDialog = new module.default();
-					notify();
-				});
-			} else notify();
-		}
-	});
-
-	router.on('playerMovementError', data => {
-		clearMovementState(data.playerId);
-
-		if (data.playerId === gameContext.playerId) {
-			new Notify({ intent: 'danger', content: data.error || 'Movement failed', timeout: 2000 });
-		}
-	});
-
-	router.on('achievement', data => {
-		// The popup belongs to the earner alone; the state lands for everyone
-		if (data.playerId === gameContext.playerId) {
-			new Achievement({ achievement: data.achievement, xpLabel: 'Pension Credits' });
-		}
-
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.player }));
-
-		if (data.playerId === gameContext.playerId && gameContext.statusBarHUD) {
-			gameContext.statusBarHUD.update(gameContext.players.get(data.playerId));
-		}
-	});
-
-	// === SpaceCo Events ===
-
-	router.on('spacecoBuyTransport', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-
-		if (data.playerId === gameContext.playerId) {
-			const updatedPlayer = gameContext.players.get(data.playerId);
-			checkResourceAlerts(updatedPlayer);
-		}
-
-		if (data.spaceco) {
-			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
-			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
-			if (data.spaceco.hull) {
-				gameContext.serverState.world.spaceco.hull = data.spaceco.hull;
-			}
-		}
-
-		if (data.playerId === gameContext.playerId) {
-			new Notify({ intent: 'success', content: 'Thank you!', timeout: 1000 });
-
-			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
-				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
-			);
-
-			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
-		} else {
-			new Notify({ intent: 'info', content: `Transporting to ${data.world}...`, timeout: 2000 });
-		}
-
-		if (gameContext.openDialog?.elem?.open) {
-			gameContext.openDialog.close();
-		}
-		if (gameContext.spaceco?.dialog?.elem?.open) {
-			gameContext.spaceco.dialog.close();
-		}
-
-		if (gameContext.musicManager) {
-			gameContext.musicManager.playTransportTransition(() => {
-				if (gameContext.scene?.fadeInWorld) {
-					gameContext.scene.fadeInWorld();
-				}
-			});
-		}
-
-		if (data.newWorldState && gameContext.scene?.startWorldTransition) {
-			setTimeout(() => {
-				gameContext.scene.startWorldTransition(data.newWorldState);
-			}, 500);
-		} else {
-			setTimeout(() => window.location.reload(), 1500);
-		}
-	});
-
-	router.on('spacecoAchievement', data => {
-		new Achievement({ achievement: data.achievement });
-
-		gameContext.serverState.world.spaceco.achievements = data.spaceco.achievements;
-		gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
-		gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
-	});
-
 	router.on('spacecoFall', data => {
 		gameContext.serverState.world.spaceco.position = data.position;
 		gameContext.serverState.world.spaceco.health = data.health;
@@ -426,150 +226,6 @@ export function setupEventRouter() {
 		gameContext.spaceco.fall(data.position);
 	});
 
-	router.on('spacecoEggSubmission', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-
-		gameContext.serverState.world.spaceco.eggHunt ??= { totalEggsSubmitted: 0, playerSubmissions: {} };
-		gameContext.serverState.world.spaceco.eggHunt.totalEggsSubmitted = data.totalEggsSubmitted;
-		gameContext.serverState.world.spaceco.eggHunt.playerSubmissions[data.playerId] = data.playerSubmissions;
-
-		if (data.spaceco) {
-			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
-			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
-		}
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		gameContext.sounds.psykick_attack.play({ volume: gameContext.volume.effects * 0.7 });
-		new Notify({
-			intent: 'success',
-			content: `Submitted ${data.count} psykick egg${data.count > 1 ? 's' : ''} to the endgame hunt!`,
-			timeout: 2000,
-		});
-		gameContext.spaceco.dialog.options.view = 'shop_Player';
-		if (gameContext.spaceco.dialog?.render) {
-			gameContext.spaceco.dialog.render();
-		}
-	});
-
-	// State updates apply for any player; sounds, toasts, and dialog moves only for the one at the register
-	const updateSpacecoState = data => {
-		if (!data.spaceco) return;
-		gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
-		gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
-		if (data.spaceco.hull) gameContext.serverState.world.spaceco.hull = data.spaceco.hull;
-		if (data.spaceco.shop) gameContext.serverState.world.spaceco.shop = data.spaceco.shop;
-		if (data.spaceco.health !== undefined) gameContext.serverState.world.spaceco.health = data.spaceco.health;
-	};
-
-	const playRegisterFeedback = (count, { content = 'Thank you!', timeout = 1000 } = {}) => {
-		[...Array(randInt(2, Math.min(100, Math.max(3, count))))].forEach((_, index) =>
-			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
-		);
-		gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
-		new Notify({ intent: 'success', content, timeout });
-	};
-
-	router.on('spacecoSell', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		checkResourceAlerts(gameContext.players.get(data.playerId));
-		playRegisterFeedback(data.gain / 10);
-		gameContext.spaceco.dialog.options.view = 'sell';
-	});
-
-	router.on('spacecoRefuel', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		gameContext.players.get(data.playerId).sprite.updateStatusBars();
-		checkResourceAlerts(gameContext.players.get(data.playerId));
-		playRegisterFeedback(data.cost);
-		gameContext.spaceco.dialog.options.view = 'refuel';
-		gameContext.dismissedAlerts.fuel = false;
-	});
-
-	router.on('spacecoRepair', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-
-		if (data.type === 'outpost') {
-			gameContext.serverState.world.spaceco.health = data.spaceco?.health ?? 9;
-			gameContext.spaceco.updateStatusBars();
-			gameContext.scene.sound.play('repair', { volume: gameContext.volume.effects });
-		}
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		if (data.type === 'player') {
-			gameContext.players.get(data.playerId).sprite.updateStatusBars();
-			checkResourceAlerts(gameContext.players.get(data.playerId));
-			gameContext.dismissedAlerts.health = false;
-		}
-
-		[...Array(randInt(2, Math.min(100, Math.max(3, data.purchasedRepairs))))].forEach((_, index) =>
-			setTimeout(() => gameContext.sounds.heal.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
-		);
-		playRegisterFeedback(data.cost);
-		gameContext.spaceco.dialog.options.view = 'repair';
-	});
-
-	router.on('spacecoResupply', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		playRegisterFeedback(data.cost, { content: 'Shelves restocked!' });
-		gameContext.spaceco.dialog.options.view = 'shop';
-	});
-
-	router.on('spacecoBuyItem', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		checkResourceAlerts(gameContext.players.get(data.playerId));
-		playRegisterFeedback(data.cost);
-		gameContext.spaceco.dialog.options.view = 'shop';
-	});
-
-	router.on('spacecoSellItem', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		checkResourceAlerts(gameContext.players.get(data.playerId));
-		[...Array(randInt(1, Math.min(50, Math.max(2, data.sellValue))))].forEach((_, index) =>
-			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(50, 90)),
-		);
-		new Notify({ intent: 'success', content: `Sold for $${data.sellValue}!`, timeout: 1500 });
-		gameContext.spaceco.dialog.options.view = 'shop_Player';
-	});
-
-	router.on('spacecoBuyUpgrade', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-		updateSpacecoState(data);
-		if (data.spaceco?.[data.type]) {
-			gameContext.serverState.world.spaceco[data.type] = data.spaceco[data.type];
-		}
-
-		if (data.playerId !== gameContext.playerId) return;
-
-		gameContext.players.get(data.playerId).sprite.updateStatusBars();
-		checkResourceAlerts(gameContext.players.get(data.playerId));
-		playRegisterFeedback(data.cost);
-		gameContext.spaceco.dialog.options.view = 'upgrade';
-		gameContext.dismissedAlerts = {};
-	});
-
 	router.on('spacecoRelocate', data => {
 		gameContext.serverState.world.spaceco.position = data.newPosition;
 
@@ -582,7 +238,7 @@ export function setupEventRouter() {
 			onComplete: () => {
 				gameContext.spaceco.updateStatusBars({ position: data.newPosition });
 				gameContext.spaceco.checkForNearbyPlayer();
-				gameContext.sounds.teleport.play({ volume: gameContext.volume.effects });
+				gameContext.sounds.teleport?.play({ volume: gameContext.volume.effects });
 			},
 		});
 
@@ -604,8 +260,6 @@ export function setupEventRouter() {
 			gameContext.spaceco.hurt();
 		}
 	});
-
-	// === World Events ===
 
 	router.on('dissipateGas', data => {
 		data.addedGas.forEach(gas => {
@@ -669,16 +323,16 @@ export function setupEventRouter() {
 		});
 	});
 
-	const alienSpriteAt = (position, name) =>
-		gameContext.serverState.world.grid[position.x]?.[position.y]?.hazards.find(
-			hazard => hazard.type === 'alien' && hazard.name === name,
-		)?.sprite;
-
 	router.on('alien_wake', data => alienSpriteAt(data.position, data.alien)?.awake());
+
 	router.on('alien_sleep', data => alienSpriteAt(data.position, data.name)?.sleep());
+
 	router.on('alien_rest', data => (alienSpriteAt(data.position, data.name)?.rest ?? (() => {}))());
+
 	router.on('alien_menace', data => alienSpriteAt(data.position, data.name)?.awake());
+
 	router.on('alien_reveal_ambush', data => alienSpriteAt(data.position, data.name)?.awake());
+
 	router.on('alien_attack', data => alienSpriteAt(data.position, data.name)?.attack?.());
 
 	router.on('alien_message', data => {
@@ -821,6 +475,367 @@ export function setupEventRouter() {
 			new Notify({ intent: 'info', content: 'The saronite pulses. A memory that is not yours.', timeout: 3000 });
 		}
 	});
+}
+
+/**
+ * Setup EventRouter for void-driller client
+ * @returns {EventRouter} Configured router instance
+ */
+export function setupEventRouter() {
+	const router = createClientEventRouter({
+		gameId: gameContext.gameId,
+		logger: console,
+	});
+
+	// Add validation middleware
+	router.use(
+		createValidationMiddleware({
+			requiredFields: ['id', 'update'],
+		}),
+	);
+
+	// Add logging middleware (only for development)
+	if (process.env.NODE_ENV === 'development') {
+		router.use(
+			createLoggingMiddleware({
+				exclude: ['playerMove'], // Don't log every movement
+			}),
+		);
+	}
+
+	// === Player Events ===
+
+	const addDrill = player => {
+		const sprite = new Drill(
+			gameContext.scene,
+			player.position.x,
+			player.position.y,
+			player.orientation,
+			vehicles[player.configuration.vehicle].spriteIndex,
+			drills[player.configuration.drill].spriteIndex,
+			player.name,
+		);
+
+		gameContext.players.set(player.id, { ...gameContext.players.get(player.id), ...player, sprite });
+
+		return sprite;
+	};
+
+	router.on('playerMove', data => {
+		if (!gameContext.players.get(data.player.id)?.sprite) addDrill(data.player);
+		else gameContext.players.update(data.player.id, _ => ({ ..._, ...data.player }));
+
+		const player = gameContext.players.get(data.player.id);
+		const cell = gameContext.serverState.world.grid[player.position.x][player.position.y];
+
+		// The rig takes the ground and the loot; a device set down there, and any hazard, stays
+		cell.ground?.sprite?.dig();
+		cell.ground = {};
+		cell.items = cell.items.filter(item => {
+			if (item.placed) return true;
+			if (item.sprite?.scene) item.sprite[player.id === gameContext.playerId ? 'collect' : 'destroy']();
+			return false;
+		});
+
+		player.sprite.move(player.position, 500, player.orientation);
+		checkResourceAlerts(player);
+
+		if (player.id === gameContext.playerId && gameContext.statusBarHUD) {
+			gameContext.statusBarHUD.update(player);
+		}
+	});
+
+	// The joining player's own scene is built from the game state; everyone else draws the newcomer here
+	router.on('addPlayer', data => {
+		if (data.newPlayer.id !== gameContext.playerId) addDrill(data.newPlayer);
+	});
+
+	router.on('removePlayer', data => {
+		const player = gameContext.players.get(data.id);
+
+		if (player?.sprite?.scene) {
+			player.sprite.destroy();
+		}
+
+		gameContext.players.delete(data.id);
+	});
+
+	router.on('hurtPlayers', data => {
+		data.players.forEach(playerData => {
+			const player = gameContext.players.get(playerData.id);
+			if (player) {
+				gameContext.players.set(playerData.id, { ...player, ...playerData });
+
+				if (playerData.id === gameContext.playerId) {
+					checkResourceAlerts(gameContext.players.get(playerData.id));
+					if (gameContext.statusBarHUD) {
+						gameContext.statusBarHUD.update(gameContext.players.get(playerData.id));
+					}
+				}
+			}
+		});
+	});
+
+	// Every end of a path clears the local movement flags, so the next click is not swallowed as impatience
+	const clearMovementState = playerId =>
+		gameContext.players.update(playerId, _ => ({
+			..._,
+			moving: false,
+			_movingStartTime: null,
+			_stuckClickCount: 0,
+		}));
+
+	router.on('playerMovementComplete', data => {
+		clearMovementState(data.playerId);
+	});
+
+	router.on('invalidMovement', data => {
+		clearMovementState(data.playerId);
+
+		if (data.playerId === gameContext.playerId) {
+			new Notify({ intent: 'warning', content: data.reason || 'Path blocked', timeout: 2000 });
+		}
+	});
+
+	router.on('playerMovementInterrupted', data => {
+		clearMovementState(data.playerId);
+		if (data.player) gameContext.players.update(data.playerId, _ => ({ ..._, ...data.player }));
+
+		if (data.playerId === gameContext.playerId) {
+			const reasons = { no_fuel: 'Out of fuel', no_health: 'Hull breached' };
+			const notify = () =>
+				new Notify({ intent: 'warning', content: reasons[data.reason] || 'Movement interrupted', timeout: 2000 });
+
+			if (gameContext.statusBarHUD) gameContext.statusBarHUD.update(gameContext.players.get(data.playerId));
+
+			// The stranded rig's lifeline; its toast follows it, so it stacks clear of the dialog
+			if (reasons[data.reason]) {
+				import('./RescueDialog.js').then(module => {
+					gameContext.openDialog = new module.default();
+					notify();
+				});
+			} else notify();
+		}
+	});
+
+	router.on('playerMovementError', data => {
+		clearMovementState(data.playerId);
+
+		if (data.playerId === gameContext.playerId) {
+			new Notify({ intent: 'danger', content: data.error || 'Movement failed', timeout: 2000 });
+		}
+	});
+
+	router.on('achievement', data => {
+		// The popup belongs to the earner alone; the state lands for everyone
+		if (data.playerId === gameContext.playerId) {
+			new Achievement({ achievement: data.achievement, xpLabel: 'Pension Credits' });
+		}
+
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.player }));
+
+		if (data.playerId === gameContext.playerId && gameContext.statusBarHUD) {
+			gameContext.statusBarHUD.update(gameContext.players.get(data.playerId));
+		}
+	});
+
+	// === SpaceCo Events ===
+
+	router.on('spacecoBuyTransport', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		if (data.playerId === gameContext.playerId) {
+			const updatedPlayer = gameContext.players.get(data.playerId);
+			checkResourceAlerts(updatedPlayer);
+		}
+
+		if (data.spaceco) {
+			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
+			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+			if (data.spaceco.hull) {
+				gameContext.serverState.world.spaceco.hull = data.spaceco.hull;
+			}
+		}
+
+		if (data.playerId === gameContext.playerId) {
+			new Notify({ intent: 'success', content: 'Thank you!', timeout: 1000 });
+
+			[...Array(randInt(2, Math.min(100, Math.max(3, data.cost))))].forEach((_, index) =>
+				setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+			);
+
+			gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
+		} else {
+			new Notify({ intent: 'info', content: `Transporting to ${data.world}...`, timeout: 2000 });
+		}
+
+		if (gameContext.openDialog?.elem?.open) {
+			gameContext.openDialog.close();
+		}
+		if (gameContext.spaceco?.dialog?.elem?.open) {
+			gameContext.spaceco.dialog.close();
+		}
+
+		if (gameContext.musicManager) {
+			gameContext.musicManager.playTransportTransition(() => {
+				if (gameContext.scene?.fadeInWorld) {
+					gameContext.scene.fadeInWorld();
+				}
+			});
+		}
+
+		if (data.newWorldState && gameContext.scene?.startWorldTransition) {
+			setTimeout(() => {
+				gameContext.scene.startWorldTransition(data.newWorldState);
+			}, 500);
+		} else {
+			setTimeout(() => window.location.reload(), 1500);
+		}
+	});
+
+	router.on('spacecoAchievement', data => {
+		new Achievement({ achievement: data.achievement });
+
+		gameContext.serverState.world.spaceco.achievements = data.spaceco.achievements;
+		gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+		gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
+	});
+
+	router.on('spacecoEggSubmission', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+
+		gameContext.serverState.world.spaceco.eggHunt ??= { totalEggsSubmitted: 0, playerSubmissions: {} };
+		gameContext.serverState.world.spaceco.eggHunt.totalEggsSubmitted = data.totalEggsSubmitted;
+		gameContext.serverState.world.spaceco.eggHunt.playerSubmissions[data.playerId] = data.playerSubmissions;
+
+		if (data.spaceco) {
+			gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
+			gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
+		}
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		gameContext.sounds.psykick_attack.play({ volume: gameContext.volume.effects * 0.7 });
+		new Notify({
+			intent: 'success',
+			content: `Submitted ${data.count} psykick egg${data.count > 1 ? 's' : ''} to the endgame hunt!`,
+			timeout: 2000,
+		});
+		gameContext.spaceco.dialog.options.view = 'shop_Player';
+		if (gameContext.spaceco.dialog?.render) {
+			gameContext.spaceco.dialog.render();
+		}
+	});
+
+	const playRegisterFeedback = (count, { content = 'Thank you!', timeout = 1000 } = {}) => {
+		[...Array(randInt(2, Math.min(100, Math.max(3, count))))].forEach((_, index) =>
+			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+		);
+		gameContext.sounds.alert_thank_you?.play({ volume: gameContext.volume.alerts });
+		new Notify({ intent: 'success', content, timeout });
+	};
+
+	router.on('spacecoSell', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.gain / 10);
+		gameContext.spaceco.dialog.options.view = 'sell';
+	});
+
+	router.on('spacecoRefuel', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		gameContext.players.get(data.playerId).sprite.updateStatusBars();
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'refuel';
+		gameContext.dismissedAlerts.fuel = false;
+	});
+
+	router.on('spacecoRepair', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.type === 'outpost') {
+			gameContext.serverState.world.spaceco.health = data.spaceco?.health ?? 9;
+			gameContext.spaceco.updateStatusBars();
+			gameContext.scene.sound.play('repair', { volume: gameContext.volume.effects });
+		}
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		if (data.type === 'player') {
+			gameContext.players.get(data.playerId).sprite.updateStatusBars();
+			checkResourceAlerts(gameContext.players.get(data.playerId));
+			gameContext.dismissedAlerts.health = false;
+		}
+
+		[...Array(randInt(2, Math.min(100, Math.max(3, data.purchasedRepairs))))].forEach((_, index) =>
+			setTimeout(() => gameContext.sounds.heal?.play({ volume: gameContext.volume.effects }), index * randInt(40, 70)),
+		);
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'repair';
+	});
+
+	router.on('spacecoResupply', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		playRegisterFeedback(data.cost, { content: 'Shelves restocked!' });
+		gameContext.spaceco.dialog.options.view = 'shop';
+	});
+
+	router.on('spacecoBuyItem', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'shop';
+	});
+
+	router.on('spacecoSellItem', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		[...Array(randInt(1, Math.min(50, Math.max(2, data.sellValue))))].forEach((_, index) =>
+			setTimeout(() => gameContext.sounds.coin.play({ volume: gameContext.volume.effects }), index * randInt(50, 90)),
+		);
+		new Notify({ intent: 'success', content: `Sold for $${data.sellValue}!`, timeout: 1500 });
+		gameContext.spaceco.dialog.options.view = 'shop_Player';
+	});
+
+	router.on('spacecoBuyUpgrade', data => {
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
+		updateSpacecoState(data);
+		if (data.spaceco?.[data.type]) {
+			gameContext.serverState.world.spaceco[data.type] = data.spaceco[data.type];
+		}
+
+		if (data.playerId !== gameContext.playerId) return;
+
+		gameContext.players.get(data.playerId).sprite.updateStatusBars();
+		checkResourceAlerts(gameContext.players.get(data.playerId));
+		playRegisterFeedback(data.cost);
+		gameContext.spaceco.dialog.options.view = 'upgrade';
+		gameContext.dismissedAlerts = {};
+	});
+
+	registerWorldEvents(router);
 
 	// === Trade Events ===
 

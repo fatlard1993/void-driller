@@ -5,7 +5,8 @@ import {
 } from '@fatlard1993/web-game-framework/client';
 
 import gameContext from '../shared/gameContext';
-import { destroyGround } from '../Play/effects';
+import { inventoryItem } from '../shared/inventoryItem';
+import { registerWorldEvents } from '../Play/eventRouter';
 
 // Handle player movement updates
 const handlePlayerMove = data => {
@@ -46,29 +47,17 @@ const handlePlayerMove = data => {
 		Object.assign(serverPlayer, data.player);
 	}
 
-	// Handle ground destruction and item collection - matching Play scene behavior
-	if (data.ground) {
-		const pos = data.player.position;
-		const grid = gameContext.serverState.world.grid;
-		const cell = grid[pos.x]?.[pos.y];
+	// The rig takes the ground and the loot; a placed device stays
+	const cell = gameContext.serverState.world.grid[data.player.position.x]?.[data.player.position.y];
 
-		if (cell) {
-			// Destroy ground with animation (if ground was dug)
-			if (data.ground.ground) {
-				destroyGround(pos);
-			}
-
-			// Handle item collection with proper animation
-			if (cell.items?.length) {
-				cell.items.forEach(item => {
-					if (item.sprite?.scene) {
-						// Use destroy animation for other players in Watch mode
-						item.sprite.destroy();
-					}
-				});
-				cell.items = [];
-			}
-		}
+	if (cell) {
+		cell.ground?.sprite?.dig();
+		cell.ground = {};
+		cell.items = cell.items.filter(item => {
+			if (item.placed) return true;
+			if (item.sprite?.scene) item.sprite.destroy();
+			return false;
+		});
 	}
 };
 
@@ -156,12 +145,8 @@ const handleUseItem = data => {
 	const player = gameContext.serverState.players.find(p => p.id === data.playerId);
 	if (!player) return;
 
-	// Show alert for interesting items positioned around the player
-	const alertableItems = ['teleporter', 'bomb', 'implosion_device', 'healing_kit', 'repair_kit', 'oil', 'battery'];
-	if (alertableItems.includes(data.item)) {
-		const itemName = data.item.replace(/_/g, ' ');
-		scene.showAlert(`Used ${itemName}`, 'info', data.playerId);
-	}
+	const quiet = ['remove_detonator', 'remove_teleporter', 'disarm_bomb', 'deactivate_teleporter'];
+	if (!quiet.includes(data.item)) scene.showAlert(`Used ${inventoryItem(data.item).name}`, 'info', data.playerId);
 };
 
 // Handle world updates (aliens, hazards, etc.)
@@ -209,36 +194,6 @@ const handleSpacecoBuyTransport = data => {
 	}
 };
 
-// Handle SpaceCo falling
-const handleSpacecoFall = data => {
-	const scene = gameContext.scene;
-	if (!scene) return;
-
-	// Update server state
-	gameContext.serverState.world.spaceco.position = data.position;
-	if (data.health !== undefined) {
-		gameContext.serverState.world.spaceco.health = data.health;
-	}
-
-	// Update SpaceCo state if provided
-	if (data.spaceco) {
-		gameContext.serverState.world.spaceco.xp = data.spaceco.xp;
-		gameContext.serverState.world.spaceco.stats = data.spaceco.stats;
-		if (data.spaceco.health !== undefined) {
-			gameContext.serverState.world.spaceco.health = data.spaceco.health;
-		}
-	}
-
-	// Animate the fall if SpaceCo sprite exists
-	const spaceco = gameContext.serverState.world.spaceco;
-	if (spaceco.sprite && spaceco.sprite.fall) {
-		spaceco.sprite.fall(data.position);
-	}
-
-	// Show alert
-	scene.showAlert('SpaceCo building fell!', 'warning');
-};
-
 export default () => {
 	const router = createClientEventRouter({
 		gameId: gameContext.gameId,
@@ -259,7 +214,8 @@ export default () => {
 	router.on('explodeBomb', handleWorldUpdate);
 	router.on('explodeImplosion', handleWorldUpdate);
 	router.on('spacecoBuyTransport', handleSpacecoBuyTransport);
-	router.on('spacecoFall', handleSpacecoFall);
+
+	registerWorldEvents(router);
 
 	return router;
 };

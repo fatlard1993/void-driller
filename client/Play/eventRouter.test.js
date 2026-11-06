@@ -163,3 +163,44 @@ describe('alien_move', () => {
 		expect(sprite.calls).toEqual([['move', { x: 1, y: 0 }, 500, 'right']]);
 	});
 });
+
+describe('useItem', () => {
+	it('teleports the player who used the teleporter, and no one else', async () => {
+		arrange();
+		const me = player('me');
+		const ada = player('ada');
+
+		await send('useItem', {
+			playerId: 'ada',
+			item: 'spaceco_teleporter',
+			updates: { position: { x: 1, y: 0 }, items: {} },
+		});
+
+		expect(gameContext.players.get('ada').position).toEqual({ x: 1, y: 0 });
+		expect(ada.sprite.calls).toEqual([['teleport', { x: 1, y: 0 }, 1000]]);
+		expect(me.sprite.calls).toEqual([]);
+		expect(gameContext.players.get('me').position).toEqual({ x: 1, y: 1 });
+	});
+
+	it('heals the player who used the nanites', async () => {
+		arrange();
+		const me = player('me', { health: 3 });
+
+		await send('useItem', { playerId: 'me', item: 'repair_nanites', updates: { health: 10, items: {} } });
+
+		expect(gameContext.players.get('me').health).toBe(10);
+		expect(me.sprite.calls[0][0]).toBe('move');
+	});
+});
+
+describe('spacecoFall', () => {
+	it('lands the outpost at its new position and health', async () => {
+		arrange();
+
+		await send('spacecoFall', { position: { x: 1, y: 2 }, health: 8 });
+
+		expect(gameContext.serverState.world.spaceco.position).toEqual({ x: 1, y: 2 });
+		expect(gameContext.serverState.world.spaceco.health).toBe(8);
+		expect(gameContext.spaceco.calls).toEqual([['fall', { x: 1, y: 2 }]]);
+	});
+});
