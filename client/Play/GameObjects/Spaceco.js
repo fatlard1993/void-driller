@@ -82,16 +82,11 @@ export class Spaceco extends Phaser.GameObjects.Sprite {
 
 		if (spaceco.health === 0) {
 			const player = gameContext.players.currentPlayer;
+			const distance = player
+				? Math.abs(spaceco.position.x - player.position.x) + Math.abs(spaceco.position.y - player.position.y)
+				: 20;
 
-			const delta = {
-				x: spaceco.position.x - player.position.x,
-				y: spaceco.position.y - player.position.y,
-			};
-
-			gameContext.scene.cameras.main.shake(
-				1000,
-				convertRange(Math.abs(delta.x) + Math.abs(delta.y), [0, 20], [0.01, 0]),
-			);
+			gameContext.scene.cameras.main.shake(1000, convertRange(distance, [0, 20], [0.01, 0]));
 			gameContext.scene.cameras.main.flash(600);
 			gameContext.scene.sound.play('explode', { volume: gameContext.volume.effects });
 		} else {
