@@ -2979,6 +2979,7 @@ export default class Game extends BaseGame {
 	}
 
 	handleSpawnMovement(name, position, triggeringPlayer, distanceToPlayer, alienHazard, movementType) {
+		if (unsupported && bottom.y < this.world.depth) {
 		const newPosition = this.calculateMovementByType(position, triggeringPlayer.position, movementType);
 
 		if (newPosition && (newPosition.x !== position.x || newPosition.y !== position.y)) {
@@ -3789,14 +3790,10 @@ export default class Game extends BaseGame {
 			this.world.grid,
 		);
 
-		if (!bottomLeft?.ground?.type && !bottom?.ground?.type && !bottomRight?.ground?.type) {
-			const landingPosition = {
-				x: bottom?.x ?? this.world.spaceco.position.x,
-				y: bottom?.y ?? this.world.spaceco.position.y + 1,
-			};
+		const unsupported = !bottomLeft?.ground?.type && !bottom?.ground?.type && !bottomRight?.ground?.type;
 
 			this.world.spaceco.health = Math.max(0, this.world.spaceco.health - 1);
-			this.world.spaceco.position = landingPosition;
+			this.world.spaceco.position = { x: bottom.x, y: bottom.y };
 
 			this.spacecoFall(true);
 		} else if (falling) {
