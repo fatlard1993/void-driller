@@ -697,16 +697,11 @@ export default class Game extends BaseGame {
 			updatedItems[item] = Math.max(0, updatedItems[item] - count);
 
 			// Track egg submissions for endgame progress
-			if (!this.world.spaceco.eggHunt) {
-				this.world.spaceco.eggHunt = {
-					totalEggsSubmitted: 0,
-					playerSubmissions: new Map(),
-				};
-			}
+			this.world.spaceco.eggHunt ??= { totalEggsSubmitted: 0, playerSubmissions: {} };
 
-			const currentSubmissions = this.world.spaceco.eggHunt.playerSubmissions.get(playerId) || 0;
-			this.world.spaceco.eggHunt.playerSubmissions.set(playerId, currentSubmissions + count);
-			this.world.spaceco.eggHunt.totalEggsSubmitted += count;
+			const { eggHunt } = this.world.spaceco;
+			eggHunt.playerSubmissions[playerId] = (eggHunt.playerSubmissions[playerId] || 0) + count;
+			eggHunt.totalEggsSubmitted += count;
 
 			const updates = {
 				items: updatedItems,
@@ -727,8 +722,8 @@ export default class Game extends BaseGame {
 				updates,
 				item,
 				count,
-				totalEggsSubmitted: this.world.spaceco.eggHunt.totalEggsSubmitted,
-				playerSubmissions: this.world.spaceco.eggHunt.playerSubmissions.get(playerId),
+				totalEggsSubmitted: eggHunt.totalEggsSubmitted,
+				playerSubmissions: eggHunt.playerSubmissions[playerId],
 			});
 
 			return { success: true };
