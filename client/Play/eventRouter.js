@@ -685,56 +685,17 @@ export function setupEventRouter() {
 		});
 	});
 
-	router.on('alien_wake', data => {
-		const alien = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.find(
-			hazard => hazard.type === 'alien' && hazard.name === data.alien,
-		);
+	const alienSpriteAt = (position, name) =>
+		gameContext.serverState.world.grid[position.x]?.[position.y]?.hazards.find(
+			hazard => hazard.type === 'alien' && hazard.name === name,
+		)?.sprite;
 
-		if (!alien?.sprite) return;
-
-		alien.sprite.awake();
-
-		if (data.move) {
-			alien.sprite.move(data.move, 500, data.orientation);
-
-			gameContext.serverState.world.grid[data.position.x][data.position.y].hazards = gameContext.serverState.world.grid[
-				data.position.x
-			][data.position.y].hazards.filter(hazard => !(hazard.type === 'alien' && hazard.name === data.alien));
-
-			gameContext.serverState.world.grid[data.move.x][data.move.y].hazards.push(alien);
-		}
-	});
-
-	router.on('alien_sleep', data => {
-		const alien = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.find(
-			hazard => hazard.type === 'alien' && hazard.name === data.name,
-		);
-
-		if (!alien?.sprite) return;
-
-		alien.sprite.sleep();
-	});
-
-	router.on('alien_attack', data => {
-		const alien = gameContext.serverState.world.grid[data.position.x][data.position.y].hazards.find(
-			hazard => hazard.type === 'alien',
-		);
-
-		if (!alien?.sprite) return;
-
-		alien.sprite.attack?.();
-
-		if (data.playerUpdates && data.playerId === gameContext.playerId) {
-			gameContext.players.update(data.playerId, _ => ({
-				..._,
-				...data.playerUpdates,
-				hull: { ..._.hull, ...(data.playerUpdates?.hull || {}) },
-			}));
-
-			const updatedPlayer = gameContext.players.get(data.playerId);
-			checkResourceAlerts(updatedPlayer);
-		}
-	});
+	router.on('alien_wake', data => alienSpriteAt(data.position, data.alien)?.awake());
+	router.on('alien_sleep', data => alienSpriteAt(data.position, data.name)?.sleep());
+	router.on('alien_rest', data => (alienSpriteAt(data.position, data.name)?.rest ?? (() => {}))());
+	router.on('alien_menace', data => alienSpriteAt(data.position, data.name)?.awake());
+	router.on('alien_reveal_ambush', data => alienSpriteAt(data.position, data.name)?.awake());
+	router.on('alien_attack', data => alienSpriteAt(data.position, data.name)?.attack?.());
 
 	router.on('alien_message', data => {
 		if (data.targetPlayerId === gameContext.playerId) {
@@ -765,6 +726,20 @@ export function setupEventRouter() {
 				...oldAlien,
 				sprite: oldAlien.sprite,
 			});
+		} else if (spawnType === 'item') {
+			const sprite = spawnTarget.startsWith('mineral_')
+				? new Mineral(gameContext.scene, spawnPosition.x, spawnPosition.y, spawnTarget.replace('mineral_', ''))
+				: new Item(gameContext.scene, spawnPosition.x, spawnPosition.y, spawnTarget);
+
+			cell.items.push({ name: spawnTarget, sprite });
+			gameContext.sceneLayers.items.add(sprite);
+		} else if (spawnType === 'ground') {
+			cell.ground?.sprite?.destroy();
+			cell.ground = {
+				type: spawnTarget,
+				sprite: new Ground(gameContext.scene, spawnPosition.x, spawnPosition.y, spawnTarget),
+			};
+			gameContext.sceneLayers.ground.add(cell.ground.sprite);
 		}
 	});
 
@@ -840,6 +815,10 @@ export function setupEventRouter() {
 					intent: 'warning',
 					content: 'Byzanium released gas when stressed!',
 					timeout: 2000,
+		} else if (data.type === 'psychicPulse' && data.playerId === gameContext.playerId) {
+			gameContext.scene.cameras.main.flash(900, 0xff66cc);
+			gameContext.scene.sound.play('psykick_attack', { volume: gameContext.volume.effects * 0.4, rate: 0.6 });
+			new Notify({ intent: 'info', content: 'The saronite pulses. A memory that is not yours.', timeout: 3000 });
 				});
 			}
 		} else if (data.type === 'explosionWarning') {

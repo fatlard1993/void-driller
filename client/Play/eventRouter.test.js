@@ -147,3 +147,19 @@ describe('achievement', () => {
 		expect(ada.stats).toEqual({ tilesMoved: 7 });
 	});
 });
+
+describe('alien_move', () => {
+	it('carries the hazard record and its sprite to the new cell', async () => {
+		arrange();
+		const { grid } = gameContext.serverState.world;
+		const sprite = new Stub(gameContext.scene, 0, 0, 'rock_mite');
+		grid[0][0].hazards.push({ type: 'alien', name: 'rock_mite', health: 20, sprite });
+
+		await send('alien_move', { name: 'rock_mite', from: { x: 0, y: 0 }, to: { x: 1, y: 0 }, orientation: 'right' });
+
+		expect(grid[0][0].hazards).toEqual([]);
+		expect(grid[1][0].hazards[0]).toMatchObject({ type: 'alien', name: 'rock_mite', health: 20 });
+		expect(grid[1][0].hazards[0].sprite).toBe(sprite);
+		expect(sprite.calls).toEqual([['move', { x: 1, y: 0 }, 500, 'right']]);
+	});
+});
