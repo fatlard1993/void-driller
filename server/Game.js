@@ -1257,6 +1257,8 @@ export default class Game extends BaseGame {
 			},
 			[type],
 		);
+
+		return { success: true };
 	}
 
 	spacecoBuyTransport(playerId, world) {
