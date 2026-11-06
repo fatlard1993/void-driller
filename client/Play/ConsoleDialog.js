@@ -31,7 +31,7 @@ import { DescriptionText } from '../shared/DescriptionText';
 import { inventoryItem } from '../shared/inventoryItem';
 import Notify from '../shared/Notify';
 import PriceDisplay from '../shared/PriceDisplay';
-import { formatPlayerAchievementRewards } from '../../utils';
+import { formatPlayerAchievementRewards, getScaledServiceCosts, stepFuelCost } from '../../utils';
 import audioPlayer from '../shared/AudioPlayer';
 import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
 import { SubPanel } from '../shared/frame';
@@ -430,22 +430,20 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 `) {
 	constructor(options = {}) {
 		const player = gameContext.players.currentPlayer;
-		// Player needs rescue if they can't move due to insufficient fuel or no health
-		// Basic fuel consumption is 0.3 / fuelEfficiency (minimum to move one tile)
-		const basicFuelConsumption = player ? 0.3 / (player.fuelEfficiency || 1) : 0;
-		const needsRescue = player?.fuel < basicFuelConsumption || player?.health <= 0;
+		// A rig that cannot take one open step, or has no hull left, can call for rescue
+		const needsRescue = player && (player.fuel < stepFuelCost(player, {}) || player.health <= 0);
+		const rescueCost = getScaledServiceCosts(gameContext.serverState?.world.spaceco.xp || 0).rescueCost;
 
-		// Build buttons array - add rescue button if player needs rescue
 		const buttons = [];
 
 		if (needsRescue) {
 			buttons.push({
 				textContent:
-					player.credits >= 50
-						? 'SpaceCo Emergency Rescue ($50)'
-						: 'SpaceCo Emergency Rescue ($50) - Insufficient Funds',
+					player.credits >= rescueCost
+						? `SpaceCo Emergency Rescue ($${rescueCost})`
+						: `SpaceCo Emergency Rescue ($${rescueCost}) - Insufficient Funds`,
 				addClass: ['rescueButton'],
-				disabled: player.credits < 50,
+				disabled: player.credits < rescueCost,
 			});
 		}
 
