@@ -1928,7 +1928,7 @@ function generateGeologicalFormations(world, worldConfig, asteroidShape, holePat
  */
 function placeAliens(world, worldConfig) {
 	const alienConfig = worldConfig.aliens;
-	if (!alienConfig || !alienConfig.budget || alienConfig.budget[0] === 0) {
+	if (!alienConfig?.budget) {
 		world.aliens = {}; // Initialize empty aliens object
 		return;
 	}
@@ -2087,7 +2087,7 @@ function placeAliens(world, worldConfig) {
  */
 function placeItems(world, worldConfig) {
 	const itemConfig = worldConfig.items;
-	if (!itemConfig || !itemConfig.budget || itemConfig.budget[0] === 0) {
+	if (!itemConfig?.budget) {
 		return;
 	}
 
