@@ -80,7 +80,7 @@ export const worlds = [
 		},
 		items: {
 			budget: [2, 5],
-			types: ['oil'],
+			types: { oil: 100 },
 		},
 		spaceco: {
 			variant: 0,
@@ -105,7 +105,6 @@ export const worlds = [
 				engine: 'T1',
 			},
 		},
-		test: 'data',
 	},
 	{
 		id: 'surface_prospects',

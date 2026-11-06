@@ -2141,22 +2141,13 @@ function placeItems(world, worldConfig) {
 		// Choose random item type based on weights
 		let itemTypes = itemConfig.types || { oil: 100 };
 
-		// Validate that itemTypes is a proper object with valid weights
-		if (!itemTypes || typeof itemTypes !== 'object' || Object.keys(itemTypes).length === 0) {
-			worldLog.warn('Invalid item types, using default oil', { itemTypes });
+		if (
+			Array.isArray(itemTypes) ||
+			typeof itemTypes !== 'object' ||
+			Object.values(itemTypes).reduce((a, b) => a + b, 0) !== 100
+		) {
+			worldLog.warn('Item weights must be an object summing to 100, using oil', { itemTypes });
 			itemTypes = { oil: 100 };
-		} else {
-			// Check if weights sum to 100 and all keys are valid
-			const values = Object.values(itemTypes);
-			const sum = values.reduce((a, b) => a + b, 0);
-			const hasInvalidKeys = Object.keys(itemTypes).some(
-				key => key.includes('undefined') || key.match(/^\d+/) || key === '0oil',
-			);
-
-			if (sum !== 100 || hasInvalidKeys) {
-				worldLog.warn('Invalid item weights or keys, using default oil', { itemTypes, sum });
-				itemTypes = { oil: 100 };
-			}
 		}
 
 		const itemType = weightedChance(itemTypes);
