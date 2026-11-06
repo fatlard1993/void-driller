@@ -236,7 +236,6 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 	world.spaceco = {
 		xp: 0,
 		health: 9,
-		shop: {},
 		hull: {},
 		achievements: {},
 		stats: {
@@ -250,17 +249,19 @@ export function generateAsteroid(worldConfig, gameData = {}) {
 			upgradesSoldByType: {},
 		},
 		...worldConfig.spaceco,
+		vehicles: [...(worldConfig.spaceco?.vehicles || [])],
+		drills: [...(worldConfig.spaceco?.drills || [])],
+		engines: [...(worldConfig.spaceco?.engines || [])],
+		parts: [...(worldConfig.spaceco?.parts || [])],
+		// A [min, max] stock rolls here, into the world's own copy
+		shop: Object.fromEntries(
+			Object.entries(worldConfig.spaceco?.shop || {}).map(([itemName, stock]) => [
+				itemName,
+				Array.isArray(stock) ? randInt(stock[0], stock[1]) : stock,
+			]),
+		),
 		position: world.spaceco.position, // Restore generated position after merge
 	};
-
-	// Convert shop stock arrays [min, max] to actual random numbers
-	if (world.spaceco.shop) {
-		Object.entries(world.spaceco.shop).forEach(([itemName, stockValue]) => {
-			if (Array.isArray(stockValue)) {
-				world.spaceco.shop[itemName] = randInt(stockValue[0], stockValue[1]);
-			}
-		});
-	}
 
 	return world;
 }
