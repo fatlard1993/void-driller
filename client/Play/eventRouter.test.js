@@ -128,3 +128,22 @@ describe('addPlayer', () => {
 		expect(gameContext.players.get('me').sprite.made).toEqual([]);
 	});
 });
+
+describe('achievement', () => {
+	it("applies the earner's new state and keeps what the event does not carry", async () => {
+		arrange();
+		player('ada');
+
+		await send('achievement', {
+			playerId: 'ada',
+			achievement: { id: 'first', name: 'First', awards: [] },
+			player: { achievements: { first: true }, xp: 75, credits: 30, items: {}, fuel: 10, health: 10 },
+		});
+
+		const ada = gameContext.players.get('ada');
+		expect(ada.achievements).toEqual({ first: true });
+		expect(ada.xp).toBe(75);
+		expect(ada.credits).toBe(30);
+		expect(ada.stats).toEqual({ tilesMoved: 7 });
+	});
+});

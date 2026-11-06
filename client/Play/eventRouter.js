@@ -303,9 +303,7 @@ export function setupEventRouter() {
 
 	router.on('playerMovementInterrupted', data => {
 		clearMovementState(data.playerId);
-		if (data.position) {
-			gameContext.players.update(data.playerId, _ => ({ ..._, position: data.position }));
-		}
+		if (data.player) gameContext.players.update(data.playerId, _ => ({ ..._, ...data.player }));
 
 		if (data.playerId === gameContext.playerId) {
 			const reasons = { no_fuel: 'Out of fuel', no_health: 'Hull breached' };
@@ -331,21 +329,15 @@ export function setupEventRouter() {
 	});
 
 	router.on('achievement', data => {
-		// The popup belongs to the earner alone (the guard the migration
-		// dropped - ben's badges were drawing on other players' screens);
-		// the stat updates below still apply for everyone
+		// The popup belongs to the earner alone; the state lands for everyone
 		if (data.playerId === gameContext.playerId) {
 			new Achievement({ achievement: data.achievement });
 		}
 
-		const player = gameContext.players.get(data.playerId);
-		if (player) {
-			gameContext.players.set(data.playerId, {
-				...player,
-				achievements: data.achievements,
-				stats: data.stats,
-				xp: data.xp,
-			});
+		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.player }));
+
+		if (data.playerId === gameContext.playerId && gameContext.statusBarHUD) {
+			gameContext.statusBarHUD.update(gameContext.players.get(data.playerId));
 		}
 	});
 
