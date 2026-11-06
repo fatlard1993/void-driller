@@ -1583,6 +1583,8 @@ export default class Game extends BaseGame {
 
 			this.broadcast('spaceco', { update: 'spacecoRelocate', playerId, newPosition: position });
 			this.broadcast('useItem', { playerId, updates, item });
+		} else {
+			return { success: false, error: 'That item is not used by hand' };
 		}
 
 		return { success: true };
