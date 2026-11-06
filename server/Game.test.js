@@ -99,6 +99,32 @@ describe('Game', () => {
 		expect(sent.some(({ update }) => update === 'spacecoRescue')).toBe(true);
 	});
 
+	test('retire stops every path, lands the pending save, and silences the instance', () => {
+		const writes = [];
+		const server = {
+			games: {},
+			url: 'http://test',
+			logger: quiet,
+			socketBroadcast() {},
+			database: { collections: { games: { create() {}, set: ({ data }) => writes.push(data) } } },
+		};
+		const game = new Game({ server, logger: quiet, worldName: 'L1: Training Shallows' });
+		const { id } = game.addPlayer('Leaving');
+
+		game.players.update(id, _ => ({ ..._, moving: true, _movementSessionId: 1 }));
+		game.save();
+		const before = writes.length;
+
+		game.retire();
+
+		expect(writes.length).toBe(before + 1);
+		expect(writes.at(-1).players[0].moving).toBe(false);
+
+		game.broadcast('playerMove', { player: game.players.get(id) });
+		game.save();
+		expect(writes.length).toBe(before + 1);
+	});
+
 	test('a path with a two-cell jump is refused before any step is taken', () => {
 		const { game, sent } = outfit();
 		const { id } = playerAtOutpost(game);

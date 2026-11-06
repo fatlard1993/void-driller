@@ -17,6 +17,7 @@ import {
 	getScaledTransportCost,
 	getScaledItemPrice,
 	getScaledServiceCosts,
+	persistWithin,
 } from '../utils';
 import {
 	aliens,
@@ -94,6 +95,14 @@ export default class Game extends BaseGame {
 
 		this.world = saveState.world || generateAsteroid(WORLDS[options.worldName] || options);
 		this.url = this.server.url;
+
+		// The base save is a trailing debounce that every broadcast resets; a rig moving every half second kept a
+		// game off the disk until it went quiet, and a crash lost everything since
+		if (this.server?.database) {
+			this.save = persistWithin(() =>
+				this.server.database.collections.games.set({ id: this.id, data: this.toSaveState() }),
+			);
+		}
 
 		// Trades are between sessions, not part of the world: a Map here, never saved or sent
 		this.activeTrades = new Map();
@@ -3399,6 +3408,15 @@ export default class Game extends BaseGame {
 		clearTimeout(this.movementTimeouts.get(playerId));
 		this.movementTimeouts.delete(playerId);
 		this.players.update(playerId, _ => ({ ..._, moving: false, _movementSessionId: null }));
+	}
+
+	// This instance is done, the process ending or bun --hot replacing it: paths stop, the pending save lands, and the
+	// timers that outlive the instance (aliens, spreading hazards, fuses) can neither write nor broadcast stale state
+	retire() {
+		this.players.forEach((player, id) => this.stopMovement(id));
+		this.save.flush?.();
+		this.save = () => {};
+		this.broadcast = () => {};
 	}
 
 	// The rig stops where it is, out of fuel or out of health, and everyone hears why
