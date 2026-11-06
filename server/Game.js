@@ -105,9 +105,9 @@ export default class Game extends BaseGame {
 		this.activeTrades = new Map();
 		this.movementTimeouts = new Map();
 
-		gameLog.info('EventRouter event handlers configured', {
-			gameId: this.id,
-			eventCount: this.events.listEvents().length,
+		// A rig saved mid-path has no timer left to finish it
+		this.players.forEach((player, id) => {
+			if (player.moving || player._movementSessionId) this.stopMovement(id);
 		});
 	}
 
@@ -1322,6 +1322,8 @@ export default class Game extends BaseGame {
 					health,
 					maxHealth,
 					maxFuel,
+			this.stopMovement(currentPlayerId);
+
 					maxCargo,
 					fuelEfficiency,
 					torque,
@@ -1502,6 +1504,13 @@ export default class Game extends BaseGame {
 
 		// Regenerate shop stock from world config
 		const { randInt } = require('../utils');
+		// A device set down where the rig stands; driving over it later does not pick it back up
+		const place = name => this.world.grid[position.x][position.y].items.push({ name, placed: true });
+		const teleport = to => {
+			updates.position = to;
+			this.stopMovement(playerId);
+		};
+
 		const worldConfig = this.world.config; // Store original config in world during generation
 
 		if (worldConfig?.spaceco?.shop) {
@@ -1532,15 +1541,34 @@ export default class Game extends BaseGame {
 			newShopStock: this.world.spaceco.shop,
 		});
 
-		// Broadcast to all players
-		this.broadcast('spaceco', {
-			update: 'spacecoResupply',
-			playerId,
-			updates,
-			spaceco: {
-				shop: this.world.spaceco.shop,
-				xp: this.world.spaceco.xp,
-				stats: this.world.spaceco.stats,
+		this.broadcastWithSpacecoState('spacecoResupply', { playerId, updates, cost: resupplyCost }, ['shop']);
+
+		return { success: true };
+	}
+
+	spacecoRescue(playerId) {
+		const player = this.players.get(playerId);
+		if (!player) return { success: false, error: 'Player not found' };
+
+		const { position } = this.world.spaceco;
+		const cost = getScaledServiceCosts(this.world.spaceco.xp).rescueCost;
+
+		if (player.position.x === position.x && player.position.y === position.y) {
+			return { success: false, error: 'You are already at the outpost' };
+		}
+		if (player.credits < cost) {
+			return { success: false, error: `Insufficient credits. Rescue costs ${cost}, you have ${player.credits}` };
+		}
+
+		this.stopMovement(playerId);
+
+		const updates = {
+			position: { ...position },
+			credits: player.credits - cost,
+			stats: {
+				...player.stats,
+				creditsSpent: player.stats.creditsSpent + cost,
+				emergencyTeleports: player.stats.emergencyTeleports + 1,
 			},
 		});
 	}
@@ -1602,32 +1630,8 @@ export default class Game extends BaseGame {
 			updates.health = player.maxHealth;
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
-		} else if (item === 'oil' || item === 'battery' || item === 'super_oxygen_liquid_nitrogen') {
-			if (engines[player.configuration.engine].fuelType !== item) return;
-
-			gameLog.info(
-				`Player ${playerId} using fuel item ${item} - current fuel: ${player.fuel}, moving: ${player.moving}`,
-			);
-
-			updates.fuel = player.maxFuel;
-
-			// If player was stopped due to fuel (detected by checking if they have insufficient fuel for basic movement), clear their movement state
-			const basicFuelConsumption = 0.3 / player.fuelEfficiency;
-			const wasOutOfFuel = basicFuelConsumption > player.fuel && player.moving === false;
-
-			if (wasOutOfFuel) {
-				gameLog.info(
-					`Clearing movement state after refuel for player ${playerId} - was out of fuel (${player.fuel}, needed: ${basicFuelConsumption})`,
-				);
-				updates.moving = false;
-				updates._movementTimeout = null;
-				updates._movementSessionId = null;
-			} else {
-				gameLog.info(
-					`Not clearing movement state for player ${playerId} - fuel: ${player.fuel}, basic consumption: ${basicFuelConsumption}, moving: ${player.moving}`,
-				);
-			}
-
+		} else if (fuelItems.includes(item)) {
+			updates.fuel = Math.min(player.maxFuel, player.fuel + items[item].units);
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 			this.broadcast('useItem', { playerId, updates, item });
 		} else if (item === 'timed_charge') {
@@ -1742,7 +1746,8 @@ export default class Game extends BaseGame {
 			this.players.update(playerId, _ => ({ ..._, ...updates }));
 
 			this.broadcast('useItem', { playerId, updates, item });
-		}
+
+		this.stopMovement(id);
 	}
 
 	implode({ position, radius, playerId, implosionType = 'gravity' }) {
@@ -3407,6 +3412,12 @@ export default class Game extends BaseGame {
 		}, 0);
 
 		if (totalWeight !== 100) {
+	stopMovement(playerId) {
+		clearTimeout(this.movementTimeouts.get(playerId));
+		this.movementTimeouts.delete(playerId);
+		this.players.update(playerId, _ => ({ ..._, moving: false, _movementSessionId: null }));
+	}
+
 			throw new Error(`Mystery spawner spawn table in ${context} must sum to 100, got ${totalWeight}`);
 		}
 
@@ -4080,14 +4091,9 @@ export default class Game extends BaseGame {
 			// Skip players who are dead
 			if (player.health <= 0) return;
 
-			const hasSupport = hasWheelSupport(player.position, this.world.grid);
-
-			if (!hasSupport.hasSupport) {
+			if (!hasWheelSupport(player.position, this.world.grid, [], player.orientation).hasSupport) {
 				playerLog.info('Player lost wheel support, triggering fall', { playerId });
-				// Stop movement only if they're falling
-				if (player.moving) {
-					this.players.update(playerId, _ => ({ ..._, moving: false }));
-				}
+				if (player.moving) this.stopMovement(playerId);
 				this.playerFall(playerId);
 			}
 		});
@@ -4171,7 +4177,7 @@ export default class Game extends BaseGame {
 	playerFall(playerId, falling = false) {
 		const player = this.players.get(playerId);
 
-		const supportCheck = hasWheelSupport(player.position, this.world.grid);
+		const supportCheck = hasWheelSupport(player.position, this.world.grid, [], player.orientation);
 		const playerShouldFall = !supportCheck.hasSupport;
 
 		if (playerShouldFall) {
@@ -4204,26 +4210,6 @@ export default class Game extends BaseGame {
 		} else if (falling) {
 			this.broadcast('playerFall', { playerId, updates: { position: player.position, health: player.health } });
 		}
-	}
-
-	cleanupStuckMovement() {
-		this.players.forEach((player, playerId) => {
-			if (player.moving) {
-				// Clear any stuck movement states after reasonable timeout
-				const timeout = player._lastMoveTime ? Date.now() - player._lastMoveTime : 0;
-				if (timeout > 30000) {
-					// 30 seconds timeout
-					playerLog.info('Clearing stuck movement state', { playerId });
-					this.players.update(playerId, _ => ({
-						..._,
-						moving: false,
-						_movementTimeout: null,
-						_lastMoveTime: null,
-						_movementSessionId: null, // Clear session
-					}));
-				}
-			}
-		});
 	}
 
 	processEnvironmentalEffects(position, surrounds) {
@@ -4281,7 +4267,7 @@ export default class Game extends BaseGame {
 		}
 	}
 
-	movePlayerStep(playerId, position, nextPosition = null) {
+	movePlayerStep(playerId, position) {
 		const cell = getGridCell(this.world.grid, position.x, position.y);
 		if (!cell) {
 			throw new Error(`Invalid grid position: ${position.x}, ${position.y}`);
@@ -4297,13 +4283,13 @@ export default class Game extends BaseGame {
 		const fuelConsumption = stepFuelCost(player, cell);
 
 		if (fuelConsumption > player.fuel) {
-			++updatedPlayer.stats.outOfFuelEvents;
-
-			updatedPlayer.moving = false;
-			this.players.set(playerId, updatedPlayer);
-
-			this.broadcast('playerCantMove', { playerId, player: updatedPlayer });
-			return; // Stop movement execution
+			this.players.update(playerId, _ => ({
+				..._,
+				stats: { ..._.stats, outOfFuelEvents: _.stats.outOfFuelEvents + 1 },
+			}));
+			this.stopMovement(playerId);
+			this.broadcast('playerCantMove', { playerId, player: this.players.get(playerId) });
+			return;
 		}
 
 		if (this.world.grid[position.x][position.y].ground?.type) {
@@ -4366,7 +4352,7 @@ export default class Game extends BaseGame {
 
 			const damagedPlayer = this.players.get(playerId);
 			if (damagedPlayer.health <= 0) {
-				this.players.update(playerId, _ => ({ ..._, moving: false }));
+				this.stopMovement(playerId);
 
 				this.broadcast('playerMovementInterrupted', {
 					playerId,
@@ -4383,7 +4369,6 @@ export default class Game extends BaseGame {
 	}
 
 	movePlayer(playerId, path) {
-		const moveStartTime = performance.now();
 		const player = this.players.get(playerId);
 
 		if (!player) {
@@ -4391,32 +4376,7 @@ export default class Game extends BaseGame {
 			return;
 		}
 
-		// Store movement start time for performance tracking
-		this.players.update(playerId, current => ({
-			...current,
-			_moveStartTime: moveStartTime,
-		}));
-
-		gameLog.debug('Player movement started', {
-			playerId,
-			pathLength: path.length,
-			startPosition: player.position,
-		});
-
-		// Note: movement state check is handled by HTTP route before calling this function
-		// The route already atomically checked player.moving and set it to true
-
-		gameLog.debug('Validating player movement', {
-			playerId,
-			hasConfiguration: !!player.configuration,
-			drill: player.configuration?.drill,
-			position: player.position,
-			orientation: player.orientation,
-			maxCargo: player.maxCargo,
-			cargo: player.cargo,
-			pathLength: path.length,
-			firstStep: path[0],
-		});
+		gameLog.debug('Player movement started', { playerId, pathLength: path.length, startPosition: player.position });
 
 		const validation = validateMovementPath({
 			player,
@@ -4435,7 +4395,7 @@ export default class Game extends BaseGame {
 				debugInfo: validation.debug,
 			});
 
-			this.players.update(playerId, _ => ({ ..._, moving: false }));
+			this.stopMovement(playerId);
 
 			this.broadcast('invalidMovement', {
 				playerId,
@@ -4445,14 +4405,9 @@ export default class Game extends BaseGame {
 			return;
 		}
 
-		// Set moving state at the start with unique movement session ID
+		// A path is a session: a timer from an earlier path that fires late finds a different id and stops
 		const movementSessionId = Date.now() + Math.random();
-		this.players.update(playerId, _ => ({
-			..._,
-			moving: true,
-			_lastMoveTime: Date.now(),
-			_movementSessionId: movementSessionId,
-		}));
+		this.players.update(playerId, _ => ({ ..._, moving: true, _movementSessionId: movementSessionId }));
 
 		// Use the validated path and process steps with error handling
 		this.processMovementStep(playerId, validation.validPath, 0, movementSessionId);
@@ -4467,60 +4422,10 @@ export default class Game extends BaseGame {
 		});
 		const player = this.players.get(playerId);
 
-		// Validate movement session - prevent stale timeouts from resuming movement
-		if (movementSessionId && player._movementSessionId !== movementSessionId) {
-			gameLog.warn(`Movement session invalid - ignoring stale timeout`, {
-				playerId,
-				stepIndex,
-				expectedSessionId: movementSessionId,
-				currentSessionId: player._movementSessionId,
-			});
-			return;
-		}
-
-		// Additional check: ensure we have a session ID for new movements
-		if (!movementSessionId) {
-			gameLog.warn(`processMovementStep called without session ID - possible legacy call`, {
-				playerId,
-				stepIndex,
-				playerSessionId: player._movementSessionId,
-			});
-		}
-
-		// Safety checks - clear moving state if player gone or invalid state
-		if (!player) {
-			gameLog.warning('Player not found during movement step', { playerId, stepIndex });
-			return;
-		}
+		if (!player || player._movementSessionId !== movementSessionId) return;
 
 		if (stepIndex >= path.length) {
-			const moveDuration = player._moveStartTime ? performance.now() - player._moveStartTime : null;
-			gameLog.info('Movement complete', {
-				playerId,
-				stepIndex,
-				pathLength: path.length,
-				duration: moveDuration ? `${moveDuration.toFixed(2)}ms` : 'unknown',
-				finalPosition: player.position,
-			});
-			// Clear any existing timeout
-			const currentPlayer = this.players.get(playerId);
-			if (currentPlayer?._movementTimeout) {
-				clearTimeout(currentPlayer._movementTimeout);
-			}
-
-			this.players.update(playerId, _ => ({
-				..._,
-				moving: false,
-				_movementTimeout: null,
-				_lastMoveTime: null,
-				_movementSessionId: null, // Clear session on completion
-				_moveStartTime: null, // Clear movement timing
-			}));
-			gameLog.debug('Set player moving state to false', { playerId });
-
-			// Verify the update took effect
-			const updatedPlayer = this.players.get(playerId);
-			gameLog.debug('Verified player moving state', { playerId, movingState: updatedPlayer?.moving });
+			this.stopMovement(playerId);
 
 			this.broadcast('playerMovementComplete', {
 				playerId,
@@ -4537,13 +4442,7 @@ export default class Game extends BaseGame {
 		if (player.health <= 0 || stepFuelCost(player, nextCell) > player.fuel) {
 			this.stopMovement(playerId);
 
-			// Clear movement state and invalidate session to prevent stale timeouts
-			this.players.update(playerId, _ => ({
-				..._,
-				moving: false,
-				_movementTimeout: null,
-				_movementSessionId: null, // Invalidate session
-			}));
+			const stopped = this.players.get(playerId);
 
 			this.broadcast('playerMovementInterrupted', {
 				playerId,
@@ -4559,61 +4458,20 @@ export default class Game extends BaseGame {
 		}
 
 		try {
-			const currentStep = path[stepIndex];
-			const nextStep = path[stepIndex + 1] || null;
+			this.movePlayerStep(playerId, path[stepIndex]);
 
-			this.movePlayerStep(playerId, currentStep, nextStep);
+			if (this.players.get(playerId)?._movementSessionId !== movementSessionId) return;
 
-			const timeoutId = setTimeout(() => {
-				const currentPlayer = this.players.get(playerId);
-
-				gameLog.info(
-					`setTimeout callback executing for player ${playerId}: moving=${currentPlayer?.moving}, fuel=${currentPlayer?.fuel}, sessionId=${currentPlayer?._movementSessionId}`,
-				);
-
-				// Validate movement session to prevent stale timeouts
-				if (movementSessionId && currentPlayer._movementSessionId !== movementSessionId) {
-					gameLog.warn(
-						`Movement session invalid in setTimeout - ignoring stale timeout for player ${playerId}, expected: ${movementSessionId}, actual: ${currentPlayer._movementSessionId}`,
-					);
-					return;
-				}
-
-				if (currentPlayer && currentPlayer.moving) {
-					this.processMovementStep(playerId, path, stepIndex + 1, movementSessionId);
-				} else {
-					gameLog.warning('Player movement interrupted', {
-						playerId,
-						step: stepIndex + 1,
-						moving: currentPlayer?.moving,
-						fuel: currentPlayer?.fuel,
-					});
-
-					this.broadcast('playerMovementInterrupted', {
-						playerId,
-						reason: 'movement_interrupted',
-						finalPosition: currentPlayer?.position || player.position,
-						player: currentPlayer || player, // Include full player state
-					});
-				}
-			}, 500);
-
-			this.players.update(playerId, _ => ({ ..._, _movementTimeout: timeoutId }));
-		} catch (error) {
-			playerLog.error(`Player movement error`, {
+			this.movementTimeouts.set(
 				playerId,
-				stepIndex,
-				error: error.message,
-				stack: error.stack,
-				playerPosition: this.players.get(playerId)?.position,
-			});
+				setTimeout(() => this.processMovementStep(playerId, path, stepIndex + 1, movementSessionId), 500),
+			);
+		} catch (error) {
+			playerLog.error(`Player movement error`, { playerId, stepIndex, error: error.message, stack: error.stack });
 
-			this.players.update(playerId, _ => ({
-				..._,
-				moving: false,
-				_movementTimeout: null,
-				_movementSessionId: null, // Clear session on error
-			}));
+			this.stopMovement(playerId);
+
+			const stopped = this.players.get(playerId);
 
 			this.broadcast('playerMovementError', {
 				playerId,
