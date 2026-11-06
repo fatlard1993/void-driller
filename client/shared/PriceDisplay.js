@@ -1,14 +1,7 @@
 import { Elem, styled } from '@vanilla-bean/components';
 import { ItemImage } from './SpriteSheetImage';
 
-/**
- * Displays a price/credits amount with the credits icon
- * @param {number} amount - The credit amount to display
- * @param {string} variant - 'default', 'success' (green), 'error' (red)
- * @param {number} size - Icon size (default 16)
- * @param {string|Element} preText - Content to display before the price (e.g., '(')
- * @param {string|Element} postText - Content to display after the price (e.g., ')')
- */
+/** A credit amount beside the credits icon */
 export default class PriceDisplay extends (styled.Component`
 	display: inline-flex;
 	align-items: center;
@@ -36,8 +29,16 @@ export default class PriceDisplay extends (styled.Component`
 		filter: hue-rotate(-30deg) saturate(1.5);
 	}
 `) {
+	static schema = {
+		amount: {},
+		variant: { default: 'default' }, // 'default' | 'success' (green) | 'error' (red)
+		size: { default: 16 },
+		preText: {}, // Before the amount, such as '('
+		postText: {}, // After the amount, such as ')'
+	};
+
 	build() {
-		const { amount, variant = 'default', size = 16, preText, postText } = this.options;
+		const { amount, variant, size, preText, postText } = this.options;
 
 		// Add variant class for color styling
 		if (variant !== 'default') {
