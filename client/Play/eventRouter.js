@@ -237,6 +237,7 @@ export function setupEventRouter() {
 			const player = gameContext.players.get(data.playerId);
 
 			player.sprite.move(player.position, 0, player.orientation);
+				placed: true,
 		} else if (data.item === 'advanced_teleporter') {
 			const sprite = new Item(gameContext.scene, data.stationPosition.x, data.stationPosition.y, 'teleport_station');
 
@@ -244,22 +245,27 @@ export function setupEventRouter() {
 				name: 'teleport_station',
 				sprite,
 			});
-		} else if (data.item === 'timed_charge' || data.item === 'remote_charge') {
+				placed: true,
+		} else if (data.bombPosition && data.item !== 'disarm_bomb') {
 			const sprite = new Item(gameContext.scene, data.bombPosition.x, data.bombPosition.y, data.item);
 
 			gameContext.serverState.world.grid[data.bombPosition.x][data.bombPosition.y].items.push({
 				name: data.item,
 				sprite,
 			});
+		} else if (data.item === 'disarm_bomb' || data.item === 'deactivate_teleporter') {
+			const position = data.bombPosition || data.stationPosition;
+			const cell = gameContext.serverState.world.grid[position.x][position.y];
+			const removed = data.item === 'disarm_bomb' ? ['remote_charge', 'void_implosion'] : ['teleport_station'];
+
+			cell.items = cell.items.filter(item => {
+				if (!removed.includes(item.name)) return true;
+				if (item.sprite?.scene) item.sprite.destroy();
+				return false;
+			});
+
+			gameContext.players.currentPlayer?.sprite.checkForNearbyItems?.();
 		}
-	});
-
-	router.on('playerFall', data => {
-		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
-
-		// The stub read data.position (never sent) and skipped the fall
-		// animation entirely
-		gameContext.players.get(data.playerId).sprite.fall(data.updates.position);
 	});
 
 	router.on('updatePlayer', data => {
