@@ -1383,7 +1383,7 @@ export const toggleAutoPath = () => {
 };
 
 export const setAutoPathRadius = radius => {
-	gameContext.autoPath.maxRadius = Math.max(4, Math.min(12, radius)); // Clamp between 4-12
+	gameContext.autoPath = { ...gameContext.autoPath, maxRadius: Math.max(4, Math.min(12, radius)) };
 	saveAutoPathOptions();
 };
 

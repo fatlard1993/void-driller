@@ -204,7 +204,7 @@ class AutoPathControl extends Component {
 		new Label(
 			{
 				appendTo: this,
-				label: `Auto-Path Radius (${gameContext.autoPath.maxRadius})`,
+				label: gameContext.subscriber('autoPath', ({ maxRadius }) => `Auto-Path Radius (${maxRadius})`),
 			},
 			new Input({
 				type: 'range',
@@ -240,7 +240,10 @@ class AutoPathControl extends Component {
 		new Label(
 			{
 				appendTo: this,
-				label: `Obstacle Avoidance (${gameContext.autoPath.obstacleAvoidanceWeight.toFixed(1)})`,
+				label: gameContext.subscriber(
+					'autoPath',
+					({ obstacleAvoidanceWeight }) => `Obstacle Avoidance (${obstacleAvoidanceWeight.toFixed(1)})`,
+				),
 			},
 			new Input({
 				type: 'range',
@@ -249,7 +252,7 @@ class AutoPathControl extends Component {
 				step: 0.1,
 				value: gameContext.autoPath.obstacleAvoidanceWeight,
 				onChange: ({ value }) => {
-					gameContext.autoPath.obstacleAvoidanceWeight = parseFloat(value);
+					gameContext.autoPath = { ...gameContext.autoPath, obstacleAvoidanceWeight: parseFloat(value) };
 					writeStorage('autoPath', gameContext.autoPath);
 				},
 			}),
@@ -258,7 +261,10 @@ class AutoPathControl extends Component {
 		new Label(
 			{
 				appendTo: this,
-				label: `Search Iterations (${gameContext.autoPath.maxSearchIterations})`,
+				label: gameContext.subscriber(
+					'autoPath',
+					({ maxSearchIterations }) => `Search Iterations (${maxSearchIterations})`,
+				),
 			},
 			new Input({
 				type: 'range',
@@ -267,7 +273,7 @@ class AutoPathControl extends Component {
 				step: 100,
 				value: gameContext.autoPath.maxSearchIterations,
 				onChange: ({ value }) => {
-					gameContext.autoPath.maxSearchIterations = parseInt(value, 10);
+					gameContext.autoPath = { ...gameContext.autoPath, maxSearchIterations: parseInt(value, 10) };
 					writeStorage('autoPath', gameContext.autoPath);
 				},
 			}),
@@ -620,7 +626,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					items: Object.entries(player.stats).flatMap(([key, value]) => {
 						if (typeof value !== 'number') return [];
 
-						return [`${capitalize(key.replaceAll('_', ' '), true)}: ${value}`];
+						return [`${capitalize(key.replace(/([A-Z])/g, ' $1').toLowerCase(), true)}: ${value}`];
 					}),
 				}),
 			),
@@ -751,7 +757,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						partConfig &&
 							new Card({
 								state: 'owned',
-								header: `Part: ${player.configuration.part}`,
+								header: `Part: ${partConfig.name}`,
 								body: new Elem({
 									style: {
 										display: 'flex',
@@ -810,7 +816,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		new CardGrid({
 			appendTo: this._subMenuBody,
-			content: playerAchievements
+			content: [...playerAchievements]
 				.sort(
 					orderBy([
 						{ property: 'category', direction: 'asc' },
@@ -1083,14 +1089,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								new Button({
 									content: 'Remote Disarm',
 									variant: 'flat',
-									onPointerPress: () => {
-										// Extract coordinates from void_detonator_x_y format
-										const coords = key.split('_');
-										const x = parseInt(coords[2], 10);
-										const y = parseInt(coords[3], 10);
+									onPointerPress: async () => {
+										const [, , x, y] = key.split('_');
+										const result = await disarmBomb({ x: parseInt(x, 10), y: parseInt(y, 10) });
 
-										disarmBomb({ x, y });
-										Notify.success('Void implosion remotely disarmed');
+										if (result.status !== 'error') Notify.success('Void implosion remotely disarmed');
+
 										this.close();
 									},
 								}),
