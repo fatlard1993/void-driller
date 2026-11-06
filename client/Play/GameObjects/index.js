@@ -18,6 +18,7 @@ export * from './Lava';
 export * from './LavaSpitter';
 export * from './MasterGiftBearer';
 export * from './MimicOre';
+export * from './MysterySpawner';
 export * from './Mineral';
 export * from './Player';
 export * from './PsykickScout';
