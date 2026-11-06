@@ -251,9 +251,8 @@ export const validateMovementPath = ({ player, path, grid, maxPathLength = 30 })
 
 		const deltaX = Math.abs(x - lastX);
 		const deltaY = Math.abs(y - lastY);
-		const distance = deltaX + deltaY;
 
-		if (distance > 2 || distance === 0) {
+		if (deltaX > 1 || deltaY > 1 || deltaX + deltaY === 0) {
 			return { valid: false, reason: 'invalid_distance', validPath: validPath.slice(0, validPathLength) };
 		}
 
