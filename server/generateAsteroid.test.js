@@ -8,6 +8,18 @@ const alienTypes = world =>
 		.flat()
 		.flatMap(cell => (cell.hazards || []).filter(hazard => hazard.type === 'alien').map(({ name }) => name));
 
+const itemCount = world => world.grid.flat().reduce((count, cell) => count + (cell.items || []).length, 0);
+
+describe('item placement', () => {
+	test('a world with no tunnels still has somewhere to lay items', () => {
+		const noTunnels = worlds.find(({ tunnelSystems }) => tunnelSystems?.count?.[1] === 0);
+		const asteroid = generateAsteroid({ ...noTunnels, items: { budget: [6, 6], types: { oil: 100 } } });
+
+		expect(noTunnels).toBeDefined();
+		expect(itemCount(asteroid)).toBeGreaterThan(0);
+	});
+});
+
 describe('generateAsteroid', () => {
 	test('aliens listed as an array of types are placed from that list', () => {
 		const asteroid = generateAsteroid({
@@ -19,6 +31,21 @@ describe('generateAsteroid', () => {
 
 		expect(placed.length).toBeGreaterThan(0);
 		expect(placed.every(name => ['rock_mite', 'hive_drone'].includes(name))).toBe(true);
+	});
+});
+
+describe('budgets', () => {
+	test('a budget whose floor is 0 still places aliens and items', () => {
+		const worlds5 = [...Array(5)].map(() =>
+			generateAsteroid({
+				...worlds[3],
+				aliens: { ...worlds[3].aliens, budget: [0, 40] },
+				items: { budget: [0, 40], types: { oil: 100 } },
+			}),
+		);
+
+		expect(worlds5.some(world => alienTypes(world).length > 0)).toBe(true);
+		expect(worlds5.some(world => itemCount(world) > 0)).toBe(true);
 	});
 });
 
