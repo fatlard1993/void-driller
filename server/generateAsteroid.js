@@ -212,10 +212,8 @@ export function generateAsteroid(worldConfig) {
 
 	world.spaceco.position = spacecoPosition;
 
-	// Remove debug/temporary fields before returning
-	delete world.veinPathCoords;
+	// The vein list served crystal placement; the grid carries each cell's vein index
 	delete world.veinData;
-	delete world.veinPaths;
 
 	// Copy over game configuration properties from worldConfig
 	world.newPlayer = worldConfig.newPlayer;
@@ -673,12 +671,6 @@ function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern,
 	const safePositions = Array.isArray(tunnelPositions) ? tunnelPositions : [];
 	const tunnelSet = new Set(safePositions.map(pos => `${pos.x},${pos.y}`));
 
-	// Initialize path coordinate tracking
-	world.veinPathCoords = {};
-	veins.forEach(vein => {
-		world.veinPathCoords[vein.color] = [];
-	});
-
 	// Step 1: Initialize grid and apply terrain (solid/space) and base ground color
 	for (let y = 0; y < world.depth; y++) {
 		for (let x = 0; x < world.width; x++) {
@@ -706,28 +698,8 @@ function generateVeinBasedGround(world, worldConfig, asteroidShape, holePattern,
 	}
 
 	// Step 2: Generate and place veins based on density/size parameters
-	veins.forEach((vein, index) => {
-		// Store vein info for later crystal generation
-		if (!world.veinData) world.veinData = [];
-		world.veinData[index] = { ...vein, veinIndex: index };
-		generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, index);
-	});
-
-	// Store vein paths for pure mineral generation (maintain backwards compatibility)
-	world.veinPaths = [];
-	veins.forEach(vein => {
-		if (vein.yield && vein.yield > 0) {
-			const pathCoords = world.veinPathCoords?.[vein.color] || [];
-			world.veinPaths.push({
-				color: vein.color,
-				pattern: vein.pattern,
-				size: vein.size,
-				density: vein.yield, // Use yield value for crystal density
-				yield: vein.yield, // Keep yield for legacy compatibility
-				actualPaths: pathCoords, // Store actual path coordinates
-			});
-		}
-	});
+	world.veinData = veins.map((vein, index) => ({ ...vein, veinIndex: index }));
+	veins.forEach((vein, index) => generateVeinPaths(world, vein, asteroidShape, holePattern, tunnelSet, index));
 }
 
 /**
@@ -842,13 +814,6 @@ function generateSingleVeinPath(
 	let currentY = startY;
 	let direction = Math.random() * Math.PI * 2; // Random starting direction
 
-	// Track path coordinates for crystal placement
-	const pathCoords = [];
-
-	// Initialize path coords array if not exists
-	if (!world.veinPathCoords) world.veinPathCoords = {};
-	if (!world.veinPathCoords[color]) world.veinPathCoords[color] = [];
-
 	for (let step = 0; step < veinLength; step++) {
 		// Place vein color at current position
 		if (isValidGroundCell(world, currentX, currentY, asteroidShape, holePattern, tunnelSet)) {
@@ -857,8 +822,6 @@ function generateSingleVeinPath(
 				veinSource: true,
 				veinIndex,
 			};
-			// Record this position as part of the path
-			pathCoords.push({ x: currentX, y: currentY, step: step });
 		}
 
 		// Move to next position with some randomness
@@ -882,17 +845,10 @@ function generateSingleVeinPath(
 						isValidGroundCell(world, thickX, thickY, asteroidShape, holePattern, tunnelSet)
 					) {
 						world.grid[thickX][thickY].ground = { type: color, veinSource: true, veinIndex };
-						// Record thickness cells as part of the path too
-						pathCoords.push({ x: thickX, y: thickY, step: step, isThickness: true });
 					}
 				}
 			}
 		}
-	}
-
-	// Store this path for crystal placement
-	if (pathCoords.length > 0) {
-		world.veinPathCoords[color].push(pathCoords);
 	}
 }
 
@@ -1140,10 +1096,6 @@ function generateScatteredVeins(world, color, size, numVeins, asteroidShape, hol
 	const numClusters = Math.max(1, Math.round(numVeins * 2));
 	const clusterSize = Math.max(2, Math.round(4 * size));
 
-	// Initialize path coords array for crystal placement
-	if (!world.veinPathCoords) world.veinPathCoords = {};
-	if (!world.veinPathCoords[color]) world.veinPathCoords[color] = [];
-
 	for (let i = 0; i < numClusters; i++) {
 		let centerX,
 			centerY,
@@ -1156,9 +1108,6 @@ function generateScatteredVeins(world, color, size, numVeins, asteroidShape, hol
 
 		if (attempts >= 100) continue;
 
-		// Track path coordinates for this cluster
-		const clusterPath = [];
-
 		// Create circular cluster
 		for (let dx = -clusterSize; dx <= clusterSize; dx++) {
 			for (let dy = -clusterSize; dy <= clusterSize; dy++) {
@@ -1168,16 +1117,9 @@ function generateScatteredVeins(world, color, size, numVeins, asteroidShape, hol
 					const y = centerY + dy;
 					if (isValidGroundCell(world, x, y, asteroidShape, holePattern, tunnelSet)) {
 						world.grid[x][y].ground = { type: color, veinSource: true, veinIndex };
-						// Record this position as part of the cluster path
-						clusterPath.push({ x: x, y: y, step: Math.round(distance), isCluster: true });
 					}
 				}
 			}
-		}
-
-		// Store this cluster as a path for crystal placement
-		if (clusterPath.length > 0) {
-			world.veinPathCoords[color].push(clusterPath);
 		}
 	}
 }
