@@ -2,7 +2,8 @@ import { Elem, Button, failureReason, theme, styled } from '@vanilla-bean/compon
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
-import { exitGame, spacecoBuyRescue, useItem } from '../api';
+import { act } from '@fatlard1993/web-game-framework/client';
+import { exitGame } from '../api';
 import Notify from '../shared/Notify';
 import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
@@ -77,7 +78,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 				),
 				disabled: player.credits < getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost,
 				onPointerPress: () => {
-					spacecoBuyRescue();
+					act('spacecoRescue');
 
 					this.close();
 				},
@@ -85,6 +86,8 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			new Button({
 				content: 'Abort Contract ($0)',
 				onPointerPress: async () => {
+					// Stops following the game first, so the view that drops this driller isn't taken for being dropped
+					gameContext.leaveGame?.();
 					const result = await exitGame();
 
 					if (result.status === 'error') new Notify({ intent: 'danger', content: failureReason(result) });
@@ -170,7 +173,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 								content: 'Use',
 								onPointerPress: () => {
 									if (canUse) {
-										useItem({ item: key });
+										act('useItem', { item: key });
 										this.close();
 									}
 								},

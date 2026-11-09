@@ -44,7 +44,7 @@ export default class Play extends View {
 										confirmLabel: 'Abort Contract',
 										label:
 											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
-										beforeExit: () => this.leaveGame?.(),
+										beforeExit: () => gameContext.leaveGame?.(),
 										onExit: () => teardownGame(),
 									}),
 								);
@@ -86,7 +86,8 @@ export default class Play extends View {
 
 		if (!game || this.elem?.isConnected === false) return leaveGame();
 
-		this.leaveGame = leaveGame;
+		// Leaving (aborting the contract) stops following the game first
+		gameContext.leaveGame = leaveGame;
 		this.addCleanup('enterGame', leaveGame);
 		gameContext.serverState = game;
 		this._toolbar.options.heading = game.name;

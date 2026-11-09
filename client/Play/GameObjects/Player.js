@@ -5,7 +5,8 @@ import Phaser from 'phaser';
 import { gridToPxPosition, getSurroundingRadius } from '../../../utils';
 import gameContext from '../../shared/gameContext';
 import TradeDialog from '../TradeDialog';
-import { disarmBomb, deactivateTeleporter, initiateTrade } from '../../api';
+import { act } from '@fatlard1993/web-game-framework/client';
+import { initiateTrade } from '../../api';
 import { Drill } from './Drill';
 import { TradeTag } from './TradeTag';
 
@@ -269,7 +270,7 @@ export class Player extends Drill {
 			this.bombButton.y = this.bombButton.y + 1;
 		});
 		this.bombButton.on('pointerdown', () => {
-			disarmBomb({ x: position.x, y: position.y });
+			act('disarmBomb', { x: position.x, y: position.y });
 			this.hideItemPrompts();
 		});
 
@@ -299,7 +300,7 @@ export class Player extends Drill {
 			this.teleportButton.y = this.teleportButton.y + 1;
 		});
 		this.teleportButton.on('pointerdown', () => {
-			deactivateTeleporter({ x: position.x, y: position.y });
+			act('deactivateTeleporter', { x: position.x, y: position.y });
 			this.hideItemPrompts();
 		});
 

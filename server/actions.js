@@ -24,6 +24,15 @@ const itemNamed = item => {
 	return item;
 };
 
+// A cell named by its whole-number x and y
+const cell = data => {
+	const { x, y } = fields(data);
+
+	if (!isCell({ x, y })) refuse('Position coordinates (x, y) are required.');
+
+	return { x, y };
+};
+
 const quantity = (count = 1) => {
 	if (!Number.isInteger(count) || count < 1 || count > 100) refuse('Invalid quantity specified.');
 
@@ -111,6 +120,26 @@ export default {
 		}
 
 		answered(this.spacecoBuyTransport(player.id, world));
+	},
+
+	spacecoRescue(player) {
+		answered(this.spacecoRescue(player.id));
+	},
+
+	useItem(player, data) {
+		const { item } = fields(data);
+
+		if (typeof item !== 'string') refuse('Item not in inventory');
+
+		answered(this.useItem(player.id, item));
+	},
+
+	disarmBomb(player, data) {
+		answered(this.disarmBomb(player.id, cell(data)));
+	},
+
+	deactivateTeleporter(player, data) {
+		answered(this.deactivateTeleporter(player.id, cell(data)));
 	},
 };
 

@@ -22,7 +22,7 @@ import {
 import { DrillImage, EngineImage, ItemImage, MineralImage, PartImage, VehicleImage } from '../shared/SpriteSheetImage';
 import { Card } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
-import { useItem, disarmBomb, spacecoBuyRescue } from '../api';
+import { act } from '@fatlard1993/web-game-framework/client';
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
 import { drills, engines, items, minerals, parts, playerAchievements, vehicles } from '../../constants';
@@ -462,7 +462,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			onButtonPress: ({ button, closeDialog }) => {
 				// Handle rescue button
 				if (button.textContent?.includes('SpaceCo Emergency Rescue')) {
-					spacecoBuyRescue();
+					act('spacecoRescue');
 					closeDialog();
 				} else {
 					// Handle close button
@@ -1078,7 +1078,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 								content: 'Use',
 								onPointerPress: () => {
 									if (canUse) {
-										useItem({ item: key });
+										act('useItem', { item: key });
 										this.close();
 									}
 								},
@@ -1091,9 +1091,9 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									variant: 'flat',
 									onPointerPress: async () => {
 										const [, , x, y] = key.split('_');
-										const result = await disarmBomb({ x: parseInt(x, 10), y: parseInt(y, 10) });
+										const { ok } = await act('disarmBomb', { x: parseInt(x, 10), y: parseInt(y, 10) });
 
-										if (result.status !== 'error') Notify.success('Void implosion remotely disarmed');
+										if (ok) Notify.success('Void implosion remotely disarmed');
 
 										this.close();
 									},

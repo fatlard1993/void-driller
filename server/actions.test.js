@@ -110,4 +110,28 @@ describe('actions', () => {
 		expect(game.act(id, 'spacecoBuyItem', { item: stocked })).toEqual({ ok: true });
 		expect(game.players.get(id).items[stocked]).toBe(held + 1);
 	});
+
+	test("items, rescue, charges and beacons refuse malformed requests and act for the page's own driller", () => {
+		const { game } = outfit();
+		const id = atOutpost(game);
+
+		expect(game.act(id, 'useItem', { item: 42 }).error).toBe('Item not in inventory');
+		expect(game.act(id, 'useItem', { item: 'toString' }).error).toBe('Item not in inventory');
+		expect(game.act(id, 'disarmBomb', { x: '3' }).error).toMatch(/coordinates/);
+		expect(game.act(id, 'deactivateTeleporter', null).error).toMatch(/coordinates/);
+		expect(game.act(id, 'disarmBomb', { x: 9999, y: 9999 }).error).toBe('No such position');
+		expect(game.act(id, 'spacecoRescue').error).toBeString();
+
+		// A charge set down is disarmed, and every detonator for it goes
+		const { x, y } = game.players.get(id).position;
+
+		game.world.grid[x][y].items.push({ name: 'remote_charge', placed: true });
+		game.players.update(id, _ => ({ ..._, items: { ..._.items, [`detonator_${x}_${y}`]: 1 } }));
+		expect(game.act(id, 'disarmBomb', { x, y })).toEqual({ ok: true });
+		expect(game.world.grid[x][y].items.some(item => item.name === 'remote_charge')).toBe(false);
+		expect(game.players.get(id).items[`detonator_${x}_${y}`]).toBeUndefined();
+
+		game.players.update(id, _ => ({ ..._, items: { ..._.items, oil: 1 }, fuel: 1 }));
+		expect(game.act(id, 'useItem', { item: 'oil' })).toEqual({ ok: true });
+	});
 });

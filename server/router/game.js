@@ -1,12 +1,6 @@
 import { requestMatch } from '@vanilla-bean/components/app';
 import { serverLog, gameLog, playerLog } from '../../utils/logger.js';
 
-// A game method's answer as a response: a refusal carries its reason
-const respond = result =>
-	result?.success === false
-		? Response.json({ message: result.error }, { status: 400 })
-		: Response.json({}, { status: 200 });
-
 const parseRequestBody = async request => {
 	try {
 		return { body: await request.json(), error: null };
@@ -58,27 +52,6 @@ const validateGameMatch = ({ gameId, playerId }, { games }, request) => {
 
 const _game = async (request, server) => {
 	let match;
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/rescue', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		return respond(server.games[gameId].spacecoRescue(playerId));
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/useItem', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		return respond(server.games[gameId].useItem(playerId, body.item));
-	}
 
 	// Update trade offer (must come before base /trade route)
 	match = requestMatch('POST', '/games/:gameId/:playerId/trade/:tradeId/offer', request);
@@ -274,52 +247,6 @@ const _game = async (request, server) => {
 		}
 	}
 
-	match = requestMatch('POST', '/games/:gameId/:playerId/disarm-bomb', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { x, y } = body;
-		if (x === undefined || y === undefined) {
-			return Response.json({ message: 'Position coordinates (x, y) are required' }, { status: 400 });
-		}
-
-		try {
-			return respond(server.games[gameId].disarmBomb(playerId, { x, y }));
-		} catch (disarmError) {
-			gameLog.error('Bomb disarm error', { playerId, gameId, position: { x, y }, error: disarmError.message });
-			return Response.json({ message: 'Bomb disarm system error. Please try again.' }, { status: 500 });
-		}
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/deactivate-teleporter', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { x, y } = body;
-		if (x === undefined || y === undefined) {
-			return Response.json({ message: 'Position coordinates (x, y) are required' }, { status: 400 });
-		}
-
-		try {
-			return respond(server.games[gameId].deactivateTeleporter(playerId, { x, y }));
-		} catch (deactivateError) {
-			gameLog.error('Teleporter deactivate error', {
-				playerId,
-				gameId,
-				position: { x, y },
-				error: deactivateError.message,
-			});
-			return Response.json({ message: 'Teleporter deactivate system error. Please try again.' }, { status: 500 });
-		}
-	}
 };
 
 export default _game;
