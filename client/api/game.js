@@ -10,39 +10,8 @@ const apiContext = {
 	},
 };
 
-export const spacecoSell = async options =>
-	await post('/games/:gameId/:playerId/spaceco/sell', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
-		...options,
-	});
-
-export const spacecoRefuel = async ({ amount } = {}, options) =>
-	await post('/games/:gameId/:playerId/spaceco/refuel', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
-		body: { amount },
-		...options,
-	});
-
-export const spacecoRepair = async ({ amount, type }, options) =>
-	await post('/games/:gameId/:playerId/spaceco/repair', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
-		body: { amount, type },
-		...options,
-	});
-
 export const spacecoBuyItem = async ({ item, count = 1 }, options) =>
 	await post('/games/:gameId/:playerId/spaceco/item', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
-		body: { item, count },
-		...options,
-	});
-
-export const spacecoSellItem = async ({ item, count = 1 }, options) =>
-	await post('/games/:gameId/:playerId/spaceco/sellitem', {
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { item, count },
@@ -69,13 +38,6 @@ export const spacecoBuyTransport = async ({ world }, options) =>
 		invalidates: ['games'],
 		urlParameters: apiContext,
 		body: { world },
-		...options,
-	});
-
-export const spacecoResupply = async options =>
-	await post('/games/:gameId/:playerId/spaceco/resupply', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
 		...options,
 	});
 

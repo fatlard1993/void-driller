@@ -1,5 +1,6 @@
 import { refuse } from '@fatlard1993/web-game-framework';
 
+import { items } from '../constants';
 import { gameLog } from '../utils/logger.js';
 
 // What arrived as an action's data, as an object to read fields from: anything else reads as no fields
@@ -13,6 +14,19 @@ const answered = result => {
 };
 
 const isCell = step => Number.isInteger(step?.x) && Number.isInteger(step?.y);
+
+// An item SpaceCo knows by that name (not one an object has by default, like toString)
+const itemNamed = item => {
+	if (typeof item !== 'string' || !Object.hasOwn(items, item)) refuse('Invalid item specified.');
+
+	return item;
+};
+
+const quantity = (count = 1) => {
+	if (!Number.isInteger(count) || count < 1 || count > 100) refuse('Invalid quantity specified.');
+
+	return count;
+};
 
 /**
  * What a driller does, from their page: act('move', { path }) and the rest. Each runs with `this` the game and `player`
@@ -36,6 +50,37 @@ export default {
 			gameLog.error('Movement error', { playerId: player.id, gameId: this.id, error: error.message });
 			refuse('Movement failed. Please try again.');
 		}
+	},
+
+	spacecoSell(player) {
+		answered(this.spacecoSell(player.id));
+	},
+
+	spacecoSellItem(player, data) {
+		const { item, count } = fields(data);
+
+		answered(this.spacecoSellItem(player.id, itemNamed(item), quantity(count)));
+	},
+
+	spacecoRefuel(player, data) {
+		const { amount } = fields(data);
+
+		if (!Number.isFinite(amount) || amount <= 0) refuse('Invalid amount specified.');
+
+		answered(this.spacecoRefuel(player.id, amount));
+	},
+
+	spacecoRepair(player, data) {
+		const { amount, type } = fields(data);
+
+		if (amount !== undefined && (!Number.isFinite(amount) || amount <= 0)) refuse('Invalid repair amount specified.');
+		if (type !== 'player' && type !== 'outpost') refuse('Invalid repair type specified.');
+
+		answered(this.spacecoRepair(player.id, amount, type));
+	},
+
+	spacecoResupply(player) {
+		answered(this.spacecoResupply(player.id));
 	},
 };
 

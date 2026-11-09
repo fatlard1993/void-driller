@@ -56,4 +56,34 @@ describe('actions', () => {
 		expect(published.length).toBeGreaterThan(0);
 		game.dispose();
 	});
+
+	test("SpaceCo's sales and services refuse malformed requests and run for the page's own driller", () => {
+		const { game } = outfit();
+		const id = atOutpost(game);
+		const other = atOutpost(game, 'Other');
+
+		expect(game.act(id, 'spacecoSellItem', { item: 'toString' }).error).toBe('Invalid item specified.');
+		expect(game.act(id, 'spacecoSellItem', { item: 'oil', count: 0 }).error).toBe('Invalid quantity specified.');
+		expect(game.act(id, 'spacecoSellItem', { item: 'oil', count: 1.5 }).error).toBe('Invalid quantity specified.');
+		expect(game.act(id, 'spacecoRefuel', { amount: 'lots' }).error).toBe('Invalid amount specified.');
+		expect(game.act(id, 'spacecoRefuel', { amount: Infinity }).error).toBe('Invalid amount specified.');
+		expect(game.act(id, 'spacecoRepair', { type: 'everything' }).error).toBe('Invalid repair type specified.');
+		expect(game.act(id, 'spacecoRepair', { type: 'player', amount: -1 }).error).toBe('Invalid repair amount specified.');
+
+		// What the game refuses comes back as the refusal, with its reason
+		expect(game.act(id, 'spacecoSell').error).toBeString();
+		expect(game.act(id, 'spacecoRepair', { type: 'player' }).error).toMatch(/perfect condition/);
+
+		// A sale is the seller's: the other driller's credits don't move
+		game.players.update(id, _ => ({ ..._, items: { ..._.items, oil: 2 } }));
+		const credits = game.players.get(other).credits;
+
+		expect(game.act(id, 'spacecoSellItem', { item: 'oil', count: 2 })).toEqual({ ok: true });
+		expect(game.players.get(id).items.oil ?? 0).toBe(0);
+		expect(game.players.get(other).credits).toBe(credits);
+
+		game.players.update(id, _ => ({ ..._, fuel: 1, credits: 1000 }));
+		expect(game.act(id, 'spacecoRefuel', { amount: 50 })).toEqual({ ok: true });
+		expect(game.players.get(id).fuel).toBeGreaterThan(1);
+	});
 });

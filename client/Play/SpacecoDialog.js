@@ -29,15 +29,11 @@ import { DescriptionText } from '../shared/DescriptionText';
 import PriceDisplay from '../shared/PriceDisplay';
 import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
 import { SubPanel } from '../shared/frame';
+import { act } from '@fatlard1993/web-game-framework/client';
 import {
 	spacecoBuyItem,
 	spacecoBuyTransport,
 	spacecoBuyUpgrade,
-	spacecoRefuel,
-	spacecoRepair,
-	spacecoResupply,
-	spacecoSell,
-	spacecoSellItem,
 } from '../api';
 import {
 	getScaledServiceCosts,
@@ -625,7 +621,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				new PriceDisplay({ amount: spacecoRepairCost, size: 14, preText: '(', postText: ')' }),
 			),
 			appendTo: this._body,
-			onPointerPress: () => spacecoRepair({ type: 'outpost' }),
+			onPointerPress: () => act('spacecoRepair', { type: 'outpost' }),
 			disabled: spacecoRepairCost > player.credits,
 		});
 	}
@@ -653,7 +649,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const sellButton = new Button({
 			style: { marginBottom: theme.space.md },
 			content: `Sell All`,
-			onPointerPress: () => spacecoSell(),
+			onPointerPress: () => act('spacecoSell'),
 			appendTo: this._menuBody,
 		});
 
@@ -1303,7 +1299,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					if (player.credits > amount && amount <= cost) {
 						return new Button({
 							content: new PriceDisplay({ amount: amount, size: 14 }),
-							onPointerPress: () => spacecoRefuel({ amount }),
+							onPointerPress: () => act('spacecoRefuel', { amount }),
 						});
 					}
 				}),
@@ -1312,7 +1308,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					new Button({
 						content: new PriceDisplay({ amount: Math.floor(player.credits), size: 14 }),
 						onPointerPress: () =>
-							spacecoRefuel({
+							act('spacecoRefuel', {
 								amount: Math.floor(player.credits),
 							}),
 					}),
@@ -1324,7 +1320,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						new PriceDisplay({ amount: cost, size: 14 }),
 						new Elem({ content: ')' }),
 					),
-					onPointerPress: () => spacecoRefuel({ amount: cost }),
+					onPointerPress: () => act('spacecoRefuel', { amount: cost }),
 					disabled: cost > player.credits,
 				}),
 			),
@@ -1359,7 +1355,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				),
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: playerRepairs,
-				onPointerPress: () => spacecoRepair({ type: 'player' }),
+				onPointerPress: () => act('spacecoRepair', { type: 'player' }),
 				disabled: cost > player.credits,
 				style: {
 					backgroundColor: cost <= player.credits ? '' : theme.colors.darkest(theme.colors.danger),
@@ -1382,7 +1378,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				),
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
 				appendTo: spacecoRepairs,
-				onPointerPress: () => spacecoRepair({ type: 'outpost' }),
+				onPointerPress: () => act('spacecoRepair', { type: 'outpost' }),
 				disabled: spacecoRepairCost > player.credits,
 			});
 		}
@@ -1455,7 +1451,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						new PriceDisplay({ amount: resupplyCost, size: 14, preText: '(', postText: ')' }),
 					),
 					disabled: !canAffordResupply,
-					onPointerPress: () => spacecoResupply(),
+					onPointerPress: () => act('spacecoResupply'),
 				}),
 			],
 		});
@@ -1648,7 +1644,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										background: theme.colors.purple,
 										color: 'white',
 									},
-									onPointerPress: () => spacecoSellItem({ item: key, count: 1 }),
+									onPointerPress: () => act('spacecoSellItem', { item: key, count: 1 }),
 								}),
 								...(count > 1
 									? [
@@ -1659,7 +1655,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													background: theme.colors.dark(theme.colors.purple),
 													color: 'white',
 												},
-												onPointerPress: () => spacecoSellItem({ item: key, count }),
+												onPointerPress: () => act('spacecoSellItem', { item: key, count }),
 											}),
 										]
 									: []),
@@ -1729,7 +1725,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													postText: ')',
 												}),
 											),
-											onPointerPress: () => spacecoSellItem({ item: key, count: 1 }),
+											onPointerPress: () => act('spacecoSellItem', { item: key, count: 1 }),
 										}),
 										...(count > 1
 											? [
@@ -1745,7 +1741,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 																postText: ')',
 															}),
 														),
-														onPointerPress: () => spacecoSellItem({ item: key, count }),
+														onPointerPress: () => act('spacecoSellItem', { item: key, count }),
 													}),
 												]
 											: []),

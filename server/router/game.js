@@ -59,91 +59,6 @@ const validateGameMatch = ({ gameId, playerId }, { games }, request) => {
 const _game = async (request, server) => {
 	let match;
 
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/sellitem', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { item, count = 1 } = body;
-
-		// Validate request body
-		if (!item || typeof item !== 'string') {
-			return Response.json({ message: 'Invalid item specified' }, { status: 400 });
-		}
-
-		if (!Number.isInteger(count) || count < 1 || count > 100) {
-			return Response.json({ message: 'Invalid quantity specified' }, { status: 400 });
-		}
-
-		return respond(server.games[gameId].spacecoSellItem(playerId, item, count));
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/sell', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		return respond(server.games[gameId].spacecoSell(playerId));
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/refuel', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { amount } = body;
-		if (typeof amount !== 'number' || amount <= 0) {
-			serverLog.warning('Validation: Invalid refuel amount', {
-				gameId,
-				playerId,
-				amount,
-				amountType: typeof amount,
-			});
-			return Response.json({ message: 'Invalid amount specified' }, { status: 400 });
-		}
-
-		return respond(server.games[gameId].spacecoRefuel(playerId, amount));
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/repair', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { amount, type } = body;
-		if (amount !== undefined && (typeof amount !== 'number' || amount <= 0)) {
-			return Response.json({ message: 'Invalid repair amount specified' }, { status: 400 });
-		}
-		if (!type || (type !== 'player' && type !== 'outpost')) {
-			return Response.json({ message: 'Invalid repair type specified' }, { status: 400 });
-		}
-		try {
-			const result = server.games[gameId].spacecoRepair(playerId, amount, type);
-
-			if (result && !result.success) {
-				return Response.json({ message: result.error }, { status: 400 });
-			}
-
-			return Response.json({}, { status: 200 });
-		} catch (repairError) {
-			gameLog.error('Repair error', { playerId, gameId, error: repairError.message });
-			return Response.json({ message: 'Repair system malfunction. Please try again.' }, { status: 500 });
-		}
-	}
-
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/item', request);
 	if (match) {
 		const { gameId, playerId, error } = validateGameMatch(match, server, request);
@@ -217,20 +132,6 @@ const _game = async (request, server) => {
 		} catch (transportError) {
 			gameLog.error('Transport error', { playerId, gameId, error: transportError.message });
 			return Response.json({ message: 'Transport system malfunction. Please try again.' }, { status: 500 });
-		}
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/resupply', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		try {
-			return respond(server.games[gameId].spacecoResupply(playerId));
-		} catch (resupplyError) {
-			gameLog.error('Resupply error', { playerId, gameId, error: resupplyError.message });
-			return Response.json({ message: 'Resupply system malfunction. Please try again.' }, { status: 500 });
 		}
 	}
 
