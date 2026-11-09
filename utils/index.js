@@ -6,5 +6,4 @@ export * from './grid';
 export * from './movement';
 export * from './gameIdentifiers';
 export * from './pricing';
-export * from './persistWithin';
 export * from './achievements';

@@ -17,7 +17,6 @@ import {
 	getScaledTransportCost,
 	getScaledItemPrice,
 	getScaledServiceCosts,
-	persistWithin,
 } from '../utils';
 import {
 	aliens,
@@ -115,14 +114,6 @@ export default class Game extends BaseGame {
 		super({ saveState, ...options });
 
 		this.world = saveState.world || generateAsteroid(WORLDS[options.worldName] || options);
-
-		// The base save is a trailing debounce that every broadcast resets; a rig moving every half second kept a
-		// game off the disk until it went quiet, and a crash lost everything since
-		if (this.server?.database) {
-			this.save = persistWithin(() =>
-				this.server.database.collections.games.set({ id: this.id, data: this.toSaveState() }),
-			);
-		}
 
 		// Trades are between sessions, not part of the world: a Map here, never saved or sent
 		this.activeTrades = new Map();

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { Game as BaseGame } from '@fatlard1993/web-game-framework';
 
 import { playerAchievements, spacecoAchievements } from '../constants/index.js';
 import { setVerbosity } from '../utils/logger.js';
@@ -157,6 +158,32 @@ describe('Game', () => {
 		game.save();
 		expect(sent.length).toBe(heard);
 		expect(writes.length).toBe(before + 1);
+	});
+
+	test('a game that never goes quiet still reaches the disk', async () => {
+		const writes = [];
+		const server = {
+			games: {},
+			logger: quiet,
+			socketBroadcast() {},
+			database: { collections: { games: { create() {}, set: ({ data }) => writes.push(data) } } },
+		};
+		const game = new Game({ server, logger: quiet, worldName: 'L1: Training Shallows' });
+		const was = BaseGame.SAVE_WITHIN_MS;
+
+		BaseGame.SAVE_WITHIN_MS = 60;
+		try {
+			const { id } = game.addPlayer('Busy');
+
+			for (let tick = 0; tick < 10; tick++) {
+				game.broadcast('updatePlayer', { playerId: id, updates: { orientation: tick % 2 ? 'left' : 'right' } });
+				await Bun.sleep(15);
+			}
+			expect(writes.length).toBeGreaterThan(0);
+		} finally {
+			BaseGame.SAVE_WITHIN_MS = was;
+			game.dispose();
+		}
 	});
 
 	test('a path with a two-cell jump is refused before any step is taken', () => {
