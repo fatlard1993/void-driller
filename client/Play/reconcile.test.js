@@ -31,13 +31,11 @@ mock.module('../api', () => ({
 
 let gameContext;
 let refetchGame;
-let patience;
+let applyView;
 
 beforeAll(async () => {
 	({ default: gameContext } = await import('../shared/gameContext'));
-	({ refetchGame, patience } = await import('./reconcile'));
-	patience.wait = 0;
-	patience.tries = 4;
+	({ refetchGame, applyView } = await import('./reconcile'));
 });
 
 const notFound = { status: 'error', response: { status: 404 } };
@@ -68,10 +66,12 @@ const arrange = ({ watch = false, playerId = 'me', here = 'L1' } = {}) => {
 afterEach(() => {
 	gameContext.isWatchMode = false;
 	gameContext.scene = null;
+	gameContext.spaceco = null;
 });
 
 describe('refetchGame', () => {
-	it('sends a player whose contract is gone to the hub and forgets their id, after the retries', async () => {
+	// The server answers about games only once its saved games are loaded (gamesLoaded): a 404 is a game that's gone
+	it('sends a player whose contract is gone to the hub and forgets their id, on the first answer', async () => {
 		arrange();
 		served = notFound;
 
@@ -79,34 +79,21 @@ describe('refetchGame', () => {
 
 		expect(window.location.hash).toBe('#/hub');
 		expect(localStorage.getItem('g1')).toBeNull();
-		expect(fetches).toBe(4);
-	});
-
-	it('waits out the window where a restarted server has not loaded its games yet', async () => {
-		arrange();
-		const players = [{ id: 'me', name: 'Ada', position: { x: 2, y: 2 } }];
-		served = [notFound, notFound, { status: 'success', body: { world: world('L2'), players } }];
-
-		await refetchGame();
-
-		expect(window.location.hash).toBe('#/play/g1');
-		expect(localStorage.getItem('g1')).toBe('me');
-		expect(fetches).toBe(3);
-		expect(gameContext.scene.rebuilt.players).toBe(players);
+		expect(fetches).toBe(1);
 	});
 
 	it('drops an answer that arrives after the player has left the game', async () => {
 		arrange();
-		served = [notFound, notFound, notFound];
-		onFetch = count => {
-			if (count === 2) gameContext.game = null;
+		served = notFound;
+		onFetch = () => {
+			gameContext.game = null;
 		};
 
 		await refetchGame();
 
 		expect(window.location.hash).toBe('#/play/g1');
 		expect(localStorage.getItem('g1')).toBe('me');
-		expect(fetches).toBe(2);
+		expect(fetches).toBe(1);
 	});
 
 	it('drops an answer for a game the view has since moved away from', async () => {
@@ -165,5 +152,58 @@ describe('refetchGame', () => {
 
 		expect(window.location.hash).toBe('#/hub');
 		expect(localStorage.getItem('g1')).toBe('me');
+	});
+});
+
+describe('applyView', () => {
+	const view = (overrides = {}) => ({
+		id: 'g1',
+		players: [{ id: 'me', name: 'Ada', position: { x: 2, y: 2 } }],
+		world: { name: 'L1', spaceco: { position: { x: 1, y: 1 }, health: 7 }, transports: { L2: {} } },
+		trades: [],
+		...overrides,
+	});
+
+	it('is the state the scene draws from until it is drawn, and leaves the grid alone', () => {
+		arrange();
+		const { grid } = gameContext.serverState.world;
+
+		applyView(view());
+
+		expect(gameContext.serverState.players[0].name).toBe('Ada');
+		expect(gameContext.serverState.world.spaceco.health).toBe(7);
+		expect(gameContext.serverState.world.transports).toEqual({ L2: {} });
+		expect(gameContext.serverState.world.grid).toBe(grid);
+		expect(fetches).toBe(0);
+	});
+
+	it('ignores a view of another game', () => {
+		arrange();
+
+		applyView(view({ id: 'g2', players: [] }));
+
+		expect(window.location.hash).toBe('#/play/g1');
+		expect(gameContext.serverState.players).toEqual([]);
+	});
+
+	it('sends a player the view no longer holds to the hub', () => {
+		arrange();
+
+		applyView(view({ players: [{ id: 'someone-else', position: { x: 0, y: 0 } }] }));
+
+		expect(window.location.hash).toBe('#/hub');
+		expect(localStorage.getItem('g1')).toBeNull();
+	});
+
+	it('fetches the whole game for a view of another asteroid', async () => {
+		arrange();
+		const players = [{ id: 'me', position: { x: 0, y: 0 } }];
+		served = { status: 'success', body: { world: world('L2'), players } };
+
+		applyView(view({ world: { name: 'L2', spaceco: {}, transports: {} } }));
+		await refetchGame();
+
+		expect(fetches).toBeGreaterThan(0);
+		expect(gameContext.scene.rebuilt.world.name).toBe('L2');
 	});
 });

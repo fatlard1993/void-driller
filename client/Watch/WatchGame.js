@@ -51,7 +51,8 @@ export default class WatchGame extends (styled.Component`
 		const eventRouter = setupWatchRouter();
 		this.addCleanup('eventRouter', () => eventRouter.destroy());
 
-		// Broadcasts missed while the socket was down are not replayed: a socket that opens again fetches the game
+		// Broadcasts missed while the socket was down are not replayed: enterGame's fresh view brings the players and the
+		// outpost back, and the grid, which views leave out, comes with a fetch of the whole game
 		let connected = socket.readyState === socket.OPEN;
 		const onOpen = () => {
 			if (connected) refetchGame();

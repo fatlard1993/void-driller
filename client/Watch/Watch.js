@@ -1,9 +1,9 @@
-import { Link, failureReason } from '@vanilla-bean/components';
+import { Link } from '@vanilla-bean/components';
+import { enterGame } from '@fatlard1993/web-game-framework/client';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
-import Notify from '../shared/Notify';
 import gameContext from '../shared/gameContext';
 import WatchGame from './WatchGame';
-import { getGameWhenLoaded } from '../Play/reconcile';
+import { applyView, leave } from '../Play/reconcile';
 
 export default class Watch extends View {
 	static schema = {
@@ -42,24 +42,23 @@ export default class Watch extends View {
 	}
 
 	async _init() {
-		gameContext.gameId = this.options.gameId;
-		// Watch mode doesn't need a playerId - it's spectator only
-		gameContext.playerId = null;
+		const { gameId } = this.options;
+
+		// Spectator only: no player of this browser's, and the server sends the watcher's view of each change
+		gameContext.serverState = null;
 		gameContext.isWatchMode = true;
 
-		this.game = await getGameWhenLoaded(gameContext.gameId);
+		const { game, leave: leaveGame } = await enterGame(gameId, {
+			watch: true,
+			onState: applyView,
+			gone: () => leave('This contract is gone.', gameId),
+		});
 
-		if (this.game.status === 'error') {
-			new Notify({ intent: 'danger', content: failureReason(this.game) });
+		if (!game || this.elem?.isConnected === false) return leaveGame();
 
-			window.location.href = `#/hub`;
-
-			return;
-		}
-
-		gameContext.serverState = this.game.body;
-
-		this._toolbar.options.heading = `Watch Mode - ${this.game.body.name}`;
+		this.addCleanup('enterGame', leaveGame);
+		gameContext.serverState = game;
+		this._toolbar.options.heading = `Watch Mode - ${game.name}`;
 
 		new WatchGame({ appendTo: this._body });
 	}

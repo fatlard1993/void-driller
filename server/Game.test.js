@@ -160,6 +160,25 @@ describe('Game', () => {
 		expect(writes.length).toBe(before + 1);
 	});
 
+	test("a page's view carries no grid, and only that player's own trades", () => {
+		const { game } = outfit();
+		const one = playerAtOutpost(game);
+		const two = playerAtOutpost(game);
+		const three = playerAtOutpost(game);
+
+		game.initiateTrade(one.id, two.id);
+
+		const view = game.viewFor(one.id);
+
+		expect(view.world.grid).toBeUndefined();
+		expect(view.world.spaceco).toBe(game.world.spaceco);
+		expect(view.players.map(({ id }) => id)).toEqual([one.id, two.id, three.id]);
+		expect(view.players[0].online).toBe(true);
+		expect(view.trades).toHaveLength(1);
+		expect(game.viewFor(three.id).trades).toEqual([]);
+		expect(game.viewFor(null).trades).toEqual([]);
+	});
+
 	test('a game that never goes quiet still reaches the disk', async () => {
 		const writes = [];
 		const server = {

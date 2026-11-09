@@ -133,6 +133,21 @@ export default class Game extends BaseGame {
 		return { ...super.toSaveState(), world: this.world };
 	}
 
+	// What each page is sent after every change (publish): the players, the outpost and its routes, and this player's
+	// own trades. Not the grid: it runs to a megabyte on the big asteroids, and every cell that changes is broadcast as
+	// it changes; a page fetches it whole on opening and after a lost connection (GET /games/:id).
+	viewFor(playerId) {
+		const { name, spaceco, transports } = this.world;
+
+		return {
+			...super.toClient(),
+			world: { name, spaceco, transports },
+			trades: [...this.activeTrades.values()].filter(
+				trade => playerId && (trade.player1Id === playerId || trade.player2Id === playerId),
+			),
+		};
+	}
+
 	validateBroadcastData(key, data) {
 		// Validate player data if present
 		if (data.player) {

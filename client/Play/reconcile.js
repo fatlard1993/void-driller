@@ -10,32 +10,17 @@ import { addDrill } from './eventRouter';
 import { gridChanges, playerChanges } from './gameDiff';
 import TradeDialog from './TradeDialog';
 
-// The server answers on its port before it has loaded the saved games, and a socket reconnects the moment the port
-// answers; a 404 in that window is not a missing game. Retried for the window's length before it counts as one.
-export const patience = { tries: 10, wait: 500 };
-
-export const getGameWhenLoaded = async (id, { wanted = () => true } = {}) => {
-	for (let attempt = 1; ; attempt++) {
-		const result = await getGame(id, { cache: false });
-		const notFound = result.status === 'error' && result.response?.status === 404;
-
-		if (!notFound || attempt >= patience.tries || !wanted()) return result;
-
-		await new Promise(resolve => setTimeout(resolve, patience.wait));
-	}
-};
-
-const leave = reason => {
+export const leave = (reason, gameId = gameContext.gameId) => {
 	new Notify({ intent: 'warning', content: reason, timeout: 6000 });
 	// A player's stored id is for a contract that no longer holds them; a watcher stored nothing
-	if (!gameContext.isWatchMode) localStorage.removeItem(gameContext.gameId);
+	if (!gameContext.isWatchMode) localStorage.removeItem(gameId);
 	window.location.href = '#/hub';
 };
 
 const fetchAndReconcile = async () => {
 	const { gameId } = gameContext;
 	const wanted = () => Boolean(gameContext.game) && gameContext.gameId === gameId;
-	const result = await getGameWhenLoaded(gameId, { wanted });
+	const result = await getGame(gameId, { cache: false });
 
 	// The view may have gone, or moved to another game, while the answer was on its way: that answer is for no one
 	if (!wanted()) return;
@@ -55,9 +40,10 @@ let inFlight = null;
 let again = false;
 
 /**
- * After the socket comes back: ask the server for the game as it is now and bring the scene to it, or leave for the
- * hub when the game is gone, or this player is (a watcher has no player to miss). A socket that flaps asks more than
- * once; the asks run one after another, and a later one always runs last, since a later open means a later gap.
+ * After the socket comes back, or when the view names another asteroid: ask the server for the whole game (the views
+ * leave the grid out) and bring the scene to it, or leave for the hub when the game is gone, or this player is (a
+ * watcher has no player to miss). A socket that flaps asks more than once; the asks run one after another, and a later
+ * one always runs last, since a later open means a later gap.
  * @returns {Promise<void>} Settles when this ask, and any it queued, are done
  */
 export const refetchGame = () => {
@@ -89,9 +75,34 @@ const hazardSprite = (scene, x, y, hazard) => {
 };
 
 /**
- * Bring the scene to the server's state: players moved or gone, the outpost, every cell that changed, and a trade
- * that did not survive. A different asteroid altogether is rebuilt whole.
- * @param {object} state - The game as the server sends it
+ * Each view of the game the server sends (enterGame's onState, after every change): the players, the outpost and the
+ * trades come to it. Before the scene is drawn, it's the state the scene will draw from; a view of another asteroid
+ * (a transport this page missed) fetches the whole game.
+ * @param {object} view - Game.viewFor: the game without its grid
+ */
+export const applyView = view => {
+	const local = gameContext.serverState;
+
+	if (!local || view.id !== gameContext.gameId) return;
+	if (!gameContext.isWatchMode && !view.players.some(({ id }) => id === gameContext.playerId)) {
+		return leave('Your contract was closed.');
+	}
+	if (view.world.name !== local.world.name) return refetchGame();
+
+	if (!gameContext.spaceco) {
+		Object.assign(local.world, view.world);
+		local.players = view.players;
+		local.trades = view.trades;
+		return;
+	}
+
+	reconcileGame(view);
+};
+
+/**
+ * Bring the scene to the server's state: players moved or gone, the outpost, every cell that changed (when the state
+ * carries the grid), and a trade that did not survive. A different asteroid altogether is rebuilt whole.
+ * @param {object} state - The game as the server sends it, or a view of it without the grid
  */
 export const reconcileGame = state => {
 	const { scene, sceneLayers } = gameContext;
@@ -142,7 +153,7 @@ export const reconcileGame = state => {
 		gameContext.spaceco.checkForNearbyPlayer();
 	}
 
-	gridChanges(local.world.grid, state.world.grid).forEach(({ x, y, ground, items, hazards }) => {
+	gridChanges(local.world.grid, state.world.grid ?? []).forEach(({ x, y, ground, items, hazards }) => {
 		const cell = local.world.grid[x][y];
 
 		if (ground !== undefined) {
@@ -173,10 +184,10 @@ export const reconcileGame = state => {
 	const trades = state.trades || [];
 	const dialog = gameContext.openDialog;
 
-	if (dialog instanceof TradeDialog && !trades.some(trade => trade.id === dialog.tradeSession?.id)) {
+	if (dialog instanceof TradeDialog && dialog.tradeSession && !trades.some(trade => trade.id === dialog.tradeSession?.id)) {
 		dialog.tradeSession = null;
 		dialog.close();
-		new Notify({ intent: 'warning', content: 'The trade did not survive the outage.', timeout: 4000 });
+		new Notify({ intent: 'warning', content: 'The trade is over.', timeout: 4000 });
 	}
 	if (gameContext.pendingTradeInvitation && !trades.some(trade => trade.id === gameContext.pendingTradeInvitation.id)) {
 		gameContext.pendingTradeInvitation = null;

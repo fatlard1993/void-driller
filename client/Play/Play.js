@@ -1,18 +1,24 @@
-import { Button, failureReason, styled } from '@vanilla-bean/components';
+import { Button, styled } from '@vanilla-bean/components';
 
+import { enterGame } from '@fatlard1993/web-game-framework/client';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import { ExitDialog } from '@fatlard1993/web-game-framework/ui/GameRoom';
-import Notify from '../shared/Notify';
 import gameContext, { teardownGame } from '../shared/gameContext';
 import { releaseInputOnClose } from '../shared/BaseDialog';
 import { frameAttributes, frameCorner, frameDialogStyles } from '../shared/frame';
 import Game from './Game';
 import ConsoleDialog from './ConsoleDialog';
-import { getGameWhenLoaded } from './reconcile';
+import { applyView, leave } from './reconcile';
 
-const AbortDialog = styled(ExitDialog)`
+// Aborting stops following the game first, so the view that drops this player isn't taken for being dropped
+class AbortDialog extends styled(ExitDialog)`
 	${frameDialogStyles(frameCorner.small)}
-`;
+` {
+	async exit() {
+		this.options.beforeExit?.();
+		await super.exit();
+	}
+}
 
 export default class Play extends View {
 	static schema = {
@@ -38,6 +44,7 @@ export default class Play extends View {
 										confirmLabel: 'Abort Contract',
 										label:
 											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
+										beforeExit: () => this.leaveGame?.(),
 										onExit: () => teardownGame(),
 									}),
 								);
@@ -64,36 +71,25 @@ export default class Play extends View {
 	}
 
 	async _init() {
-		gameContext.gameId = this.options.gameId;
-		gameContext.playerId = localStorage.getItem(gameContext.gameId);
+		const { gameId } = this.options;
 
-		if (!gameContext.playerId) {
-			window.location.href = `#/join/${gameContext.gameId}`;
+		gameContext.serverState = null;
+		gameContext.isWatchMode = false;
 
-			return;
-		}
+		// Opens the game as the player this browser joined as: the server hears they're here and sends each view of the
+		// game from then on (applyView); a browser that isn't in it goes to join it
+		const { game, leave: leaveGame } = await enterGame(gameId, {
+			onState: applyView,
+			notMember: () => (window.location.href = `#/join/${gameId}`),
+			gone: () => leave('This contract is gone.', gameId),
+		});
 
-		this.game = await getGameWhenLoaded(gameContext.gameId);
+		if (!game || this.elem?.isConnected === false) return leaveGame();
 
-		if (this.game.status === 'error') {
-			new Notify({ intent: 'danger', content: failureReason(this.game) });
-
-			localStorage.removeItem(this.options.gameId);
-
-			window.location.href = `#/hub`;
-
-			return;
-		}
-
-		gameContext.serverState = this.game.body;
-
-		if (!gameContext.serverState.players.find(({ id }) => id === gameContext.playerId)) {
-			window.location.href = `#/join/${gameContext.gameId}`;
-
-			return;
-		}
-
-		this._toolbar.options.heading = this.game.body.name;
+		this.leaveGame = leaveGame;
+		this.addCleanup('enterGame', leaveGame);
+		gameContext.serverState = game;
+		this._toolbar.options.heading = game.name;
 
 		new Game({ appendTo: this._body });
 	}
