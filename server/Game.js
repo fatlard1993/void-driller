@@ -3413,12 +3413,10 @@ export default class Game extends BaseGame {
 		this.players.update(playerId, _ => ({ ..._, moving: false, _movementSessionId: null }));
 	}
 
-	// This instance is done, the process ending or bun --hot replacing it: paths stop, the pending save lands, and the
-	// timers that outlive the instance (aliens, spreading hazards, fuses) can neither write nor broadcast stale state
-	retire() {
+	// The game was deleted (dispose has dropped its pending save): paths stop, and the timers that outlive it (aliens,
+	// spreading hazards, fuses) can no longer broadcast a game that's gone
+	onDispose() {
 		this.players.forEach((player, id) => this.stopMovement(id));
-		this.save.flush?.();
-		this.save = () => {};
 		this.broadcast = () => {};
 	}
 

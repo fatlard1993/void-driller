@@ -99,29 +99,35 @@ describe('Game', () => {
 		expect(sent.some(({ update }) => update === 'spacecoRescue')).toBe(true);
 	});
 
-	test('retire stops every path, lands the pending save, and silences the instance', () => {
+	test('the exit flush lands the pending save, and a deleted game stops every path and goes quiet', () => {
 		const writes = [];
+		const sent = [];
 		const server = {
 			games: {},
 			url: 'http://test',
 			logger: quiet,
-			socketBroadcast() {},
+			socketBroadcast: data => sent.push(data),
 			database: { collections: { games: { create() {}, set: ({ data }) => writes.push(data) } } },
 		};
 		const game = new Game({ server, logger: quiet, worldName: 'L1: Training Shallows' });
 		const { id } = game.addPlayer('Leaving');
 
-		game.players.update(id, _ => ({ ..._, moving: true, _movementSessionId: 1 }));
 		game.save();
 		const before = writes.length;
 
-		game.retire();
-
+		game.saveNow();
 		expect(writes.length).toBe(before + 1);
-		expect(writes.at(-1).players[0].moving).toBe(false);
+
+		game.players.update(id, _ => ({ ..._, moving: true, _movementSessionId: 1 }));
+		game.dispose();
+
+		expect(game.players.get(id).moving).toBe(false);
+
+		const heard = sent.length;
 
 		game.broadcast('playerMove', { player: game.players.get(id) });
 		game.save();
+		expect(sent.length).toBe(heard);
 		expect(writes.length).toBe(before + 1);
 	});
 
