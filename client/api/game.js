@@ -10,14 +10,6 @@ const apiContext = {
 	},
 };
 
-export const playerMove = async ({ path }, options) =>
-	await post('/games/:gameId/:playerId/move', {
-		invalidates: ['games'],
-		urlParameters: apiContext,
-		body: { path },
-		...options,
-	});
-
 export const spacecoSell = async options =>
 	await post('/games/:gameId/:playerId/spaceco/sell', {
 		invalidates: ['games'],

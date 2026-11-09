@@ -33,6 +33,7 @@ import {
 import { gameLog, playerLog, worldLog, spacecoLog } from '../utils/logger.js';
 import { generateAsteroid } from './generateAsteroid.js';
 import { explode } from './effects';
+import drillerActions from './actions.js';
 
 const WORLDS = {
 	...Object.fromEntries(worlds.map(world => [world.name, world])),
@@ -104,6 +105,9 @@ function configurationStats({ vehicle, drill, engine, part }) {
 }
 
 export default class Game extends BaseGame {
+	// What a driller can do from their page (act): see actions.js
+	actions = drillerActions;
+
 	constructor({ saveState = {}, ...options }) {
 		gameLog.info('Game constructor called', {
 			gameName: options.name || saveState.name || 'unnamed game',

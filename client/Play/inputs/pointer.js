@@ -1,6 +1,7 @@
 import { theme, writeStorage } from '@vanilla-bean/components';
 import Phaser from 'phaser';
 
+import { act } from '@fatlard1993/web-game-framework/client';
 import socket from '@fatlard1993/web-game-framework/client/socket';
 import {
 	gridToPxPosition,
@@ -11,7 +12,6 @@ import {
 	validateMovementPath,
 } from '../../../utils';
 import gameContext from '../../shared/gameContext';
-import { playerMove } from '../../api';
 import { minerals, drills, engines } from '../../../constants';
 
 const line = [];
@@ -916,7 +916,7 @@ const submitPath = () => {
 		_movingStartTime: Date.now(),
 	}));
 
-	playerMove({ path: validation.validPath });
+	act('move', { path: validation.validPath });
 	createPathDecayAnimation(pathMarkers);
 };
 

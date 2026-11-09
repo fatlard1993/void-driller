@@ -59,58 +59,6 @@ const validateGameMatch = ({ gameId, playerId }, { games }, request) => {
 const _game = async (request, server) => {
 	let match;
 
-	match = requestMatch('POST', '/games/:gameId/:playerId/move', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { path } = body;
-		if (!Array.isArray(path)) {
-			serverLog.warning('Validation: Invalid movement path format', {
-				gameId,
-				playerId,
-				pathType: typeof path,
-				pathValue: path,
-				userAgent: request.headers.get('User-Agent'),
-			});
-			return Response.json({ message: 'Path must be an array' }, { status: 400 });
-		}
-
-		// Use atomic check-and-set to prevent race conditions
-		const game = server.games[gameId];
-		const player = game.players.get(playerId);
-
-		if (!player) {
-			return Response.json({ message: 'Player not found' }, { status: 404 });
-		}
-
-		// Try to atomically set moving state to prevent concurrent movements
-		if (player.moving) {
-			return Response.json(
-				{ message: `SpaceCo regulations prohibit abrupt rerouting mid-tunnel. Wait until you've stopped.` },
-				{ status: 400 },
-			);
-		}
-
-		// Set moving state immediately to prevent race conditions
-		game.players.update(playerId, current => ({ ...current, moving: true }));
-
-		try {
-			game.movePlayer(playerId, path);
-		} catch (moveError) {
-			// Reset moving state if movement fails
-			game.players.update(playerId, current => ({ ...current, moving: false }));
-			gameLog.error('Movement error', { playerId, gameId, error: moveError.message });
-			return Response.json({ message: 'Movement failed. Please try again.' }, { status: 500 });
-		}
-
-		return Response.json({}, { status: 200 });
-	}
-
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/sellitem', request);
 	if (match) {
 		const { gameId, playerId, error } = validateGameMatch(match, server, request);
