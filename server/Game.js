@@ -83,6 +83,27 @@ function getScaledAchievementReward(baseAmount, type, spacecoXp) {
 	return baseAmount;
 }
 
+/**
+ * What a rig built from these parts can carry, take and burn, or null when a part isn't one SpaceCo makes
+ * @param {object} configuration - The rig's vehicle, drill, engine and part
+ * @returns {object|null} maxHealth, maxFuel, maxCargo, fuelEfficiency, torque and maxItemSlots
+ */
+function configurationStats({ vehicle, drill, engine, part }) {
+	const configs = [vehicles[vehicle], drills[drill], engines[engine]];
+
+	if (configs.some(config => !config)) return null;
+
+	const stats = { maxHealth: 0, maxFuel: 0, maxCargo: 0, fuelEfficiency: 0, torque: 0, maxItemSlots: 0 };
+
+	[...configs, parts[part] || {}].forEach(config =>
+		Object.keys(stats).forEach(key => {
+			if (config[key]) stats[key] += config[key];
+		}),
+	);
+
+	return stats;
+}
+
 export default class Game extends BaseGame {
 	constructor({ saveState = {}, ...options }) {
 		gameLog.info('Game constructor called', {
@@ -94,7 +115,6 @@ export default class Game extends BaseGame {
 		super({ saveState, ...options });
 
 		this.world = saveState.world || generateAsteroid(WORLDS[options.worldName] || options);
-		this.url = this.server.url;
 
 		// The base save is a trailing debounce that every broadcast resets; a rig moving every half second kept a
 		// game off the disk until it went quiet, and a crash lost everything since
@@ -115,25 +135,11 @@ export default class Game extends BaseGame {
 	}
 
 	toClient() {
-		return {
-			id: this.id,
-			name: this.name,
-			options: this.options,
-			world: this.world,
-			url: this.url,
-			players: [...this.players.values()],
-			trades: [...this.activeTrades.values()],
-		};
+		return { ...super.toClient(), world: this.world, trades: [...this.activeTrades.values()] };
 	}
 
 	toSaveState() {
-		return {
-			id: this.id,
-			name: this.name,
-			options: this.options,
-			world: this.world,
-			players: [...this.players.values()],
-		};
+		return { ...super.toSaveState(), world: this.world };
 	}
 
 	validateBroadcastData(key, data) {
@@ -375,33 +381,21 @@ export default class Game extends BaseGame {
 		return platformPos;
 	}
 
-	addPlayer(name) {
-		const id = simpleId();
-		playerLog.info('Player session started', {
-			playerId: id,
-			playerName: name,
-			gameId: this.id,
-			gamePlayerCount: this.players.size + 1,
-			sessionStartTime: new Date().toISOString(),
-		});
-
-		this.players.set(id, {
+	// A new driller as the world outfits them, standing beside the outpost with a full tank and hull (the framework adds
+	// them, keeps their secret and says they're here)
+	createPlayer({ id, name }) {
+		const { newPlayer } = this.world;
+		const player = {
 			credits: 0,
 			joinTime: Date.now(),
-			...this.world.newPlayer,
-			configuration: {
-				...this.world.newPlayer.configuration,
-			},
-			items: {
-				...this.world.newPlayer.items,
-			},
-			hull: { ...this.world.newPlayer.hull },
-			position: { ...this.findValidSpawnPosition(), ...this.world.newPlayer.position },
+			...newPlayer,
+			configuration: { ...newPlayer.configuration },
+			items: { ...newPlayer.items },
+			hull: { ...newPlayer.hull },
+			position: { ...this.findValidSpawnPosition(), ...newPlayer.position },
 			orientation: 'right',
 			moving: false,
 			cargo: 0,
-			health: 0,
-			fuel: 0,
 			xp: 0,
 			stats: {
 				tilesMoved: 0,
@@ -423,23 +417,22 @@ export default class Game extends BaseGame {
 			achievements: {},
 			name,
 			id,
+		};
+		const stats = configurationStats(player.configuration) ?? {};
+
+		return { ...player, ...stats, health: stats.maxHealth ?? 0, fuel: stats.maxFuel ?? 0 };
+	}
+
+	onPlayerAdded(player) {
+		playerLog.info('Player session started', {
+			playerId: player.id,
+			playerName: player.name,
+			gameId: this.id,
+			gamePlayerCount: this.players.size,
+			sessionStartTime: new Date().toISOString(),
 		});
 
-		this.updatePlayerConfiguration(id);
-
-		this.players.update(id, _ => ({
-			..._,
-			health: _.maxHealth,
-			fuel: _.maxFuel,
-		}));
-
 		this.updateSpacecoStock();
-
-		const newPlayer = this.players.get(id);
-
-		this.broadcast('addPlayer', { newPlayer });
-
-		return newPlayer;
 	}
 
 	updateSpacecoStock() {
@@ -483,38 +476,14 @@ export default class Game extends BaseGame {
 			return;
 		}
 
-		const vehicleConfig = vehicles[player.configuration.vehicle];
-		const drillConfig = drills[player.configuration.drill];
-		const engineConfig = engines[player.configuration.engine];
-		const partConfig = parts[player.configuration.part] || {};
+		const stats = configurationStats(player.configuration);
 
-		if (!vehicleConfig || !drillConfig || !engineConfig) {
-			playerLog.error('Player has invalid configuration', {
-				playerId: id,
-				vehicle: player.configuration.vehicle,
-				drill: player.configuration.drill,
-				engine: player.configuration.engine,
-			});
+		if (!stats) {
+			playerLog.error('Player has invalid configuration', { playerId: id, ...player.configuration });
 			return;
 		}
 
-		let maxHealth = 0;
-		let maxFuel = 0;
-		let maxCargo = 0;
-		let fuelEfficiency = 0;
-		let torque = 0;
-		let maxItemSlots = 0;
-
-		[vehicleConfig, drillConfig, engineConfig, partConfig].forEach(config => {
-			if (config.maxHealth) maxHealth += config.maxHealth;
-			if (config.maxFuel) maxFuel += config.maxFuel;
-			if (config.maxCargo) maxCargo += config.maxCargo;
-			if (config.fuelEfficiency) fuelEfficiency += config.fuelEfficiency;
-			if (config.torque) torque += config.torque;
-			if (config.maxItemSlots) maxItemSlots += config.maxItemSlots;
-		});
-
-		this.players.update(id, _ => ({ ..._, maxHealth, maxFuel, maxCargo, fuelEfficiency, torque, maxItemSlots }));
+		this.players.update(id, _ => ({ ..._, ...stats }));
 	}
 
 	updatePlayerCargo(playerId) {
@@ -1734,22 +1703,10 @@ export default class Game extends BaseGame {
 		this.save();
 	}
 
-	removePlayer(id) {
-		const player = this.players.get(id);
+	// A driller aborted their contract: their trades end with them, their path stops, and every page drops their rig
+	onPlayerRemoved(id) {
+		playerLog.info('Player session ended', { playerId: id, gameId: this.id, gamePlayerCount: this.players.size });
 
-		if (player) {
-			playerLog.info('Player session ended', {
-				playerId: id,
-				playerName: player.name,
-				gameId: this.id,
-				sessionDuration: player.joinTime ? `${((Date.now() - player.joinTime) / 1000).toFixed(1)}s` : 'unknown',
-				credits: player.credits,
-				level: player.level,
-				gamePlayerCount: this.players.size - 1,
-			});
-		}
-
-		// Cancel any active trades involving this player
 		[...this.activeTrades.values()]
 			.filter(trade => trade.player1Id === id || trade.player2Id === id)
 			.forEach(trade => {
@@ -1762,12 +1719,9 @@ export default class Game extends BaseGame {
 				});
 			});
 
-		this.stopMovement(id);
-
-		this.players.delete(id);
-		this.broadcast('removePlayer', { id });
-
-		return id;
+		clearTimeout(this.movementTimeouts.get(id));
+		this.movementTimeouts.delete(id);
+		this.publish();
 	}
 
 	initiateTrade(initiatorId, targetId) {

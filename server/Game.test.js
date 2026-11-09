@@ -27,6 +27,34 @@ const playerAtOutpost = game => {
 };
 
 describe('Game', () => {
+	test('a new driller starts full, has a secret, is here, and leaves with their trades', () => {
+		const { game, sent } = outfit();
+		const one = game.addPlayer('One');
+		const two = game.addPlayer('Two');
+
+		expect(one.health).toBe(one.maxHealth);
+		expect(one.fuel).toBe(one.maxFuel);
+		expect(one.maxHealth).toBeGreaterThan(0);
+		expect(sent.find(({ update }) => update === 'addPlayer').newPlayer.maxFuel).toBe(one.maxFuel);
+		expect(game.secrets.get(one.id)).toBeString();
+		expect(game.toClient().players.find(({ id }) => id === one.id).online).toBe(true);
+		expect(game.toSaveState().secrets[one.id]).toBe(game.secrets.get(one.id));
+
+		const { position } = game.world.spaceco;
+
+		game.players.update(two.id, _ => ({ ..._, position: { ...one.position } }));
+		game.players.update(one.id, _ => ({ ..._, position: { ...position } }));
+		game.players.update(two.id, _ => ({ ..._, position: { ...position } }));
+		expect(game.initiateTrade(one.id, two.id).success).toBe(true);
+
+		game.removePlayer(two.id);
+
+		expect(game.activeTrades.size).toBe(0);
+		expect(game.online.has(two.id)).toBe(false);
+		expect(game.secrets.has(two.id)).toBe(false);
+		expect(sent.some(({ update }) => update === 'tradeCancelled')).toBe(true);
+	});
+
 	test('a game restored mid-path starts with every rig stopped', () => {
 		const { game: source } = outfit();
 		const { id } = source.addPlayer('Stuck');
@@ -153,6 +181,8 @@ describe('Game', () => {
 			),
 		);
 		emitted.delete('spaceco'); // the carrier whose update field names the event
+		// The framework's own, through the game's broadcast
+		['addPlayer', 'removePlayer', 'presence'].forEach(event => emitted.add(event));
 
 		const triggers = [...playerAchievements, ...spacecoAchievements].flatMap(({ id, trigger }) =>
 			[].concat(trigger.type).map(type => ({ id, type })),
