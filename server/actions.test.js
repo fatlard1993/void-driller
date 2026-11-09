@@ -86,4 +86,28 @@ describe('actions', () => {
 		expect(game.act(id, 'spacecoRefuel', { amount: 50 })).toEqual({ ok: true });
 		expect(game.players.get(id).fuel).toBeGreaterThan(1);
 	});
+
+	test('SpaceCo purchases refuse what SpaceCo has no such thing as, and charge the page\'s own driller', () => {
+		const { game } = outfit();
+		const id = atOutpost(game);
+
+		expect(game.act(id, 'spacecoBuyItem', { item: '__proto__' }).error).toBe('Invalid item specified.');
+		expect(game.act(id, 'spacecoBuyItem', { item: 'oil', count: 101 }).error).toBe('Invalid quantity specified.');
+		expect(game.act(id, 'spacecoBuyUpgrade', { type: 'constructor', upgrade: 'x' }).error).toMatch(/category/);
+		expect(game.act(id, 'spacecoBuyUpgrade', { type: 'drills', upgrade: 'constructor' }).error).toMatch(/recognized/);
+		expect(game.act(id, 'spacecoBuyTransport', { world: 'toString' }).error).toMatch(/Invalid world/);
+		expect(game.act(id, 'spacecoBuyTransport', {}).error).toMatch(/Invalid world/);
+
+		// Not enough credits: the game's own reason
+		game.players.update(id, _ => ({ ..._, credits: 0 }));
+		const [stocked] = Object.entries(game.world.spaceco.shop).find(([, stock]) => stock > 0);
+
+		expect(game.act(id, 'spacecoBuyItem', { item: stocked }).error).toBeString();
+
+		game.players.update(id, _ => ({ ..._, credits: 100000 }));
+		const held = game.players.get(id).items[stocked] ?? 0;
+
+		expect(game.act(id, 'spacecoBuyItem', { item: stocked })).toEqual({ ok: true });
+		expect(game.players.get(id).items[stocked]).toBe(held + 1);
+	});
 });

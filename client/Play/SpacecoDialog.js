@@ -31,11 +31,6 @@ import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
 import { SubPanel } from '../shared/frame';
 import { act } from '@fatlard1993/web-game-framework/client';
 import {
-	spacecoBuyItem,
-	spacecoBuyTransport,
-	spacecoBuyUpgrade,
-} from '../api';
-import {
 	getScaledServiceCosts,
 	getScaledItemPrice,
 	getScaledTransportCost,
@@ -958,7 +953,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							style: {
 								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
-							onPointerPress: () => spacecoBuyUpgrade({ upgrade: id, type: 'vehicles' }),
+							onPointerPress: () => act('spacecoBuyUpgrade', { upgrade: id, type: 'vehicles' }),
 							disabled: !canAfford,
 						}),
 					],
@@ -1043,7 +1038,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
 							onPointerPress: () => {
-								spacecoBuyUpgrade({ upgrade: id, type: 'engines' });
+								act('spacecoBuyUpgrade', { upgrade: id, type: 'engines' });
 							},
 							disabled: !canAfford,
 						}),
@@ -1147,7 +1142,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							style: {
 								backgroundColor: !missingRequirements && canAfford ? '' : theme.colors.darkest(theme.colors.danger),
 							},
-							onPointerPress: () => spacecoBuyUpgrade({ upgrade: id, type: 'drills' }),
+							onPointerPress: () => act('spacecoBuyUpgrade', { upgrade: id, type: 'drills' }),
 							disabled: missingRequirements || !canAfford,
 						}),
 					],
@@ -1254,7 +1249,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
 							onPointerPress: () => {
-								spacecoBuyUpgrade({ upgrade: id, type: 'parts' });
+								act('spacecoBuyUpgrade', { upgrade: id, type: 'parts' });
 							},
 							disabled: !canAfford,
 							style: {
@@ -1533,7 +1528,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								style: {
 									backgroundColor: canPurchase ? '' : theme.colors.darkest(theme.colors.danger),
 								},
-								onPointerPress: () => spacecoBuyItem({ item: key, count: 1 }),
+								onPointerPress: () => act('spacecoBuyItem', { item: key, count: 1 }),
 							}),
 						],
 					}),
@@ -1919,7 +1914,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Button({
 									content: `Buy Transport`,
 									style: { width: '100%' },
-									onPointerPress: () => spacecoBuyTransport({ world: key }),
+									onPointerPress: () => act('spacecoBuyTransport', { world: key }),
 									disabled: locked,
 								}),
 							],

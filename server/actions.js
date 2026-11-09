@@ -1,6 +1,6 @@
 import { refuse } from '@fatlard1993/web-game-framework';
 
-import { items } from '../constants';
+import { drills, engines, items, parts, vehicles } from '../constants';
 import { gameLog } from '../utils/logger.js';
 
 // What arrived as an action's data, as an object to read fields from: anything else reads as no fields
@@ -12,6 +12,8 @@ const answered = result => {
 
 	return result;
 };
+
+const upgrades = { vehicles, drills, engines, parts };
 
 const isCell = step => Number.isInteger(step?.x) && Number.isInteger(step?.y);
 
@@ -81,6 +83,34 @@ export default {
 
 	spacecoResupply(player) {
 		answered(this.spacecoResupply(player.id));
+	},
+
+	spacecoBuyItem(player, data) {
+		const { item, count } = fields(data);
+
+		answered(this.spacecoBuyItem(player.id, itemNamed(item), quantity(count)));
+	},
+
+	spacecoBuyUpgrade(player, data) {
+		const { upgrade, type } = fields(data);
+
+		if (!Object.hasOwn(upgrades, type)) refuse('Invalid upgrade category specified.');
+		if (typeof upgrade !== 'string' || !Object.hasOwn(upgrades[type], upgrade)) {
+			refuse('Requested upgrade not recognized by SpaceCo systems.');
+		}
+
+		answered(this.spacecoBuyUpgrade(player.id, upgrade, type));
+	},
+
+	spacecoBuyTransport(player, data) {
+		const { world } = fields(data);
+
+		// A destination this asteroid has a route to, by its own name
+		if (typeof world !== 'string' || !Object.hasOwn(this.world.transports ?? {}, world)) {
+			refuse('Invalid world selection for transport request.');
+		}
+
+		answered(this.spacecoBuyTransport(player.id, world));
 	},
 };
 

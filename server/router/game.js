@@ -59,50 +59,6 @@ const validateGameMatch = ({ gameId, playerId }, { games }, request) => {
 const _game = async (request, server) => {
 	let match;
 
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/item', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { item, count = 1 } = body;
-
-		// Validate request body
-		if (!item || typeof item !== 'string') {
-			return Response.json({ message: 'Invalid item specified' }, { status: 400 });
-		}
-
-		if (!Number.isInteger(count) || count < 1 || count > 100) {
-			return Response.json({ message: 'Invalid quantity specified' }, { status: 400 });
-		}
-
-		try {
-			const result = server.games[gameId].spacecoBuyItem(playerId, item, count);
-
-			return respond(result);
-		} catch (buyError) {
-			gameLog.error('Buy item error', { playerId, gameId, item, count, error: buyError.message });
-			return Response.json({ message: 'Purchase system malfunction. Please try again.' }, { status: 500 });
-		}
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/upgrade', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { upgrade, type } = body;
-
-		return respond(server.games[gameId].spacecoBuyUpgrade(playerId, upgrade, type));
-	}
-
 	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/rescue', request);
 	if (match) {
 		const { gameId, playerId, error } = validateGameMatch(match, server, request);
@@ -110,29 +66,6 @@ const _game = async (request, server) => {
 		if (error) return error;
 
 		return respond(server.games[gameId].spacecoRescue(playerId));
-	}
-
-	match = requestMatch('POST', '/games/:gameId/:playerId/spaceco/transport', request);
-	if (match) {
-		const { gameId, playerId, error } = validateGameMatch(match, server, request);
-
-		if (error) return error;
-
-		const { body, error: parseError } = await parseRequestBody(request);
-		if (parseError) return parseError;
-
-		const { world } = body;
-
-		if (!world || typeof world !== 'string') {
-			return Response.json({ message: 'Invalid world selection for transport request.' }, { status: 400 });
-		}
-
-		try {
-			return respond(server.games[gameId].spacecoBuyTransport(playerId, world));
-		} catch (transportError) {
-			gameLog.error('Transport error', { playerId, gameId, error: transportError.message });
-			return Response.json({ message: 'Transport system malfunction. Please try again.' }, { status: 500 });
-		}
 	}
 
 	match = requestMatch('POST', '/games/:gameId/:playerId/useItem', request);
