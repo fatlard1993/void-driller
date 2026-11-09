@@ -134,4 +134,41 @@ describe('actions', () => {
 		game.players.update(id, _ => ({ ..._, items: { ..._.items, oil: 1 }, fuel: 1 }));
 		expect(game.act(id, 'useItem', { item: 'oil' })).toEqual({ ok: true });
 	});
+
+	test('a trade is between the two drillers in it, and an offer of what no one holds is refused', () => {
+		const { game } = outfit();
+		const one = atOutpost(game, 'One');
+		const two = atOutpost(game, 'Two');
+		const three = atOutpost(game, 'Three');
+
+		expect(game.act(one, 'initiateTrade', {}).error).toMatch(/Target player/);
+		expect(game.act(one, 'initiateTrade', { targetPlayerId: one }).error).toMatch(/yourself/);
+		expect(game.act(one, 'initiateTrade', { targetPlayerId: two })).toEqual({ ok: true });
+
+		const [{ id: tradeId }] = game.activeTrades.values();
+
+		expect(game.act(one, 'updateTradeOffer', { tradeId, offer: 'everything' }).error).toBe('Offer required.');
+		expect(game.act(one, 'updateTradeOffer', { tradeId, offer: { items: { toString: 1 } } }).error).toMatch(
+			/Insufficient toString/,
+		);
+		expect(
+			game.act(one, 'updateTradeOffer', { tradeId, offer: JSON.parse('{"items":{"__proto__":1}}') }).error,
+		).toMatch(/Insufficient __proto__/);
+		expect(game.act(three, 'acceptTrade', { tradeId }).error).toMatch(/not part of this trade/);
+		expect(game.act(three, 'cancelTrade', { tradeId }).ok).toBe(false);
+
+		game.players.update(one, _ => ({ ..._, credits: 50 }));
+		const before = game.players.get(two).credits;
+
+		expect(game.act(one, 'updateTradeOffer', { tradeId, offer: { credits: 20 } })).toEqual({ ok: true });
+		expect(game.act(one, 'acceptTrade', { tradeId })).toEqual({ ok: true });
+		expect(game.act(two, 'acceptTrade', { tradeId })).toEqual({ ok: true });
+		// Twenty went across (a first trade's achievement pays both the same on top)
+		const oneGained = game.players.get(one).credits - 50;
+		const twoGained = game.players.get(two).credits - before;
+
+		expect(twoGained - oneGained).toBe(40);
+		expect(game.players.get(one).stats.tradesCompleted).toBe(1);
+		expect(game.activeTrades.size).toBe(0);
+	});
 });

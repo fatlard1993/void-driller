@@ -141,6 +141,40 @@ export default {
 	deactivateTeleporter(player, data) {
 		answered(this.deactivateTeleporter(player.id, cell(data)));
 	},
+
+	// The dialog opens for both drillers on the tradeSessionStarted broadcast
+	initiateTrade(player, data) {
+		const { targetPlayerId } = fields(data);
+
+		if (typeof targetPlayerId !== 'string') refuse('Target player ID required.');
+
+		answered(this.initiateTrade(player.id, targetPlayerId));
+	},
+
+	updateTradeOffer(player, data) {
+		const { tradeId, offer } = fields(data);
+
+		if (typeof tradeId !== 'string') refuse('Trade not found or expired');
+		if (!offer || typeof offer !== 'object') refuse('Offer required.');
+
+		answered(this.updateTradeOffer(player.id, tradeId, offer));
+	},
+
+	acceptTrade(player, data) {
+		const { tradeId } = fields(data);
+
+		if (typeof tradeId !== 'string') refuse('Trade not found or expired');
+
+		answered(this.acceptTrade(player.id, tradeId));
+	},
+
+	cancelTrade(player, data) {
+		const { tradeId } = fields(data);
+
+		if (typeof tradeId !== 'string') refuse('Trade not found or expired');
+
+		answered(this.cancelTrade(player.id, tradeId));
+	},
 };
 
 export { answered, fields };

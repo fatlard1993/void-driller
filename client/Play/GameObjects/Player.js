@@ -6,7 +6,6 @@ import { gridToPxPosition, getSurroundingRadius } from '../../../utils';
 import gameContext from '../../shared/gameContext';
 import TradeDialog from '../TradeDialog';
 import { act } from '@fatlard1993/web-game-framework/client';
-import { initiateTrade } from '../../api';
 import { Drill } from './Drill';
 import { TradeTag } from './TradeTag';
 
@@ -146,7 +145,7 @@ export class Player extends Drill {
 					gameContext.pendingTradeInvitation = null;
 				} else {
 					// The dialog opens on the tradeSessionStarted event
-					initiateTrade({ targetPlayerId: targetPlayer.id });
+					act('initiateTrade', { targetPlayerId: targetPlayer.id });
 				}
 			}
 		});

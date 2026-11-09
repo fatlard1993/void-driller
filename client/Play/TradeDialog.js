@@ -13,7 +13,7 @@ import {
 } from '@vanilla-bean/components';
 
 import { MineralImage, ItemImage } from '../shared/SpriteSheetImage';
-import { updateTradeOffer, acceptTrade, cancelTrade } from '../api';
+import { act } from '@fatlard1993/web-game-framework/client';
 import BaseDialog from '../shared/BaseDialog';
 import { subPanelOptions } from '../shared/frame';
 import gameContext from '../shared/gameContext';
@@ -386,7 +386,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		});
 
 		// Rapid edits to the offer reach the server once they settle
-		this.sendOffer = debounce(offer => updateTradeOffer({ tradeId: this.tradeSession.id, offer }), 500);
+		this.sendOffer = debounce(offer => act('updateTradeOffer', { tradeId: this.tradeSession.id, offer }), 500);
 
 		// Component references for updating
 		this.myOfferList = null;
@@ -399,9 +399,8 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	handleClose() {
 		if (this.tradeSession && this.tradeSession.status === 'active') {
-			cancelTrade({ tradeId: this.tradeSession.id }).catch(() => {
-				// Ignore errors on close - trade may already be completed/cancelled
-			});
+			// Quiet: the trade may already be completed or cancelled
+			act('cancelTrade', { tradeId: this.tradeSession.id }, { quiet: true });
 		}
 		super.handleClose();
 	}
@@ -442,7 +441,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 				backgroundColor: this.iAccepted ? theme.colors.success : '',
 			},
 			onPointerPress: () => {
-				if (!this.iAccepted) acceptTrade({ tradeId: this.tradeSession.id });
+				if (!this.iAccepted) act('acceptTrade', { tradeId: this.tradeSession.id });
 			},
 			disabled: this.iAccepted,
 		});

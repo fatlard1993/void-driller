@@ -2082,6 +2082,8 @@ export default class Game extends BaseGame {
 		if (!offer || typeof offer !== 'object') return { valid: false, error: 'Offer required' };
 
 		const isCount = value => Number.isInteger(value) && value >= 0;
+		// What the player holds by that name: a key every object has (toString, __proto__) is held by no one
+		const held = (stock, name) => (Object.hasOwn(stock || {}, name) ? stock[name] : 0);
 
 		if (offer.credits !== undefined && !isCount(offer.credits)) {
 			return { valid: false, error: 'Credits must be a whole number' };
@@ -2090,12 +2092,12 @@ export default class Game extends BaseGame {
 
 		for (const [itemName, quantity] of Object.entries(offer.items || {})) {
 			if (!isCount(quantity)) return { valid: false, error: `${itemName} must be a whole number` };
-			if (quantity > (player.items[itemName] || 0)) return { valid: false, error: `Insufficient ${itemName}` };
+			if (quantity > held(player.items, itemName)) return { valid: false, error: `Insufficient ${itemName}` };
 		}
 
 		for (const [mineralName, quantity] of Object.entries(offer.minerals || {})) {
 			if (!isCount(quantity)) return { valid: false, error: `${mineralName} must be a whole number` };
-			if (quantity > (player.hull[mineralName] || 0)) return { valid: false, error: `Insufficient ${mineralName}` };
+			if (quantity > held(player.hull, mineralName)) return { valid: false, error: `Insufficient ${mineralName}` };
 		}
 
 		return { valid: true };
