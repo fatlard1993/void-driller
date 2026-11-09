@@ -142,6 +142,11 @@ export default {
 		answered(this.deactivateTeleporter(player.id, cell(data)));
 	},
 
+	// The page found its own rig nowhere drawable: it goes back beside the outpost (a rig already somewhere stays put)
+	repairPosition(player) {
+		this.repairPosition(player.id);
+	},
+
 	// The dialog opens for both drillers on the tradeSessionStarted broadcast
 	initiateTrade(player, data) {
 		const { targetPlayerId } = fields(data);

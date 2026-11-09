@@ -6,7 +6,7 @@ import gameContext from '../shared/gameContext';
 import { frameAttributes, frameStyles } from '../shared/frame';
 import { drills, vehicles } from '../../constants';
 import { gameLog, clientLog } from '../../utils/logger.js';
-import { repairPlayerPosition } from '../api';
+import { act } from '@fatlard1993/web-game-framework/client';
 import MusicManager from '../shared/MusicManager.js';
 import musicConfig from '../shared/musicConfig.js';
 import { Ground, Item, Mineral, Spaceco, Drill, Lava, Gas, Player, ScreenLayer } from './GameObjects';
@@ -523,11 +523,13 @@ export default class GameScene extends Phaser.Scene {
 						position: player?.position,
 					});
 
-					// Request server to repair this player's position
-					if (player?.id) {
+					// This page's own rig: the server puts it back beside the outpost (another driller's is put back by
+					// their page, or by the server's next start)
+					if (player?.id && player.id === gameContext.playerId) {
 						clientLog.info('Requesting position repair for player', { playerId: player.id });
-						repairPlayerPosition(player.id).catch(error => {
-							clientLog.error('Failed to repair player position', { error: error.message, playerId: player.id });
+						act('repairPosition', undefined, { quiet: true }).then(({ ok, error }) => {
+							if (ok) return;
+							clientLog.error('Failed to repair player position', { error, playerId: player.id });
 							// Fallback: reload the page
 							setTimeout(() => {
 								window.location.reload();

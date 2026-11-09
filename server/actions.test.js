@@ -171,4 +171,29 @@ describe('actions', () => {
 		expect(game.players.get(one).stats.tradesCompleted).toBe(1);
 		expect(game.activeTrades.size).toBe(0);
 	});
+
+	test("repairPosition puts back only the page's own rig, and only when it's lost; a save with one lost loads it put back", () => {
+		const { game, sent } = outfit();
+		const id = atOutpost(game, 'Lost');
+		const other = atOutpost(game, 'Fine');
+		const { position } = game.players.get(other);
+
+		game.players.update(id, _ => ({ ..._, position: { x: null, y: undefined } }));
+		expect(game.act(other, 'repairPosition')).toEqual({ ok: true });
+		expect(game.players.get(other).position).toEqual(position);
+		expect(game.players.get(id).position.x).toBeNull();
+
+		expect(game.act(id, 'repairPosition')).toEqual({ ok: true });
+		expect(Number.isInteger(game.players.get(id).position.x)).toBe(true);
+		expect(sent.at(-1)).toMatchObject({ update: 'updatePlayer', playerId: id });
+
+		game.players.update(id, _ => ({ ..._, position: null }));
+		const back = new Game({
+			server: { games: {}, logger: quiet, socketBroadcast() {} },
+			logger: quiet,
+			saveState: JSON.parse(JSON.stringify(game.toSaveState())),
+		});
+
+		expect(Number.isInteger(back.players.get(id).position.y)).toBe(true);
+	});
 });

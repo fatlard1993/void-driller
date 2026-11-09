@@ -104,6 +104,9 @@ function configurationStats({ vehicle, drill, engine, part }) {
 	return stats;
 }
 
+// A rig standing on a cell: finite whole coordinates
+const hasPosition = ({ position }) => Number.isInteger(position?.x) && Number.isInteger(position?.y);
+
 export default class Game extends BaseGame {
 	// What a driller can do from their page (act): see actions.js
 	actions = drillerActions;
@@ -123,10 +126,35 @@ export default class Game extends BaseGame {
 		this.activeTrades = new Map();
 		this.movementTimeouts = new Map();
 
-		// A rig saved mid-path has no timer left to finish it
+		// A rig saved mid-path has no timer left to finish it, and one saved nowhere starts beside the outpost
 		this.players.forEach((player, id) => {
 			if (player.moving || player._movementSessionId) this.stopMovement(id);
+			if (!hasPosition(player)) this.players.update(id, _ => ({ ..._, ...this.respawnAt() }));
 		});
+	}
+
+	// Where a rig whose position was lost goes: beside the outpost, facing it
+	respawnAt() {
+		return { position: this.findValidSpawnPosition(), orientation: 'up' };
+	}
+
+	/**
+	 * A rig whose position isn't a cell is put back beside the outpost, and every page told
+	 * @param {string} playerId - Whose rig
+	 * @returns {boolean} Whether it needed it
+	 */
+	repairPosition(playerId) {
+		const player = this.players.get(playerId);
+
+		if (!player || hasPosition(player)) return false;
+
+		const updates = this.respawnAt();
+
+		playerLog.info('Repairing corrupted position', { playerId, from: player.position, to: updates.position });
+		this.players.update(playerId, _ => ({ ..._, ...updates }));
+		this.broadcast('updatePlayer', { playerId, updates });
+
+		return true;
 	}
 
 	toClient() {
