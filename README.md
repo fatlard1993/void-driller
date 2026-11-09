@@ -39,7 +39,7 @@ Options: `--port`/`-p`, `--database`/`-d` (default `~/.void-driller.json`) and `
 
 ## Dev
 
-> Start the local development server with hot-reloading
+> Start the local development server: it restarts when a server file changes (`bun --watch`), so a running game always runs the rules as saved
 
 `bun dev`
 
