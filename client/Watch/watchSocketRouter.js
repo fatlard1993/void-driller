@@ -168,6 +168,8 @@ const handleWorldUpdate = data => {
 
 // Handle transport transition
 const handleSpacecoBuyTransport = data => {
+	// The asteroid to come: views of it before the transition draws it are not a transport this page missed
+	gameContext.arrivingAt = data.newWorldState?.name;
 	const scene = gameContext.scene;
 	if (!scene) return;
 

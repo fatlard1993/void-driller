@@ -89,7 +89,11 @@ export const applyView = view => {
 		if (!gameContext.exiting) leave('Your contract was closed.');
 		return;
 	}
-	if (view.world.name !== local.world.name) return refetchGame();
+	if (view.world.name !== local.world.name) {
+		// A transport this page heard is drawn by its own transition, from the world the broadcast carried
+		if (view.world.name === gameContext.arrivingAt) return;
+		return refetchGame();
+	}
 
 	if (!gameContext.spaceco) {
 		Object.assign(local.world, view.world);

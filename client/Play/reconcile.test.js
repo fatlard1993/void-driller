@@ -206,6 +206,17 @@ describe('applyView', () => {
 		gameContext.exiting = false;
 	});
 
+	it('leaves a view of the asteroid a heard transport is taking it to for the transition to draw', () => {
+		arrange();
+		gameContext.arrivingAt = 'L2';
+
+		applyView(view({ world: { name: 'L2', spaceco: {}, transports: {} } }));
+
+		expect(fetches).toBe(0);
+		expect(gameContext.scene.rebuilt).toBeNull();
+		gameContext.arrivingAt = undefined;
+	});
+
 	it('fetches the whole game for a view of another asteroid', async () => {
 		arrange();
 		const players = [{ id: 'me', position: { x: 0, y: 0 } }];

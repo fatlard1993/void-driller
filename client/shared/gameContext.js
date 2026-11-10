@@ -52,6 +52,7 @@ export const teardownGame = () => {
 		openDialog: null,
 		pendingTradeInvitation: null,
 		transitioning: false,
+		arrivingAt: undefined,
 		sounds: {},
 		sceneLayers: {},
 	});

@@ -643,6 +643,8 @@ export function setupEventRouter() {
 	// === SpaceCo Events ===
 
 	router.on('spacecoBuyTransport', data => {
+		// The asteroid to come: views of it before the transition draws it are not a transport this page missed
+		gameContext.arrivingAt = data.newWorldState?.name;
 		gameContext.players.update(data.playerId, _ => ({ ..._, ...data.updates }));
 
 		if (data.playerId === gameContext.playerId) {
