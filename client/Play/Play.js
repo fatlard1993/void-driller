@@ -10,7 +10,7 @@ import Game from './Game';
 import ConsoleDialog from './ConsoleDialog';
 import { applyView, leave } from './reconcile';
 
-// Aborting stops following the game first, so the view that drops this player isn't taken for being dropped
+// Aborting says so first, so the view that drops this player isn't taken for being dropped
 class AbortDialog extends styled(ExitDialog)`
 	${frameDialogStyles(frameCorner.small)}
 ` {
@@ -44,7 +44,7 @@ export default class Play extends View {
 										confirmLabel: 'Abort Contract',
 										label:
 											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
-										beforeExit: () => gameContext.leaveGame?.(),
+										beforeExit: () => (gameContext.exiting = true),
 										onExit: () => teardownGame(),
 									}),
 								);
@@ -75,6 +75,7 @@ export default class Play extends View {
 
 		gameContext.serverState = null;
 		gameContext.isWatchMode = false;
+		gameContext.exiting = false;
 
 		// Opens the game as the player this browser joined as: the server hears they're here and sends each view of the
 		// game from then on (applyView); a browser that isn't in it goes to join it
@@ -86,8 +87,6 @@ export default class Play extends View {
 
 		if (!game || this.elem?.isConnected === false) return leaveGame();
 
-		// Leaving (aborting the contract) stops following the game first
-		gameContext.leaveGame = leaveGame;
 		this.addCleanup('enterGame', leaveGame);
 		gameContext.serverState = game;
 		this._toolbar.options.heading = game.name;

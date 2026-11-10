@@ -51,7 +51,6 @@ export const teardownGame = () => {
 		musicManager: null,
 		openDialog: null,
 		pendingTradeInvitation: null,
-		leaveGame: null,
 		transitioning: false,
 		sounds: {},
 		sceneLayers: {},

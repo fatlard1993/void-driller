@@ -195,6 +195,17 @@ describe('applyView', () => {
 		expect(localStorage.getItem('g1')).toBeNull();
 	});
 
+	it('lets a player on their way out (aborting) go without telling them their contract closed', () => {
+		arrange();
+		gameContext.exiting = true;
+
+		applyView(view({ players: [] }));
+
+		expect(window.location.hash).toBe('#/play/g1');
+		expect(localStorage.getItem('g1')).toBe('me');
+		gameContext.exiting = false;
+	});
+
 	it('fetches the whole game for a view of another asteroid', async () => {
 		arrange();
 		const players = [{ id: 'me', position: { x: 0, y: 0 } }];

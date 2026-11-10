@@ -85,7 +85,9 @@ export const applyView = view => {
 
 	if (!local || view.id !== gameContext.gameId) return;
 	if (!gameContext.isWatchMode && !view.players.some(({ id }) => id === gameContext.playerId)) {
-		return leave('Your contract was closed.');
+		// Aborting the contract is on its way out already
+		if (!gameContext.exiting) leave('Your contract was closed.');
+		return;
 	}
 	if (view.world.name !== local.world.name) return refetchGame();
 

@@ -86,8 +86,8 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			new Button({
 				content: 'Abort Contract ($0)',
 				onPointerPress: async () => {
-					// Stops following the game first, so the view that drops this driller isn't taken for being dropped
-					gameContext.leaveGame?.();
+					// Said first, so the view that drops this driller isn't taken for being dropped
+					gameContext.exiting = true;
 					const result = await exitGame();
 
 					if (result.status === 'error') new Notify({ intent: 'danger', content: failureReason(result) });
