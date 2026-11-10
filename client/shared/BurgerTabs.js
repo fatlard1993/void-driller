@@ -2,8 +2,7 @@ import { Button, Icon, styled, theme } from '@vanilla-bean/components';
 
 import { tabFrameAttributes, tabFrameStyles } from './frame';
 
-/** A row of tabs over the panel they switch; the menu body below it is the selected tab's */
-export const TabRow = styled.Component`
+const StyledTabRow = styled.Component`
 	display: flex;
 	flex-wrap: wrap-reverse;
 	gap: ${({ space }) => space.sm};
@@ -34,6 +33,13 @@ export const TabRow = styled.Component`
 	}
 `;
 
+/** A row of tabs over the panel they switch; the menu body below it is the selected tab's */
+export class TabRow extends StyledTabRow {
+	constructor(options = {}, ...children) {
+		super({ role: 'tablist', ...options }, ...children);
+	}
+}
+
 /**
  * A tab for a TabRow; the selected one is already pressed, so it's disabled
  * @param {object} options - Button options
@@ -43,6 +49,8 @@ export const TabRow = styled.Component`
 export const Tab = ({ selected = false, ...options }) =>
 	new Button({
 		...tabFrameAttributes(selected),
+		role: 'tab',
+		'aria-selected': String(selected),
 		...options,
 		...(selected && { addClass: 'selected-menu', disabled: true }),
 	});
@@ -109,6 +117,11 @@ export default class BurgerTabs {
 		Tab({
 			appendTo: this._menuContainer,
 			content: new Icon({ icon: 'bars' }),
+			// Not a tab itself: it shows the others
+			role: null,
+			'aria-selected': null,
+			'aria-label': 'All tabs',
+			'aria-expanded': String(this._menuExpanded),
 			onPointerPress: () => {
 				this._menuExpanded = !this._menuExpanded;
 				// Re-render menu buttons
