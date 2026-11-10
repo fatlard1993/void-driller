@@ -162,12 +162,8 @@ class AudioPlayer extends styled.Component(
 			'aria-label': 'Back 10 seconds',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
-			onPointerDown: event => {
-				if (event) {
-					event.stopPropagation();
-				}
-				this.skip(-10);
-			},
+			onPointerDown: event => event?.stopPropagation(),
+			onPointerPress: () => this.skip(-10),
 		});
 
 		// Play/Pause button
@@ -176,12 +172,8 @@ class AudioPlayer extends styled.Component(
 			'aria-label': 'Play or pause',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'play-pause'],
-			onPointerDown: event => {
-				if (event) {
-					event.stopPropagation();
-				}
-				this.togglePlayPause();
-			},
+			onPointerDown: event => event?.stopPropagation(),
+			onPointerPress: () => this.togglePlayPause(),
 		});
 
 		// Skip forward 10s button
@@ -190,12 +182,8 @@ class AudioPlayer extends styled.Component(
 			'aria-label': 'Forward 10 seconds',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
-			onPointerDown: event => {
-				if (event) {
-					event.stopPropagation();
-				}
-				this.skip(10);
-			},
+			onPointerDown: event => event?.stopPropagation(),
+			onPointerPress: () => this.skip(10),
 		});
 
 		// Visualizer container (populates when playing)
