@@ -13,10 +13,18 @@ const StyledTabRow = styled.Component`
 		${tabFrameStyles}
 	}
 
+	/* The tab already showing: it keeps its focus ring, but nothing about it invites a press */
 	& > button.selected-menu {
 		background: transparent;
 		color: ${({ colors }) => colors.success};
 		font-weight: bold;
+		cursor: default;
+
+		&,
+		&:hover,
+		&:active {
+			filter: none;
+		}
 	}
 
 	/* A tab with nothing behind it */
@@ -41,7 +49,8 @@ export class TabRow extends StyledTabRow {
 }
 
 /**
- * A tab for a TabRow; the selected one is already pressed, so it's disabled
+ * A tab for a TabRow. The selected one says so with aria-selected and does nothing when pressed; it isn't disabled,
+ * which would drop the current tab out of the keyboard's reach and read it out as unavailable
  * @param {object} options - Button options
  * @param {boolean} [options.selected] - Whether it's the selected tab
  * @returns {Button} The tab
@@ -52,7 +61,7 @@ export const Tab = ({ selected = false, ...options }) =>
 		role: 'tab',
 		'aria-selected': String(selected),
 		...options,
-		...(selected && { addClass: 'selected-menu', disabled: true }),
+		...(selected && { addClass: 'selected-menu', onPointerPress: undefined }),
 	});
 
 /**
