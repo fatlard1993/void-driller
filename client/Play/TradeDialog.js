@@ -8,7 +8,6 @@ import {
 	capitalize,
 	debounce,
 	styled,
-	theme,
 	Oxject as Context,
 } from '@vanilla-bean/components';
 
@@ -437,9 +436,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			className: 'accept-button',
 			icon: this.iAccepted ? 'check' : undefined,
 			textContent: this.iAccepted ? 'You Accepted' : 'Accept Trade',
-			style: {
-				backgroundColor: this.iAccepted ? theme.colors.success : '',
-			},
 			onPointerPress: () => {
 				if (!this.iAccepted) act('acceptTrade', { tradeId: this.tradeSession.id });
 			},
@@ -472,7 +468,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		if (this.myAcceptButton) {
 			this.myAcceptButton.options.icon = this.iAccepted ? 'check' : undefined;
 			this.myAcceptButton.options.textContent = this.iAccepted ? 'You Accepted' : 'Accept Trade';
-			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted ? theme.colors.success.toRgbString() : '';
 			this.myAcceptButton.options.disabled = this.iAccepted;
 		}
 	}
