@@ -13,13 +13,11 @@ export class CardGrid extends (styled.Component`
 	static schema = {
 		minCardWidth: { default: 200 },
 		maxCardWidth: { default: 300 },
-		gap: { default: 12 },
 	};
 
 	build() {
 		// Update grid styles based on options
 		this.elem.style.gridTemplateColumns = `repeat(auto-fit, minmax(${this.options.minCardWidth}px, ${this.options.maxCardWidth}px))`;
-		this.elem.style.gap = `${this.options.gap}px`;
 
 		// Append any provided content
 		if (this.options.content) {
