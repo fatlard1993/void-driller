@@ -33,6 +33,11 @@ const StyledDialog = styled(Dialog)`
 	}
 `;
 
+/** A yes-or-no question in the game's frame: `ConfirmDialog.confirm({ ...frameAttributes, header, confirmLabel })` */
+export const ConfirmDialog = styled(Dialog)`
+	${frameDialogStyles(frameCorner.small)}
+`;
+
 /**
  * Gives game input back once a dialog closes, however it closes. openDialog stays set a moment longer, so the press that
  * closed the dialog doesn't reach the game behind it.

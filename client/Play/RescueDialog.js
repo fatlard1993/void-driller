@@ -1,6 +1,7 @@
 import { Elem, Button, failureReason, theme, styled } from '@vanilla-bean/components';
 
-import BaseDialog from '../shared/BaseDialog';
+import BaseDialog, { ConfirmDialog } from '../shared/BaseDialog';
+import { frameAttributes } from '../shared/frame';
 import gameContext from '../shared/gameContext';
 import { act } from '@fatlard1993/web-game-framework/client';
 import { exitGame } from '../api';
@@ -86,6 +87,16 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			new Button({
 				content: 'Abort Contract ($0)',
 				onPointerPress: async () => {
+					const confirmed = await ConfirmDialog.confirm({
+						...frameAttributes,
+						intent: 'danger',
+						header: 'Abort this contract?',
+						body: 'Terminating this drilling contract will remove you from the operation. This action cannot be undone.',
+						confirmLabel: 'Abort Contract',
+					});
+
+					if (!confirmed) return;
+
 					// Said first, so the view that drops this driller isn't taken for being dropped
 					gameContext.exiting = true;
 					const result = await exitGame();
