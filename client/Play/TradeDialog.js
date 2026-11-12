@@ -473,7 +473,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			this.myAcceptButton.options.icon = this.iAccepted ? 'check' : undefined;
 			this.myAcceptButton.options.textContent = this.iAccepted ? 'You Accepted' : 'Accept Trade';
 			this.myAcceptButton.elem.style.backgroundColor = this.iAccepted ? theme.colors.success.toRgbString() : '';
-			this.myAcceptButton.elem.disabled = this.iAccepted;
+			this.myAcceptButton.options.disabled = this.iAccepted;
 		}
 	}
 
