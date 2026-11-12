@@ -1,4 +1,4 @@
-import { Button, Icon, styled, theme } from '@vanilla-bean/components';
+import { Button, styled } from '@vanilla-bean/components';
 
 import { tabFrameAttributes, tabFrameStyles } from './frame';
 
@@ -125,7 +125,7 @@ export default class BurgerTabs {
 		// Hamburger button (always in fixed position)
 		Tab({
 			appendTo: this._menuContainer,
-			content: new Icon({ icon: 'bars' }),
+			icon: 'bars',
 			// Not a tab itself: it shows the others
 			role: null,
 			'aria-selected': null,
@@ -135,9 +135,6 @@ export default class BurgerTabs {
 				this._menuExpanded = !this._menuExpanded;
 				// Re-render menu buttons
 				this.updateMenuButtons();
-			},
-			style: {
-				backgroundColor: this._menuExpanded ? theme.colors.danger : '',
 			},
 		});
 

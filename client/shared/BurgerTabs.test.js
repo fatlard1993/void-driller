@@ -40,4 +40,18 @@ describe('BurgerTabs', () => {
 		expect(selected.textContent).toBe('Cargo');
 		expect(selected.disabled).toBe(false);
 	});
+
+	it('says whether the hamburger is showing the rest through aria-expanded alone, with its glyph as its icon', () => {
+		new BurgerTabs({ appendTo: document.body, tabs: ['Cargo', 'Shop'], selectedTab: 'Cargo', onTabClick: () => {} });
+
+		const hamburger = () => document.querySelector('[aria-label="All tabs"]');
+
+		expect(hamburger().getAttribute('aria-expanded')).toBe('false');
+		expect(hamburger().classList.contains('fa-bars')).toBe(true);
+
+		hamburger().click();
+
+		expect(hamburger().getAttribute('aria-expanded')).toBe('true');
+		expect(hamburger().style.backgroundColor).toBe('');
+	});
 });
