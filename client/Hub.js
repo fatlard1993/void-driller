@@ -10,6 +10,7 @@ const devButton =
 				textContent: '> Dev Console',
 				href: href(paths.dev),
 				variant: 'button',
+				tooltip: false,
 			})
 		: null;
 

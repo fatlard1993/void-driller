@@ -22,6 +22,9 @@ export default class Watch extends View {
 							textContent: 'Back to Hub',
 							href: href(paths.hub),
 							variant: 'button',
+							icon: 'arrow-left',
+							addClass: 'start',
+							tooltip: false,
 						}),
 					],
 					right: [
@@ -29,6 +32,7 @@ export default class Watch extends View {
 							textContent: 'Deploy',
 							href: href(paths.join, { gameId: options.gameId }),
 							variant: 'button',
+							tooltip: false,
 						}),
 					],
 				},
