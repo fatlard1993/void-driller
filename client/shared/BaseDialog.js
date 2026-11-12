@@ -61,10 +61,8 @@ export default class BaseDialog extends StyledDialog {
 	constructor(options = {}) {
 		// Default configuration for all game dialogs
 		const defaultConfig = {
-			style: {
-				width: 'clamp(420px, 90vw, 1700px)',
-				height: 'clamp(420px, 72vh, 1200px)',
-			},
+			// Viewers and tabbed panes: they need the width
+			size: 'large',
 			...frameAttributes,
 			buttons: ['Close'],
 			onButtonPress: () => {
@@ -73,14 +71,7 @@ export default class BaseDialog extends StyledDialog {
 		};
 
 		// Merge defaults with provided options
-		const mergedConfig = {
-			...defaultConfig,
-			...options,
-			style: {
-				...defaultConfig.style,
-				...options.style,
-			},
-		};
+		const mergedConfig = { ...defaultConfig, ...options };
 
 		super(mergedConfig);
 
