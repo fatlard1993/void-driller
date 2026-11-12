@@ -336,8 +336,24 @@ class AutoPathControl extends Component {
 				content: 'Clear All',
 				style: { fontSize: theme.fontSize.sm, marginBottom: theme.space.sm },
 				onPointerPress: () => {
+					const cleared = [...gameContext.autoPath.ignore];
+
 					clearIgnoreList();
 					this.refresh();
+
+					new Notify({
+						intent: 'info',
+						content: 'Ignore list cleared',
+						actions: [
+							{
+								textContent: 'Undo',
+								onPointerPress: () => {
+									cleared.forEach(addToIgnoreList);
+									this.refresh();
+								},
+							},
+						],
+					});
 				},
 			});
 		}
