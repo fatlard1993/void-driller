@@ -1,4 +1,4 @@
-import { Elem, Button, failureReason, theme, styled } from '@vanilla-bean/components';
+import { Elem, Button, EmptyState, failureReason, theme, styled } from '@vanilla-bean/components';
 
 import BaseDialog, { ConfirmDialog } from '../shared/BaseDialog';
 import { frameAttributes } from '../shared/frame';
@@ -118,13 +118,12 @@ export default class RescueDialog extends (styled(BaseDialog)`
 		const hasItems = Object.values(player.items).some(count => count > 0);
 
 		if (!hasItems) {
-			this._menuBody.append(
-				new Elem({
-					tag: 'p',
-					content: 'No items in inventory. You should have prepared better.',
-					className: 'description',
-				}),
-			);
+			new EmptyState({
+				appendTo: this._menuBody,
+				icon: 'box-open',
+				title: 'No items in inventory',
+				message: 'You should have prepared better: SpaceCo sells supplies in its shop.',
+			});
 			return;
 		}
 

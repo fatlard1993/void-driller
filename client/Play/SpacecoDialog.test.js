@@ -59,4 +59,14 @@ describe('SpacecoDialog', () => {
 
 		expect(dialog.options.view).toBe('Sell');
 	});
+
+	it('says how to get minerals when there are none to sell, and offers the collection', async () => {
+		const dialog = new SpacecoDialog({ view: 'Sell' });
+		await new Promise(resolve => setTimeout(resolve));
+
+		const empty = dialog.elem.querySelector('.vbc-empty-state, .EmptyState');
+
+		expect(empty.textContent).toContain('No minerals to sell');
+		expect(empty.querySelector('button').textContent).toBe('Show collection');
+	});
 });

@@ -1,6 +1,7 @@
 import {
 	Button,
 	Elem,
+	EmptyState,
 	Icon,
 	Input,
 	Label,
@@ -79,13 +80,6 @@ class TradeItemsList extends (styled.Component`
 	max-height: 280px;
 	overflow-y: auto;
 	margin-bottom: ${({ space }) => space.md};
-
-	& .empty-trade {
-		color: ${({ colors }) => colors.muted};
-		text-align: center;
-		font-style: italic;
-		padding: ${({ space }) => `${space.xl} ${space.md}`};
-	}
 `) {
 	build() {
 		const { offer, editable, tradeDialog } = this.options;
@@ -208,10 +202,10 @@ class TradeItemsList extends (styled.Component`
 
 		if (!hasItems) {
 			this.append(
-				new Elem({
-					tag: 'div',
-					className: 'empty-trade',
-					content: editable ? 'Add items below' : 'Nothing offered',
+				new EmptyState({
+					icon: 'box-open',
+					title: 'Nothing offered',
+					message: editable ? 'Add items below.' : '',
 				}),
 			);
 		}
@@ -282,13 +276,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 	& .menuBody {
 		background-color: ${({ colors }) => colors.alpha(colors.white, 0.04)};
 		padding: ${({ space }) => `${space.md} ${space.lg}`};
-	}
-
-	& .empty-trade {
-		color: ${({ colors }) => colors.muted};
-		text-align: center;
-		font-style: italic;
-		padding: ${({ space }) => `${space.xl} ${space.md}`};
 	}
 
 	& .acceptance-bar {

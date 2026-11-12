@@ -1,5 +1,6 @@
 import {
 	Component,
+	EmptyState,
 	Label,
 	SectionLabel,
 	Button,
@@ -628,16 +629,18 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const player = gameContext.players.currentPlayer;
 
 		if (Object.keys(player.hull).length === 0) {
-			this._menuBody.append(
-				new Elem({ tag: 'p', content: 'No minerals to sell' }),
-				new Button({
-					content: 'Show Collection',
-					style: { flex: '1' },
+			new EmptyState({
+				appendTo: this._menuBody,
+				icon: 'gem',
+				title: 'No minerals to sell',
+				message: 'Drill into minerals and bring them back to sell.',
+				action: {
+					textContent: 'Show collection',
 					onPointerPress: () => {
 						this.options.view = 'status_Minerals';
 					},
-				}),
-			);
+				},
+			});
 
 			return;
 		}
@@ -1266,7 +1269,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const cost = Math.floor(neededFuel * pricePerLiter);
 
 		if (neededFuel < 0.01) {
-			this._menuBody.append(new Elem({ tag: 'p', content: 'Tank is full' }));
+			new EmptyState({ appendTo: this._menuBody, icon: 'gas-pump', title: 'Tank is full' });
 
 			return;
 		}
@@ -1527,11 +1530,11 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const player = gameContext.players.currentPlayer;
 
 		if (Object.values(player.items).every(count => count <= 0)) {
-			new Elem({
-				tag: 'p',
-				content: 'No items in inventory to sell',
+			new EmptyState({
 				appendTo: this._subMenuBody,
-				style: { textAlign: 'center', padding: theme.space.lg, color: theme.colors.muted },
+				icon: 'box-open',
+				title: 'No items in inventory to sell',
+				message: 'Items bought in the shop or found while drilling show up here.',
 			});
 			return;
 		}

@@ -3,6 +3,7 @@ import {
 	Component,
 	convertRange,
 	Elem,
+	EmptyState,
 	Input,
 	Label,
 	List,
@@ -511,6 +512,17 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	render_cargo() {
 		const player = gameContext.players.currentPlayer;
 		let credits = 0;
+
+		if (!Object.keys(minerals).some(name => player.hull[name] || player.hull[`mineral_${name}`])) {
+			new EmptyState({
+				appendTo: this._menuBody,
+				icon: 'gem',
+				title: 'Cargo hold is empty',
+				message: 'Drill into minerals to fill it, then sell them at SpaceCo.',
+			});
+
+			return;
+		}
 
 		const total = new Elem({
 			appendTo: this._menuBody,
@@ -1024,13 +1036,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		const hasItems = Object.values(player.items).some(count => count > 0);
 
 		if (!hasItems) {
-			this._menuBody.append(
-				new Elem({
-					tag: 'p',
-					content: 'No items in inventory. Visit SpaceCo to purchase supplies.',
-					className: 'description',
-				}),
-			);
+			new EmptyState({
+				appendTo: this._menuBody,
+				icon: 'box-open',
+				title: 'No items in inventory',
+				message: 'Visit SpaceCo to purchase supplies.',
+			});
 			return;
 		}
 
