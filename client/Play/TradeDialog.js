@@ -128,7 +128,7 @@ class TradeItemsList extends (styled.Component`
 							}),
 					),
 					editable
-						? tradeDialog.renderQuantityControls(null, 'credits')
+						? tradeDialog.renderQuantityControls(null, 'credits', 'Credits')
 						: new Elem({
 								tag: 'div',
 								content: offer.credits.toString(),
@@ -162,7 +162,7 @@ class TradeItemsList extends (styled.Component`
 							}),
 					),
 					editable
-						? tradeDialog.renderQuantityControls('items', itemName)
+						? tradeDialog.renderQuantityControls('items', itemName, capitalize(itemName.replaceAll('_', ' '), true))
 						: new Elem({
 								tag: 'div',
 								content: `x${quantity}`,
@@ -196,7 +196,7 @@ class TradeItemsList extends (styled.Component`
 							}),
 					),
 					editable
-						? tradeDialog.renderQuantityControls('minerals', mineralName)
+						? tradeDialog.renderQuantityControls('minerals', mineralName, capitalize(displayName))
 						: new Elem({
 								tag: 'div',
 								content: `x${quantity}`,
@@ -526,7 +526,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		this.sendOffer(offer);
 	}
 
-	renderQuantityControls(section, key) {
+	renderQuantityControls(section, key, name) {
 		const current = this.offered(section, key);
 		const maxValue = section
 			? this.currentPlayer[section === 'items' ? 'items' : 'hull'][key] || 0
@@ -544,6 +544,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			new Input({
 				className: 'quantity-input',
 				type: 'number',
+				'aria-label': `Quantity of ${name}`,
 				min: 0,
 				max: maxValue,
 				value: current,
