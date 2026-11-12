@@ -951,9 +951,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Elem({ content: 'Buy' }),
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
-							style: {
-								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
-							},
 							onPointerPress: () => act('spacecoBuyUpgrade', { upgrade: id, type: 'vehicles' }),
 							disabled: !canAfford,
 						}),
@@ -1035,9 +1032,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Elem({ content: 'Buy' }),
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
-							style: {
-								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
-							},
 							onPointerPress: () => {
 								act('spacecoBuyUpgrade', { upgrade: id, type: 'engines' });
 							},
@@ -1140,9 +1134,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Elem({ content: 'Buy' }),
 								new PriceDisplay({ amount: finalCost, size: 14, preText: '(', postText: ')' }),
 							),
-							style: {
-								backgroundColor: !missingRequirements && canAfford ? '' : theme.colors.darkest(theme.colors.danger),
-							},
 							onPointerPress: () => act('spacecoBuyUpgrade', { upgrade: id, type: 'drills' }),
 							disabled: missingRequirements || !canAfford,
 						}),
@@ -1253,9 +1244,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								act('spacecoBuyUpgrade', { upgrade: id, type: 'parts' });
 							},
 							disabled: !canAfford,
-							style: {
-								backgroundColor: canAfford ? '' : theme.colors.darkest(theme.colors.danger),
-							},
 						}),
 					],
 				});
@@ -1353,9 +1341,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				appendTo: playerRepairs,
 				onPointerPress: () => act('spacecoRepair', { type: 'player' }),
 				disabled: cost > player.credits,
-				style: {
-					backgroundColor: cost <= player.credits ? '' : theme.colors.darkest(theme.colors.danger),
-				},
 			});
 		}
 
@@ -1526,10 +1511,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									new Elem({ content: 'Buy' }),
 									new PriceDisplay({ amount: scaledPrice, size: 14, preText: '(', postText: ')' }),
 								),
-								style: {
-									backgroundColor: canPurchase ? '' : theme.colors.darkest(theme.colors.danger),
-								},
 								onPointerPress: () => act('spacecoBuyItem', { item: key, count: 1 }),
+								disabled: !canPurchase,
 							}),
 						],
 					}),
