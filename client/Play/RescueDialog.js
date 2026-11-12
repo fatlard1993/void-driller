@@ -2,6 +2,7 @@ import { Elem, Button, failureReason, theme, styled } from '@vanilla-bean/compon
 
 import BaseDialog, { ConfirmDialog } from '../shared/BaseDialog';
 import { frameAttributes } from '../shared/frame';
+import { href, paths } from '../paths';
 import gameContext from '../shared/gameContext';
 import { act } from '@fatlard1993/web-game-framework/client';
 import { exitGame } from '../api';
@@ -103,7 +104,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 					if (result.status === 'error') new Notify({ intent: 'danger', content: failureReason(result) });
 
-					window.location.href = `#/join/${gameContext.gameId}`;
+					window.location.href = href(paths.join, { gameId: gameContext.gameId });
 
 					this.close();
 				},

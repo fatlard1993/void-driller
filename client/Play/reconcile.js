@@ -3,6 +3,7 @@ import { failureReason } from '@vanilla-bean/components';
 import { getGame } from '../api';
 import gameContext from '../shared/gameContext';
 import Notify from '../shared/Notify';
+import { href, paths } from '../paths';
 import { gridToPxPosition } from '../../utils';
 import { Gas, Ground, Item, Lava, Mineral } from './GameObjects';
 import { createAlien } from './GameObjects/aliens';
@@ -14,7 +15,7 @@ export const leave = (reason, gameId = gameContext.gameId) => {
 	new Notify({ intent: 'warning', content: reason });
 	// A player's stored id is for a contract that no longer holds them; a watcher stored nothing
 	if (!gameContext.isWatchMode) localStorage.removeItem(gameId);
-	window.location.href = '#/hub';
+	window.location.href = href(paths.hub);
 };
 
 const fetchAndReconcile = async () => {

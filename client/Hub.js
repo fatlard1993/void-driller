@@ -2,12 +2,13 @@ import { Link } from '@vanilla-bean/components';
 import { Hub as BaseHub } from '@fatlard1993/web-game-framework/ui/GameRoom';
 
 import { ConsoleContainer } from './shared/ConsoleContainer.js';
+import { href, paths } from './paths';
 
 const devButton =
 	process.env.NODE_ENV === 'development'
 		? new Link({
 				textContent: '> Dev Console',
-				href: '#/dev',
+				href: href(paths.dev),
 				variant: 'button',
 			})
 		: null;

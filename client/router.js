@@ -6,15 +6,7 @@ import Hub from './Hub';
 import Join from './Join';
 import Play from './Play';
 import Watch from './Watch/Watch';
-
-const paths = {
-	create: '/create',
-	hub: '/hub',
-	join: '/join/:gameId',
-	play: '/play/:gameId',
-	watch: '/watch/:gameId',
-	dev: '/dev',
-};
+import { paths } from './paths';
 
 const views = {
 	[paths.create]: Create,

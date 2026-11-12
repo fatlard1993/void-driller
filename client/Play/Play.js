@@ -6,6 +6,7 @@ import { ExitDialog } from '@fatlard1993/web-game-framework/ui/GameRoom';
 import gameContext, { teardownGame } from '../shared/gameContext';
 import { releaseInputOnClose } from '../shared/BaseDialog';
 import { frameAttributes, frameCorner, frameDialogStyles } from '../shared/frame';
+import { href, paths } from '../paths';
 import Game from './Game';
 import ConsoleDialog from './ConsoleDialog';
 import { applyView, leave } from './reconcile';
@@ -84,7 +85,7 @@ export default class Play extends View {
 
 		const { game, leave: leaveGame } = await enterGame(gameId, {
 			onState: applyView,
-			notMember: () => (window.location.href = `#/join/${gameId}`),
+			notMember: () => (window.location.href = href(paths.join, { gameId })),
 			gone: () => leave('This contract is gone.', gameId),
 		});
 

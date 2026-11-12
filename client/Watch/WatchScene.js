@@ -6,6 +6,7 @@ import { Ground, Item, Spaceco, Drill, Lava, Gas, ScreenLayer } from '../Play/Ga
 import { createAlien } from '../Play/GameObjects/aliens';
 import { vehicles, drills } from '../../constants';
 import Notify from '../shared/Notify';
+import { href, paths } from '../paths';
 
 export default class WatchScene extends Phaser.Scene {
 	constructor() {
@@ -467,7 +468,7 @@ export default class WatchScene extends Phaser.Scene {
 		document.body.appendChild(shipWrapper);
 
 		// Create DOM-based QR code container
-		const joinUrl = `${window.location.origin}#/join/${gameContext.gameId}`;
+		const joinUrl = `${window.location.origin}${href(paths.join, { gameId: gameContext.gameId })}`;
 
 		const qrWrapper = document.createElement('div');
 		qrWrapper.style.cssText = `

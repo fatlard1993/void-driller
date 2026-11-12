@@ -2,8 +2,9 @@ import { EmptyState, Link } from '@vanilla-bean/components';
 import { enterGame } from '@fatlard1993/web-game-framework/client';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import gameContext from '../shared/gameContext';
-import WatchGame from './WatchGame';
 import { applyView, leave } from '../Play/reconcile';
+import { href, paths } from '../paths';
+import WatchGame from './WatchGame';
 
 export default class Watch extends View {
 	static schema = {
@@ -19,14 +20,14 @@ export default class Watch extends View {
 					left: [
 						new Link({
 							textContent: 'Back to Hub',
-							href: '#/hub',
+							href: href(paths.hub),
 							variant: 'button',
 						}),
 					],
 					right: [
 						new Link({
 							textContent: 'Deploy',
-							href: `#/join/${options.gameId}`,
+							href: href(paths.join, { gameId: options.gameId }),
 							variant: 'button',
 						}),
 					],

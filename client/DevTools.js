@@ -2,6 +2,7 @@ import { Link, styled, theme } from '@vanilla-bean/components';
 
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import { LevelEditor } from './DevTools/LevelEditor';
+import { href, paths } from './paths';
 
 // Container styled to match other page containers (like ConsoleContainer)
 const DevToolsContainer = styled.Component`
@@ -31,7 +32,7 @@ export default class DevTools extends View {
 				left: [
 					new Link({
 						content: 'Back to Hub',
-						href: '#/hub',
+						href: href(paths.hub),
 						variant: 'button',
 					}),
 				],
