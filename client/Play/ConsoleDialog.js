@@ -34,7 +34,7 @@ import { loadDoc } from '../shared/loadDoc';
 import { formatPlayerAchievementRewards, getScaledServiceCosts, stepFuelCost } from '../../utils';
 import audioPlayer from '../shared/AudioPlayer';
 import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
-import { SubPanel } from '../shared/frame';
+import { SubPanel, subPanelOptions } from '../shared/frame';
 import {
 	toggleAutoPath,
 	setAutoPathRadius,
@@ -43,7 +43,8 @@ import {
 	clearIgnoreList,
 } from './inputs/pointer';
 
-const CollapsibleLabel = configured(SubPanel, { variant: 'collapsible' });
+// A settings section that folds away: a Label's collapsible variant, in the sub-panel's shape
+const CollapsibleLabel = configured(Label, { variant: 'collapsible', ...subPanelOptions });
 
 class AlertControl extends Component {
 	static schema = {
@@ -1141,8 +1142,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		this._menuBody.append(
 			...settingsControls,
 
-			new SubPanel(
-				{ label: 'Default Console Menu' },
+			new Label(
+				{ label: 'Default Console Menu', ...subPanelOptions },
 				new Select({
 					options: [
 						'Cargo',
@@ -1161,8 +1162,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				}),
 			),
 
-			new SubPanel(
-				{ label: 'Default SpaceCo Menu' },
+			new Label(
+				{ label: 'Default SpaceCo Menu', ...subPanelOptions },
 				new Select({
 					options: [
 						'Sell',

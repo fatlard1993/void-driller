@@ -4,6 +4,7 @@ import {
 	Icon,
 	Input,
 	Label,
+	SectionLabel,
 	Select,
 	capitalize,
 	debounce,
@@ -233,13 +234,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		padding: ${({ space }) => space.md};
 		display: flex;
 		flex-direction: column;
-	}
-
-	& .trade-header {
-		font-weight: bold;
-		margin-bottom: ${({ space }) => space.md};
-		padding-bottom: ${({ space }) => space.sm};
-		border-bottom: 1px solid ${({ colors }) => colors.border};
 	}
 
 	& .trade-items {
@@ -497,7 +491,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 				// Your Offer (editable)
 				new Elem(
 					{ className: 'trade-side your-offer', ...subPanelOptions },
-					new Elem({ className: 'trade-header', content: 'Your Offer' }),
+					new SectionLabel({ textContent: 'Your Offer' }),
 					this.myOfferList,
 					this.renderAddItemSection(),
 				),
@@ -505,7 +499,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 				// Their Offer (read-only)
 				new Elem(
 					{ className: 'trade-side their-offer', ...subPanelOptions },
-					new Elem({ className: 'trade-header', content: `${this.otherPlayer.name}'s Offer` }),
+					new SectionLabel({ textContent: `${this.otherPlayer.name}'s Offer` }),
 					this.theirOfferList,
 				),
 			),

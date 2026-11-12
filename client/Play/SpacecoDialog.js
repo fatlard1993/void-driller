@@ -1,6 +1,7 @@
 import {
 	Component,
 	Label,
+	SectionLabel,
 	Button,
 	List,
 	Elem,
@@ -1821,16 +1822,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 												width: '100%',
 											},
 											append: [
-												new Elem({
-													tag: 'p',
-													content: 'Requirements',
-													style: {
-														fontSize: theme.fontSize.sm,
-														fontWeight: 'bold',
-														marginBottom: theme.space.xs,
-														textAlign: 'center',
-													},
-												}),
+												new SectionLabel({ textContent: 'Requirements' }),
 												...requirements.map(requirement => {
 													const { current, goal, label } = requirementProgress(requirement);
 													const percentage = Math.min((current / goal) * 100, 100);

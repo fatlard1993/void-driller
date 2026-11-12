@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 
-import { cutCornerPoints, cutCorners } from './frame';
+import { SubPanel, cutCornerPoints, cutCorners } from './frame';
 
 describe('cutCorners', () => {
 	it('cuts only the corners named', () => {
@@ -26,5 +26,20 @@ describe('cutCornerPoints', () => {
 		const points = cutCornerPoints(2, 20, { tl: 6, br: 6 });
 
 		expect(points.every(({ x, y }) => x >= 0 && x <= 2 && y >= 0 && y <= 20)).toBe(true);
+	});
+});
+
+describe('SubPanel', () => {
+	it('heads its group with a SectionLabel rather than a field label', () => {
+		const panel = new SubPanel({ label: 'Position', appendTo: document.body }, 'X: 1 | Y: 2');
+
+		const heading = panel.elem.querySelector('[role="heading"]');
+
+		expect(heading.textContent).toBe('Position');
+		expect(panel.elem.querySelector('label')).toBeNull();
+		expect(panel.elem.textContent).toContain('X: 1 | Y: 2');
+		expect(panel.elem.classList.contains('sub-panel')).toBe(true);
+
+		document.body.innerHTML = '';
 	});
 });

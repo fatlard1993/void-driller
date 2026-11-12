@@ -1,4 +1,4 @@
-import { Label, configured, theme } from '@vanilla-bean/components';
+import { Component, SectionLabel, styled, theme } from '@vanilla-bean/components';
 
 /** The frame's edge, wherever the game draws one */
 export const frameColor = theme.colors.light(theme.colors.teal);
@@ -59,8 +59,25 @@ export const cutCorners = (size, corners) => {
  */
 const subPanelClass = 'sub-panel';
 
-/** A titled section of a framed dialog; what sits inside it (a list, a slider, a field) stays plain */
-export const SubPanel = configured(Label, { addClass: subPanelClass });
+/**
+ * A titled section of a framed dialog: a SectionLabel over what it groups, which stays plain (a list, a grid, a field
+ * with its own Label)
+ * @example new SubPanel({ label: 'Position' }, `X: ${x} | Y: ${y}`);
+ */
+export class SubPanel extends styled(
+	Component,
+	({ colors, space }) => `
+		display: inline-block;
+		width: calc(100% - 2 * ${space.md});
+		margin: 0 0 ${space.sm};
+		padding: ${space.sm} ${space.md};
+		color: ${colors.white};
+	`,
+) {
+	constructor({ label, ...options } = {}, ...children) {
+		super({ ...options, addClass: subPanelClass }, new SectionLabel({ textContent: label }), ...children);
+	}
+}
 
 /** For a section that isn't a SubPanel; spread into its options */
 export const subPanelOptions = { addClass: subPanelClass };
