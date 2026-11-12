@@ -11,7 +11,7 @@ class AudioPlayer extends styled.Component(
 		top: 48px;
 		left: 50%;
 		transform: translateX(-50%);
-		background: ${colors.darkest(colors.gray)};
+		background: ${colors.surface};
 		border: 2px solid ${colors.light(colors.gray)};
 		border-radius: ${radius.lg};
 		padding: ${space.md} ${space.lg};
