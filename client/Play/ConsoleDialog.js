@@ -168,6 +168,7 @@ class DebugControl extends Component {
 			{
 				appendTo: this,
 				label: 'Show Debug Log',
+				variant: 'inline-after',
 			},
 			new Input({
 				type: 'checkbox',
@@ -192,6 +193,7 @@ class AutoPathControl extends Component {
 			{
 				appendTo: this,
 				label: 'Auto-Path Enabled',
+				variant: 'inline-after',
 			},
 			new Input({
 				type: 'checkbox',
@@ -284,6 +286,7 @@ class AutoPathControl extends Component {
 			{
 				appendTo: this,
 				label: 'Prefer Open Spaces',
+				variant: 'inline-after',
 			},
 			new Input({
 				type: 'checkbox',
