@@ -250,7 +250,7 @@ export class Achievement extends styled.Popover(
 			setTimeout(() => {
 				gameContext.visibleAchievement = undefined;
 
-				this.elem.remove();
+				this.destroy();
 
 				if (gameContext.achievementQueue.length) {
 					new Achievement({ achievement: gameContext.achievementQueue.shift() });
