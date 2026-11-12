@@ -1,4 +1,4 @@
-import { Button, styled } from '@vanilla-bean/components';
+import { Button, EmptyState, styled } from '@vanilla-bean/components';
 
 import { enterGame } from '@fatlard1993/web-game-framework/client';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
@@ -79,11 +79,16 @@ export default class Play extends View {
 
 		// Opens the game as the player this browser joined as: the server hears they're here and sends each view of the
 		// game from then on (applyView); a browser that isn't in it goes to join it
+		// Until the game's first view is in
+		const loading = new EmptyState({ loading: true, appendTo: this._body });
+
 		const { game, leave: leaveGame } = await enterGame(gameId, {
 			onState: applyView,
 			notMember: () => (window.location.href = `#/join/${gameId}`),
 			gone: () => leave('This contract is gone.', gameId),
 		});
+
+		loading.destroy();
 
 		if (!game || this.elem?.isConnected === false) return leaveGame();
 

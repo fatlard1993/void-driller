@@ -1,4 +1,4 @@
-import { Link } from '@vanilla-bean/components';
+import { EmptyState, Link } from '@vanilla-bean/components';
 import { enterGame } from '@fatlard1993/web-game-framework/client';
 import { View } from '@fatlard1993/web-game-framework/ui/layout';
 import gameContext from '../shared/gameContext';
@@ -48,11 +48,16 @@ export default class Watch extends View {
 		gameContext.serverState = null;
 		gameContext.isWatchMode = true;
 
+		// Until the game's first view is in
+		const loading = new EmptyState({ loading: true, appendTo: this._body });
+
 		const { game, leave: leaveGame } = await enterGame(gameId, {
 			watch: true,
 			onState: applyView,
 			gone: () => leave('This contract is gone.', gameId),
 		});
+
+		loading.destroy();
 
 		if (!game || this.elem?.isConnected === false) return leaveGame();
 
