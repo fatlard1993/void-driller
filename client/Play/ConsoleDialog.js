@@ -441,7 +441,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		const needsRescue = player && (player.fuel < stepFuelCost(player, {}) || player.health <= 0);
 		const rescueCost = getScaledServiceCosts(gameContext.serverState?.world.spaceco.xp || 0).rescueCost;
 
-		const buttons = [];
+		// The way out first, then the rescue
+		const buttons = ['Close'];
 
 		if (needsRescue) {
 			buttons.push({
@@ -453,8 +454,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				disabled: player.credits < rescueCost,
 			});
 		}
-
-		buttons.push('Close');
 
 		super({
 			header: 'Console',
