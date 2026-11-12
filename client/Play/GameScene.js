@@ -133,7 +133,7 @@ export default class GameScene extends Phaser.Scene {
 		consoleText.style.cssText = `
 			font-family: 'FontWithASyntaxHighlighter', monospace;
 			color: ${theme.colors.white};
-			font-size: 18px;
+			font-size: ${theme.fontSize.lg};
 			white-space: pre-wrap;
 			margin: 0 0 16px 0;
 			padding: 0;
@@ -171,7 +171,7 @@ export default class GameScene extends Phaser.Scene {
 			transform: translate(-50%, -50%);
 			color: ${theme.colors.white};
 			font-family: 'FontWithASyntaxHighlighter', monospace;
-			font-size: 12px;
+			font-size: ${theme.fontSize.xs};
 			font-weight: bold;
 			text-shadow: 1px 1px 2px ${theme.colors.alpha(theme.colors.vantablack, 0.8)};
 			z-index: 1;

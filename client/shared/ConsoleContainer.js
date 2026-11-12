@@ -26,7 +26,7 @@ export class ConsoleContainer extends (styled.Component`
 		font-family: 'FontWithASyntaxHighlighter', monospace;
 		font-palette: --void-driller-console-theme;
 		color: ${theme.colors.white};
-		font-size: 18px;
+		font-size: ${theme.fontSize.lg};
 		white-space: pre-wrap;
 	}
 

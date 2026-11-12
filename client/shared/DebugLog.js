@@ -1,4 +1,4 @@
-import { styled, writeStorage } from '@vanilla-bean/components';
+import { styled, writeStorage, theme } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 
 export default class DebugLog extends (styled.Component`
@@ -9,7 +9,7 @@ export default class DebugLog extends (styled.Component`
 	color: #00ff00;
 	padding: 10px;
 	font-family: 'Courier New', monospace;
-	font-size: 11px;
+	font-size: ${theme.fontSize.xs};
 	z-index: 10000;
 	max-width: 90%;
 	max-height: 40vh;
@@ -162,7 +162,7 @@ export default class DebugLog extends (styled.Component`
 			color: #fff;
 			border: 1px solid #555;
 			padding: 2px 8px;
-			font-size: 10px;
+			font-size: ${theme.fontSize.xs};
 			border-radius: 2px;
 			cursor: pointer;
 			margin-left: 5px;
@@ -177,7 +177,7 @@ export default class DebugLog extends (styled.Component`
 			color: #fff;
 			border: none;
 			padding: 2px 6px;
-			font-size: 12px;
+			font-size: ${theme.fontSize.xs};
 			border-radius: 2px;
 			cursor: pointer;
 			margin-left: 5px;

@@ -157,7 +157,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 								new Elem({
 									tag: 'p',
 									content: `Quantity: ${count}`,
-									style: { margin: `${theme.space.xs} 0`, fontSize: '14px' },
+									style: { margin: `${theme.space.xs} 0`, fontSize: theme.fontSize.sm },
 								}),
 								new DescriptionText({
 									summary,
@@ -172,7 +172,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 										className: 'description',
 										style: {
 											color: theme.colors.danger,
-											fontSize: '13px',
+											fontSize: theme.fontSize.sm,
 											marginTop: theme.space.xs,
 										},
 									}),

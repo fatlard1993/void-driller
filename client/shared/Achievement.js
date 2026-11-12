@@ -49,30 +49,30 @@ export class Achievement extends styled.Popover(
 			}
 
 			& .title {
-				font-size: 16px;
+				font-size: ${theme.fontSize.md};
 				margin-left: ${space.sm};
 				margin-top: ${space.sm};
 			}
 
 			& .summary {
 				margin: ${space.sm} 0;
-				font-size: 0.85em;
+				font-size: ${theme.fontSize.sm};
 				padding-left: ${space.xs};
 			}
 
 			& .flavor {
-				font-size: 0.85em;
+				font-size: ${theme.fontSize.sm};
 			}
 
 			& .rewards {
 				padding: ${space.xs} ${space.sm};
 				margin: ${space.sm} 0 ${space.xs} 0;
-				font-size: 0.85em;
+				font-size: ${theme.fontSize.sm};
 			}
 
 			& .signature {
 				margin-top: ${space.xs};
-				font-size: 9px;
+				font-size: ${theme.fontSize.xs};
 			}
 		}
 
@@ -134,7 +134,7 @@ export class Achievement extends styled.Popover(
 			color: ${colors.white};
 			padding: ${space.xs} ${space.md};
 			border-radius: ${radius.sm};
-			font-size: 13px;
+			font-size: ${theme.fontSize.sm};
 			font-weight: bold;
 			white-space: nowrap;
 		}
@@ -157,7 +157,7 @@ export class Achievement extends styled.Popover(
 		& .title {
 			display: inline-block;
 			font-weight: bold;
-			font-size: 18px;
+			font-size: ${theme.fontSize.lg};
 			margin-left: ${space.md};
 			margin-top: ${space.md};
 			padding-right: 120px;
@@ -170,7 +170,7 @@ export class Achievement extends styled.Popover(
 			padding-left: ${space.sm};
 			margin: ${space.md} 0;
 			word-wrap: break-word;
-			font-size: 0.9em;
+			font-size: ${theme.fontSize.sm};
 		}
 
 		& .flavor {
@@ -186,7 +186,7 @@ export class Achievement extends styled.Popover(
 		& .signature {
 			margin-top: ${space.sm};
 			text-indent: 6px;
-			font-size: 10px;
+			font-size: ${theme.fontSize.xs};
 		}
 	`,
 ) {

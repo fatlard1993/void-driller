@@ -1,4 +1,4 @@
-import { Elem, Button, styled } from '@vanilla-bean/components';
+import { Elem, Button, styled, theme } from '@vanilla-bean/components';
 
 /**
  * Component that displays summary text with an optional "more/less" button to toggle full description.
@@ -13,14 +13,14 @@ export class DescriptionText extends (styled.Component`
 	max-width: 100%;
 
 	& .summary-text {
-		font-size: 12px;
+		font-size: ${theme.fontSize.xs};
 		line-height: 1.3;
 		max-width: 100%;
 		word-wrap: break-word;
 	}
 
 	& .description-text {
-		font-size: 12px;
+		font-size: ${theme.fontSize.xs};
 		line-height: 1.3;
 		max-width: 100%;
 		word-wrap: break-word;
@@ -28,7 +28,7 @@ export class DescriptionText extends (styled.Component`
 	}
 
 	& .toggle-button {
-		font-size: 10px;
+		font-size: ${theme.fontSize.xs};
 		padding: ${({ space }) => `${space.xs} ${space.sm}`};
 		margin-top: ${({ space }) => space.xs};
 	}

@@ -1,4 +1,4 @@
-import { Elem, Icon, styled, Button, delay } from '@vanilla-bean/components';
+import { Elem, Icon, styled, Button, delay, theme } from '@vanilla-bean/components';
 import gameContext from './gameContext';
 import bookendConfig from './bookendConfig.js';
 
@@ -41,7 +41,7 @@ class AudioPlayer extends styled.Component(
 
 		& .audio-title {
 			color: ${colors.lighter(colors.gray)};
-			font-size: 14px;
+			font-size: ${theme.fontSize.sm};
 			font-weight: bold;
 			margin: 0;
 		}
@@ -59,7 +59,7 @@ class AudioPlayer extends styled.Component(
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			font-size: 16px;
+			font-size: ${theme.fontSize.md};
 			background: ${colors.darker(colors.gray)};
 			border: 1px solid ${colors.gray};
 			cursor: pointer;
@@ -69,7 +69,7 @@ class AudioPlayer extends styled.Component(
 			@media ${media.phone} {
 				width: 40px;
 				height: 40px;
-				font-size: 20px;
+				font-size: ${theme.fontSize.xl};
 				border-width: 2px;
 			}
 

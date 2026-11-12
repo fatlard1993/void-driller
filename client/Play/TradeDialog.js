@@ -9,6 +9,7 @@ import {
 	debounce,
 	styled,
 	Oxject as Context,
+	theme,
 } from '@vanilla-bean/components';
 
 import { MineralImage, ItemImage } from '../shared/SpriteSheetImage';
@@ -40,11 +41,11 @@ const TradeItemRow = styled.Component`
 
 	& .item-name {
 		font-weight: bold;
-		font-size: 0.9em;
+		font-size: ${theme.fontSize.sm};
 	}
 
 	& .item-available {
-		font-size: 0.8em;
+		font-size: ${theme.fontSize.sm};
 		color: ${({ colors }) => colors.muted};
 		margin-top: ${({ space }) => space.xs};
 	}
@@ -64,7 +65,7 @@ const TradeItemRow = styled.Component`
 	& .quantity-button {
 		width: 32px;
 		height: 32px;
-		font-size: 14px;
+		font-size: ${theme.fontSize.sm};
 		padding: 0;
 		display: flex;
 		align-items: center;
@@ -320,7 +321,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 	& .player-name {
 		font-weight: bold;
-		font-size: 0.9em;
+		font-size: ${theme.fontSize.sm};
 	}
 
 	& .accept-indicator {
@@ -329,7 +330,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		gap: ${({ space }) => space.xs};
 		padding: ${({ space }) => `${space.xs} ${space.md}`};
 		border-radius: ${({ radius }) => radius.sm};
-		font-size: 0.85em;
+		font-size: ${theme.fontSize.sm};
 		font-weight: bold;
 	}
 

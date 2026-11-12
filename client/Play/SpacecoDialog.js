@@ -330,7 +330,7 @@ class UpgradePricing extends (styled.Component`
 					style: {
 						textDecoration: 'line-through',
 						color: theme.colors.muted,
-						fontSize: '0.9em',
+						fontSize: theme.fontSize.sm,
 						display: 'flex',
 						alignItems: 'center',
 						gap: theme.space.xs,
@@ -348,7 +348,7 @@ class UpgradePricing extends (styled.Component`
 					appendTo: this,
 					style: {
 						color: theme.colors.success,
-						fontSize: '0.9em',
+						fontSize: theme.fontSize.sm,
 						display: 'flex',
 						alignItems: 'center',
 						gap: theme.space.xs,
@@ -385,7 +385,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	& p.quote {
 		color: ${({ colors }) => colors.muted};
 		word-wrap: break-word;
-		font-size: 0.9em;
+		font-size: ${theme.fontSize.sm};
 		font-style: italic;
 
 		&:before,
@@ -573,7 +573,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						background: theme.colors.darkest(theme.colors.purple),
 						border: `1px solid ${theme.colors.purple}`,
 						borderRadius: theme.radius.sm,
-						fontSize: '13px',
+						fontSize: theme.fontSize.sm,
 					},
 					append: [
 						new Elem({
@@ -937,7 +937,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									textContent: '-Insufficient credits-',
 									style: {
 										color: theme.colors.danger,
-										fontSize: '13px',
+										fontSize: theme.fontSize.sm,
 									},
 								}),
 						],
@@ -1021,7 +1021,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									textContent: '-Insufficient credits-',
 									style: {
 										color: theme.colors.danger,
-										fontSize: '13px',
+										fontSize: theme.fontSize.sm,
 									},
 								}),
 						],
@@ -1117,7 +1117,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									textContent: '-Insufficient credits-',
 									style: {
 										color: theme.colors.danger,
-										fontSize: '13px',
+										fontSize: theme.fontSize.sm,
 									},
 								}),
 							missingRequirements &&
@@ -1126,7 +1126,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									textContent: '-Insufficient torque-',
 									style: {
 										color: theme.colors.danger,
-										fontSize: '13px',
+										fontSize: theme.fontSize.sm,
 									},
 								}),
 						],
@@ -1235,7 +1235,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									textContent: '-Insufficient credits-',
 									style: {
 										color: theme.colors.danger,
-										fontSize: '13px',
+										fontSize: theme.fontSize.sm,
 									},
 								}),
 						],
@@ -1437,7 +1437,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			append: [
 				new Elem({
 					content: 'Resupply Shop Stock',
-					style: { fontSize: '14px', fontWeight: 'bold' },
+					style: { fontSize: theme.fontSize.sm, fontWeight: 'bold' },
 				}),
 				new Button({
 					content: new Elem(
@@ -1500,7 +1500,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								}),
 								new Elem({
 									style: {
-										fontSize: '14px',
+										fontSize: theme.fontSize.sm,
 										textAlign: 'center',
 									},
 									content: `Stock: ${Array.isArray(stock) ? stock.join('-') : stock}`,
@@ -1512,7 +1512,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 										textContent: `-${disabledReason}-`,
 										style: {
 											color: theme.colors.danger,
-											fontSize: '13px',
+											fontSize: theme.fontSize.sm,
 										},
 									}),
 							],
@@ -1608,7 +1608,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								}),
 								new Elem({
 									style: {
-										fontSize: '13px',
+										fontSize: theme.fontSize.sm,
 										color: theme.colors.light(theme.colors.purple),
 										textAlign: 'center',
 										fontStyle: 'italic',
@@ -1617,7 +1617,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								}),
 								new Elem({
 									style: {
-										fontSize: '14px',
+										fontSize: theme.fontSize.sm,
 										color: theme.colors.muted,
 										textAlign: 'center',
 									},
@@ -1625,7 +1625,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								}),
 								new Elem({
 									style: {
-										fontSize: '14px',
+										fontSize: theme.fontSize.sm,
 										color: theme.colors.muted,
 										textAlign: 'center',
 									},
@@ -1680,7 +1680,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								new Elem({
 									tag: 'p',
 									content: `Quantity: ${count}`,
-									style: { margin: `${theme.space.xs} 0`, fontSize: '14px' },
+									style: { margin: `${theme.space.xs} 0`, fontSize: theme.fontSize.sm },
 								}),
 							],
 						}),
@@ -1694,7 +1694,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									append: [
 										new Elem({
 											style: {
-												fontSize: '14px',
+												fontSize: theme.fontSize.sm,
 												color: theme.colors.muted,
 												textAlign: 'center',
 												display: 'flex',
@@ -1747,7 +1747,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									content: `Can't be sold${state ? ` while ${state}` : ''}`,
 									style: {
 										margin: `${theme.space.xs} 0`,
-										fontSize: '14px',
+										fontSize: theme.fontSize.sm,
 										color: theme.colors.muted,
 										textAlign: 'center',
 									},
@@ -1825,7 +1825,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													tag: 'p',
 													content: 'Requirements',
 													style: {
-														fontSize: '13px',
+														fontSize: theme.fontSize.sm,
 														fontWeight: 'bold',
 														marginBottom: theme.space.xs,
 														textAlign: 'center',
@@ -1845,7 +1845,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 															new Elem({
 																content: `${label}: ${current} / ${goal}`,
 																style: {
-																	fontSize: '12px',
+																	fontSize: theme.fontSize.xs,
 																	textAlign: 'left',
 																	fontWeight: 'bold',
 																},
@@ -1905,7 +1905,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									amount: price,
 									size: 18,
 									style: {
-										fontSize: '14px',
+										fontSize: theme.fontSize.sm,
 										color: theme.colors.success,
 										justifyContent: 'center',
 										fontWeight: 'bold',

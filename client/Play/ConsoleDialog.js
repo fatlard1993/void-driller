@@ -321,7 +321,7 @@ class AutoPathControl extends Component {
 						appendTo: ignoreList,
 						textContent: mineralConfig.name,
 						icon: 'xmark',
-						style: { fontSize: '0.9em', padding: `${theme.space.xs} ${theme.space.sm}` },
+						style: { fontSize: theme.fontSize.sm, padding: `${theme.space.xs} ${theme.space.sm}` },
 						onPointerPress: () => {
 							removeFromIgnoreList(mineralType);
 							this.refresh();
@@ -333,7 +333,7 @@ class AutoPathControl extends Component {
 			new Button({
 				appendTo: ignoreListContainer,
 				content: 'Clear All',
-				style: { fontSize: '0.9em', marginBottom: theme.space.sm },
+				style: { fontSize: theme.fontSize.sm, marginBottom: theme.space.sm },
 				onPointerPress: () => {
 					clearIgnoreList();
 					this.refresh();
@@ -391,7 +391,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	& p.quote {
 		color: ${({ colors }) => colors.muted};
 		word-wrap: break-word;
-		font-size: 0.9em;
+		font-size: ${theme.fontSize.sm};
 		font-style: italic;
 
 		&:before,
@@ -1051,12 +1051,12 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 									new Elem({
 										tag: 'p',
 										content: where,
-										style: { margin: `${theme.space.xs} 0 0`, fontSize: '13px', textAlign: 'center' },
+										style: { margin: `${theme.space.xs} 0 0`, fontSize: theme.fontSize.sm, textAlign: 'center' },
 									}),
 								new Elem({
 									tag: 'p',
 									content: `Quantity: ${count}`,
-									style: { margin: `${theme.space.xs} 0`, fontSize: '14px', textAlign: 'center' },
+									style: { margin: `${theme.space.xs} 0`, fontSize: theme.fontSize.sm, textAlign: 'center' },
 								}),
 								!canUse &&
 									disabledReason &&
@@ -1066,7 +1066,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 										className: 'description',
 										style: {
 											color: theme.colors.danger,
-											fontSize: '13px',
+											fontSize: theme.fontSize.sm,
 											marginTop: theme.space.xs,
 										},
 									}),
