@@ -1,40 +1,51 @@
-import { styled, writeStorage, theme } from '@vanilla-bean/components';
+import { Button, Content, Elem, styled, writeStorage, theme } from '@vanilla-bean/components';
 import gameContext from './gameContext';
+
+// Each kind of entry in the color of its role
+const logIntent = { error: 'danger', warn: 'warning', log: 'info', info: 'success' };
 
 export default class DebugLog extends (styled.Component`
 	position: fixed;
 	top: 80px;
 	left: 10px;
-	background: rgba(0, 0, 0, 0.9);
-	color: #00ff00;
-	padding: 10px;
+	flex-direction: column;
+	background: ${({ colors }) => colors.alpha(colors.black, 0.9)};
+	color: ${({ colors }) => colors.success};
+	padding: ${({ space }) => space.md};
 	font-family: 'Courier New', monospace;
 	font-size: ${theme.fontSize.xs};
 	z-index: 10000;
 	max-width: 90%;
 	max-height: 40vh;
-	overflow-y: auto;
-	border: 1px solid #333;
-	border-radius: 4px;
+	border: 1px solid ${({ colors }) => colors.border};
+	border-radius: ${({ radius }) => radius.sm};
 	white-space: pre-wrap;
 	word-wrap: break-word;
 
-	&::-webkit-scrollbar {
-		width: 8px;
+	& .debug-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: ${({ space }) => space.sm};
+		margin-bottom: ${({ space }) => space.sm};
+		padding-bottom: ${({ space }) => space.xs};
+		border-bottom: 1px solid ${({ colors }) => colors.border};
+		font-weight: bold;
 	}
 
-	&::-webkit-scrollbar-track {
-		background: #222;
+	& .debug-content {
+		line-height: 1.3;
+		min-height: 100px;
+
+		& > span {
+			display: block;
+		}
 	}
 
-	&::-webkit-scrollbar-thumb {
-		background: #555;
-		border-radius: 4px;
-	}
-
-	&::-webkit-scrollbar-thumb:hover {
-		background: #777;
-	}
+	${({ colors }) =>
+		Object.entries(logIntent)
+			.map(([type, intent]) => `& .log-${type} { color: ${colors[intent]}; }`)
+			.join('\n')}
 `) {
 	constructor(options = {}) {
 		super({ ...options, autoRender: false });
@@ -93,37 +104,26 @@ export default class DebugLog extends (styled.Component`
 	}
 
 	updateContent() {
-		if (!this.contentDiv) return;
+		if (!this.content) return;
 
-		const logHtml = this.logs
-			.map(log => {
-				const color = this.getLogColor(log.type);
-				return `<span style="color: ${color}">[${log.timestamp}] ${log.message}</span>`;
-			})
-			.join('\n');
-
-		this.contentDiv.innerHTML = logHtml;
+		this.content.elem.replaceChildren(
+			...this.logs.map(
+				log =>
+					new Elem({
+						tag: 'span',
+						className: `log-${logIntent[log.type] ? log.type : 'info'}`,
+						textContent: `[${log.timestamp}] ${log.message}`,
+					}).elem,
+			),
+		);
 
 		// Auto-scroll to bottom
-		this.contentDiv.scrollTop = this.contentDiv.scrollHeight;
-	}
-
-	getLogColor(type) {
-		switch (type) {
-			case 'error':
-				return '#ff4444';
-			case 'warn':
-				return '#ffaa00';
-			case 'log':
-				return '#88ccff';
-			default:
-				return '#00ff00';
-		}
+		this.content.elem.scrollTop = this.content.elem.scrollHeight;
 	}
 
 	setVisibility(visible) {
 		if (visible) {
-			this.elem.style.display = 'block';
+			this.elem.style.display = 'flex';
 			this.updateContent();
 		} else {
 			this.elem.style.display = 'none';
@@ -136,71 +136,25 @@ export default class DebugLog extends (styled.Component`
 	}
 
 	build() {
-		// Create header with controls
-		const header = document.createElement('div');
-		header.style.cssText = `
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			margin-bottom: 8px;
-			padding-bottom: 4px;
-			border-bottom: 1px solid #333;
-			font-weight: bold;
-		`;
+		new Elem(
+			{ className: 'debug-header', appendTo: this },
+			new Elem({ tag: 'span', textContent: 'Debug Log' }),
+			new Elem(
+				{},
+				new Button({ textContent: 'Clear', variant: 'flat', onPointerPress: () => this.clear() }),
+				new Button({
+					icon: 'xmark',
+					variant: 'flat',
+					'aria-label': 'Close',
+					onPointerPress: () => {
+						gameContext.debugVisible = false;
+						writeStorage('debugVisible', false);
+					},
+				}),
+			),
+		);
 
-		const title = document.createElement('span');
-		title.textContent = 'Debug Log';
-		title.style.color = '#00ff00';
-
-		const controls = document.createElement('div');
-
-		// Clear button
-		const clearBtn = document.createElement('button');
-		clearBtn.textContent = 'Clear';
-		clearBtn.style.cssText = `
-			background: #333;
-			color: #fff;
-			border: 1px solid #555;
-			padding: 2px 8px;
-			font-size: ${theme.fontSize.xs};
-			border-radius: 2px;
-			cursor: pointer;
-			margin-left: 5px;
-		`;
-		clearBtn.onclick = () => this.clear();
-
-		// Close button
-		const closeBtn = document.createElement('button');
-		closeBtn.textContent = '×';
-		closeBtn.style.cssText = `
-			background: #d33;
-			color: #fff;
-			border: none;
-			padding: 2px 6px;
-			font-size: ${theme.fontSize.xs};
-			border-radius: 2px;
-			cursor: pointer;
-			margin-left: 5px;
-		`;
-		closeBtn.onclick = () => {
-			gameContext.debugVisible = false;
-			writeStorage('debugVisible', false);
-		};
-
-		controls.appendChild(clearBtn);
-		controls.appendChild(closeBtn);
-		header.appendChild(title);
-		header.appendChild(controls);
-
-		// Create content area
-		this.contentDiv = document.createElement('div');
-		this.contentDiv.style.cssText = `
-			line-height: 1.3;
-			min-height: 100px;
-		`;
-
-		this.elem.appendChild(header);
-		this.elem.appendChild(this.contentDiv);
+		this.content = new Content({ addClass: 'debug-content', appendTo: this });
 
 		// Initial content
 		this.addLog('Debug log initialized');
