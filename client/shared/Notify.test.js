@@ -27,4 +27,22 @@ describe('Notify', () => {
 
 		expect(notify.elem.classList.contains('stacked')).toBe(true);
 	});
+
+	it("shortens info and success toasts to the player's auto-dismiss setting", () => {
+		gameContext.notifySettings = { ...gameContext.notifySettings, autoDismissTimeout: 1234 };
+
+		expect(new Notify({ content: 'Sold', intent: 'success' }).options.timeout).toBe(1234);
+		expect(new Notify({ content: 'Docked', intent: 'info' }).options.timeout).toBe(1234);
+	});
+
+	it('leaves a warning or danger toast up until pressed', () => {
+		gameContext.notifySettings = { ...gameContext.notifySettings, autoDismissTimeout: 1234 };
+
+		expect(new Notify({ content: 'Failed to load', intent: 'danger' }).options.timeout).toBe(0);
+		expect(new Notify({ content: 'Low fuel', intent: 'warning' }).options.timeout).toBe(0);
+	});
+
+	it('keeps a timeout given to it', () => {
+		expect(new Notify({ content: 'Low fuel', intent: 'warning', timeout: 30000 }).options.timeout).toBe(30000);
+	});
 });

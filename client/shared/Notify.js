@@ -24,8 +24,11 @@ export default class Notify extends styled(
 	`,
 ) {
 	constructor(options) {
-		// Use gameContext default timeout if no timeout specified
-		const timeout = options.timeout !== undefined ? options.timeout : gameContext.notifySettings?.autoDismissTimeout;
+		// The player's auto-dismiss setting shortens info and success toasts; a warning or danger keeps the library's default and stays until pressed
+		const intent = options.intent ?? 'success';
+		const timeout =
+			options.timeout ??
+			(intent === 'info' || intent === 'success' ? gameContext.notifySettings?.autoDismissTimeout : undefined);
 
 		super({
 			// Scattered over the game, but stacked in the corner over a dialog, where a scattered toast lands on its header
