@@ -2,6 +2,7 @@ import {
 	capitalize,
 	Component,
 	convertRange,
+	Content,
 	Elem,
 	EmptyState,
 	Input,
@@ -1246,7 +1247,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		const pane = this._subMenuBody;
 		const helpFile = await loadDoc(pane, 'docs/help.md', 'SpaceCo documentation');
 
-		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile, appendTo: pane });
+		new Content({ innerHTML: helpFile, appendTo: pane });
 	}
 
 	async render_help_briefing() {
@@ -1320,7 +1321,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			'briefing',
 		);
 
-		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile, appendTo: pane });
+		new Content({ innerHTML: helpFile, appendTo: pane });
 	}
 
 	static schema = {

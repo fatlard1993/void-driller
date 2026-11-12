@@ -1,5 +1,6 @@
 import {
 	Button,
+	Content,
 	Elem,
 	EmptyState,
 	Icon,
@@ -75,10 +76,9 @@ const TradeItemRow = styled.Component`
 	}
 `;
 
-class TradeItemsList extends (styled.Component`
+class TradeItemsList extends (styled(Content)`
 	flex: 1;
 	max-height: 280px;
-	overflow-y: auto;
 	margin-bottom: ${({ space }) => space.md};
 `) {
 	build() {
@@ -228,13 +228,6 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		padding: ${({ space }) => space.md};
 		display: flex;
 		flex-direction: column;
-	}
-
-	& .trade-items {
-		flex: 1;
-		max-height: 280px;
-		overflow-y: auto;
-		margin-bottom: ${({ space }) => space.md};
 	}
 
 	& .add-item-section {

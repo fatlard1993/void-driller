@@ -1,4 +1,4 @@
-import { Elem, writeStorage } from '@vanilla-bean/components';
+import { Content, writeStorage } from '@vanilla-bean/components';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
@@ -30,7 +30,7 @@ export default class BriefingDialog extends BaseDialog {
 			'briefing',
 		);
 
-		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile, appendTo: this._body });
+		new Content({ innerHTML: helpFile, appendTo: this._body });
 
 		// Auto-play briefing audio when dialog opens, queue bulletin after with bookends
 		audioPlayer.play(gameContext.serverState.world.name, 'briefing', { autoQueue: true, useBookends: true });
