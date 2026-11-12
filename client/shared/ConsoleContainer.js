@@ -81,7 +81,7 @@ export class ConsoleContainer extends (styled.Component`
 
 		this.skip = new Button({
 			appendTo: this,
-			content: 'skip',
+			content: 'Skip',
 			onPointerPress: () => {
 				this.skipped = true;
 

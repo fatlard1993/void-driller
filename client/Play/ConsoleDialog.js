@@ -338,7 +338,7 @@ class AutoPathControl extends Component {
 
 			new Button({
 				appendTo: ignoreListContainer,
-				content: 'Clear All',
+				content: 'Clear all',
 				style: { fontSize: theme.fontSize.sm, marginBottom: theme.space.sm },
 				onPointerPress: () => {
 					const cleared = [...gameContext.autoPath.ignore];
@@ -469,8 +469,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			buttons.push({
 				textContent:
 					player.credits >= rescueCost
-						? `SpaceCo Emergency Rescue ($${rescueCost})`
-						: `SpaceCo Emergency Rescue ($${rescueCost}) - Insufficient Funds`,
+						? `Call SpaceCo emergency rescue ($${rescueCost})`
+						: `Call SpaceCo emergency rescue ($${rescueCost}) - insufficient funds`,
 				addClass: ['rescueButton'],
 				disabled: player.credits < rescueCost,
 			});
@@ -482,7 +482,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			buttons,
 			onButtonPress: ({ button, closeDialog }) => {
 				// Handle rescue button
-				if (button.textContent?.includes('SpaceCo Emergency Rescue')) {
+				if (button.textContent?.includes('SpaceCo emergency rescue')) {
 					act('spacecoRescue');
 					closeDialog();
 				} else {
@@ -1118,7 +1118,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							// Add remote disarm button for void_detonator items
 							key.startsWith('void_detonator_') &&
 								new Button({
-									content: 'Remote Disarm',
+									content: 'Disarm remotely',
 									variant: 'flat',
 									onPointerPress: async () => {
 										const [, , x, y] = key.split('_');
@@ -1281,7 +1281,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			if (hasBriefingAudio && hasBulletinAudio) {
 				new Button({
 					icon: 'radio',
-					textContent: 'Play Briefing + Bulletin',
+					textContent: 'Play briefing and bulletin',
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
@@ -1293,7 +1293,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			if (hasBriefingAudio) {
 				new Button({
 					icon: 'tower-broadcast',
-					textContent: 'Play Briefing Audio',
+					textContent: 'Play briefing audio',
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
@@ -1305,7 +1305,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			if (hasBulletinAudio) {
 				new Button({
 					icon: 'clipboard',
-					textContent: 'Play Bulletin Audio',
+					textContent: 'Play bulletin audio',
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {

@@ -59,7 +59,7 @@ describe('SpaceCo previews against the server', () => {
 	it('quotes a repair at what the server charges', async () => {
 		const { game, id, player } = outfit({ health: 1 });
 		const root = await render('repair');
-		const button = [...root.querySelectorAll('button')].find(b => b.textContent.includes('Full Repair'));
+		const button = [...root.querySelectorAll('button')].find(b => b.textContent.includes('Repair fully'));
 
 		const quoted = amountIn(button);
 		expect(game.spacecoRepair(id, undefined, 'player').success).toBe(true);

@@ -42,7 +42,7 @@ export default class Play extends View {
 										gameId: gameContext.gameId,
 										playerId: gameContext.playerId,
 										header: 'Abort this contract?',
-										confirmLabel: 'Abort Contract',
+										confirmLabel: 'Abort contract',
 										label:
 											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
 										beforeExit: () => (gameContext.exiting = true),

@@ -410,7 +410,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 		this.myAcceptButton = new Button({
 			className: 'accept-button',
 			icon: this.iAccepted ? 'check' : undefined,
-			textContent: this.iAccepted ? 'You Accepted' : 'Accept Trade',
+			textContent: this.iAccepted ? 'You accepted' : 'Accept trade',
 			onPointerPress: () => {
 				if (!this.iAccepted) act('acceptTrade', { tradeId: this.tradeSession.id });
 			},
@@ -442,7 +442,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 
 		if (this.myAcceptButton) {
 			this.myAcceptButton.options.icon = this.iAccepted ? 'check' : undefined;
-			this.myAcceptButton.options.textContent = this.iAccepted ? 'You Accepted' : 'Accept Trade';
+			this.myAcceptButton.options.textContent = this.iAccepted ? 'You accepted' : 'Accept trade';
 			this.myAcceptButton.options.disabled = this.iAccepted;
 		}
 	}

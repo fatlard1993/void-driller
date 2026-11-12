@@ -614,7 +614,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		new Button({
 			content: new Elem(
 				{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
-				new Elem({ content: 'Full Repair' }),
+				new Elem({ content: 'Repair fully' }),
 				new PriceDisplay({ amount: spacecoRepairCost, size: 14, preText: '(', postText: ')' }),
 			),
 			appendTo: this._body,
@@ -647,7 +647,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		const sellButton = new Button({
 			style: { marginBottom: theme.space.md },
-			content: `Sell All`,
+			content: 'Sell all',
 			onPointerPress: () => act('spacecoSell'),
 			appendTo: this._menuBody,
 		});
@@ -715,7 +715,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 		sellButton.options.content = new Elem(
 			{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
-			new Elem({ content: 'Sell All' }),
+			new Elem({ content: 'Sell all' }),
 			new PriceDisplay({ amount: credits, size: 14, variant: 'success', preText: '(', postText: ')' }),
 		);
 	}
@@ -1337,7 +1337,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			new Button({
 				content: new Elem(
 					{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
-					new Elem({ content: 'Full Repair' }),
+					new Elem({ content: 'Repair fully' }),
 					new PriceDisplay({ amount: cost, size: 14, preText: '(', postText: ')' }),
 				),
 				prepend: new IconImage('health', { display: 'inline-block', margin: '-5px 0 -10px -10px' }),
@@ -1355,7 +1355,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			new Button({
 				content: new Elem(
 					{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
-					new Elem({ content: 'Full Repair' }),
+					new Elem({ content: 'Repair fully' }),
 					new Elem({ content: '(' }),
 					new PriceDisplay({ amount: spacecoRepairCost, size: 14 }),
 					new Elem({ content: ')' }),
@@ -1631,7 +1631,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								...(count > 1
 									? [
 											new Button({
-												content: 'Submit All',
+												content: 'Submit all',
 												style: {
 													width: '100%',
 													background: theme.colors.dark(theme.colors.purple),
@@ -1714,7 +1714,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													new Button({
 														content: new Elem(
 															{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
-															new Elem({ content: 'Sell All' }),
+															new Elem({ content: 'Sell all' }),
 															new PriceDisplay({
 																amount: sellPrice * count,
 																size: 14,
@@ -1890,7 +1890,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 									},
 								}),
 								new Button({
-									content: `Buy Transport`,
+									content: 'Buy transport',
 									style: { width: '100%' },
 									onPointerPress: () => act('spacecoBuyTransport', { world: key }),
 									disabled: locked,

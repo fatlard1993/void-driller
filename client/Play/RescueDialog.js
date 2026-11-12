@@ -71,7 +71,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			new Button({
 				content: new Elem(
 					{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm, justifyContent: 'center' } },
-					new Elem({ content: 'Buy Remote Teleport (' }),
+					new Elem({ content: 'Buy remote teleport (' }),
 					new PriceDisplay({
 						amount: getScaledServiceCosts(gameContext.serverState.world.spaceco.xp).rescueCost,
 						size: 14,
@@ -86,14 +86,14 @@ export default class RescueDialog extends (styled(BaseDialog)`
 				},
 			}),
 			new Button({
-				content: 'Abort Contract ($0)',
+				content: 'Abort contract ($0)',
 				onPointerPress: async () => {
 					const confirmed = await ConfirmDialog.confirm({
 						...frameAttributes,
 						intent: 'danger',
 						header: 'Abort this contract?',
 						body: 'Terminating this drilling contract will remove you from the operation. This action cannot be undone.',
-						confirmLabel: 'Abort Contract',
+						confirmLabel: 'Abort contract',
 					});
 
 					if (!confirmed) return;
