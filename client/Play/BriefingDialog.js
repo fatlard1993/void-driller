@@ -1,8 +1,8 @@
-import { Elem, GET, writeStorage } from '@vanilla-bean/components';
+import { Elem, writeStorage } from '@vanilla-bean/components';
 
 import BaseDialog from '../shared/BaseDialog';
 import gameContext from '../shared/gameContext';
-import Notify from '../shared/Notify';
+import { loadDoc } from '../shared/loadDoc';
 import audioPlayer from '../shared/AudioPlayer';
 
 export default class BriefingDialog extends BaseDialog {
@@ -24,21 +24,13 @@ export default class BriefingDialog extends BaseDialog {
 	}
 
 	async _init() {
-		const helpFile = await GET(
+		const helpFile = await loadDoc(
+			this._body,
 			`docs/briefings/${encodeURIComponent(gameContext.serverState.world.name.replace(/:\s+/g, '_').replace(/\s+/g, '_'))}.md`,
+			'briefing',
 		);
 
-		if (!helpFile.response.ok) {
-			new Notify({
-				intent: 'danger',
-				content:
-					'Briefing data corrupted. Your mission is now officially "wing it" until further notice. (Try reloading.)',
-			});
-
-			return;
-		}
-
-		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile.body, appendTo: this._body });
+		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile, appendTo: this._body });
 
 		// Auto-play briefing audio when dialog opens, queue bulletin after with bookends
 		audioPlayer.play(gameContext.serverState.world.name, 'briefing', { autoQueue: true, useBookends: true });

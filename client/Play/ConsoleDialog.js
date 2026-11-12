@@ -3,7 +3,6 @@ import {
 	Component,
 	convertRange,
 	Elem,
-	GET,
 	Input,
 	Label,
 	List,
@@ -31,6 +30,7 @@ import { DescriptionText } from '../shared/DescriptionText';
 import { inventoryItem, itemUseBlocker } from '../shared/inventoryItem';
 import Notify from '../shared/Notify';
 import PriceDisplay from '../shared/PriceDisplay';
+import { loadDoc } from '../shared/loadDoc';
 import { formatPlayerAchievementRewards, getScaledServiceCosts, stepFuelCost } from '../../utils';
 import audioPlayer from '../shared/AudioPlayer';
 import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
@@ -1212,23 +1212,18 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	async render_help_docs() {
 		this.renderHelpMenu();
 
-		const helpFile = await GET('docs/help.md');
+		// This pane, held: another tab opened while the doc comes builds a pane of its own, and this one never shows
+		const pane = this._subMenuBody;
+		const helpFile = await loadDoc(pane, 'docs/help.md', 'SpaceCo documentation');
 
-		if (!helpFile.response.ok) {
-			new Notify({
-				intent: 'danger',
-				content:
-					'Unable to retrieve SpaceCo documentation. Did you really need instructions to dig a hole? (Connection error.)',
-			});
-
-			return;
-		}
-
-		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile.body, appendTo: this._subMenuBody });
+		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile, appendTo: pane });
 	}
 
 	async render_help_briefing() {
 		this.renderHelpMenu();
+
+		// This pane, held: another tab opened while the audio is checked or the doc comes builds a pane of its own
+		const pane = this._subMenuBody;
 
 		const worldName = gameContext.serverState.world.name;
 
@@ -1239,7 +1234,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		// Add audio controls if any audio exists
 		if (hasBriefingAudio || hasBulletinAudio) {
 			const audioControls = new Elem({
-				appendTo: this._subMenuBody,
+				appendTo: pane,
 				style: {
 					display: 'flex',
 					gap: theme.space.sm,
@@ -1289,19 +1284,13 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			}
 		}
 
-		const helpFile = await GET(`docs/briefings/${worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_')}.md`);
+		const helpFile = await loadDoc(
+			pane,
+			`docs/briefings/${worldName.replace(/:\s+/g, '_').replace(/\s+/g, '_')}.md`,
+			'briefing',
+		);
 
-		if (!helpFile.response.ok) {
-			new Notify({
-				intent: 'danger',
-				content:
-					'Briefing data corrupted. Your mission is now officially "wing it" until further notice. (Try reloading.)',
-			});
-
-			return;
-		}
-
-		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile.body, appendTo: this._subMenuBody });
+		new Elem({ style: { overflow: 'auto' }, innerHTML: helpFile, appendTo: pane });
 	}
 
 	static schema = {
