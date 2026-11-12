@@ -11,9 +11,9 @@ import ConsoleDialog from './ConsoleDialog';
 import { applyView, leave } from './reconcile';
 
 // Aborting says so first, so the view that drops this player isn't taken for being dropped
-class AbortDialog extends styled(ExitDialog)`
+class AbortDialog extends (styled(ExitDialog)`
 	${frameDialogStyles(frameCorner.small)}
-` {
+`) {
 	async exit() {
 		this.options.beforeExit?.();
 		await super.exit();
@@ -40,7 +40,7 @@ export default class Play extends View {
 										...frameAttributes,
 										gameId: gameContext.gameId,
 										playerId: gameContext.playerId,
-										header: 'Abort Contract',
+										header: 'Abort this contract?',
 										confirmLabel: 'Abort Contract',
 										label:
 											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
