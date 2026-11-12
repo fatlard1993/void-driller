@@ -60,46 +60,11 @@ class AudioPlayer extends styled.Component(
 			align-items: center;
 			justify-content: center;
 			font-size: ${theme.fontSize.md};
-			background: ${colors.darker(colors.gray)};
-			border: 1px solid ${colors.gray};
-			cursor: pointer;
-			transition: all 0.2s;
-			border-radius: ${radius.sm};
 
 			@media ${media.phone} {
 				width: 40px;
 				height: 40px;
 				font-size: ${theme.fontSize.xl};
-				border-width: 2px;
-			}
-
-			&:hover {
-				background: ${colors.gray};
-				transform: scale(1.05);
-			}
-
-			&:active {
-				transform: scale(0.95);
-			}
-
-			&.play-pause {
-				background: ${colors.darkest(colors.success)};
-				border-color: ${colors.success};
-				color: ${colors.lighter(colors.success)};
-
-				&:hover {
-					background: ${colors.darker(colors.success)};
-				}
-			}
-
-			&.close {
-				background: ${colors.darkest(colors.danger)};
-				border-color: ${colors.danger};
-				color: ${colors.lighter(colors.danger)};
-
-				&:hover {
-					background: ${colors.darker(colors.danger)};
-				}
 			}
 		}
 
@@ -160,6 +125,7 @@ class AudioPlayer extends styled.Component(
 		this.skipBackBtn = new Button({
 			icon: 'backward',
 			'aria-label': 'Back 10 seconds',
+			variant: 'flat',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
 			onPointerDown: event => event?.stopPropagation(),
@@ -169,7 +135,9 @@ class AudioPlayer extends styled.Component(
 		// Play/Pause button
 		this.playPauseBtn = new Button({
 			icon: 'play',
-			'aria-label': 'Play or pause',
+			'aria-label': 'Play',
+			variant: 'flat',
+			pressed: false,
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'play-pause'],
 			onPointerDown: event => event?.stopPropagation(),
@@ -180,6 +148,7 @@ class AudioPlayer extends styled.Component(
 		this.skipForwardBtn = new Button({
 			icon: 'forward',
 			'aria-label': 'Forward 10 seconds',
+			variant: 'flat',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button'],
 			onPointerDown: event => event?.stopPropagation(),
@@ -196,6 +165,7 @@ class AudioPlayer extends styled.Component(
 		this.closeBtn = new Button({
 			icon: 'xmark',
 			'aria-label': 'Close',
+			variant: 'flat',
 			appendTo: this.controlsElem,
 			addClass: ['audio-button', 'close'],
 			onPointerDown: event => event?.stopPropagation(),
@@ -578,6 +548,7 @@ class AudioPlayer extends styled.Component(
 		});
 
 		this.playPauseBtn.options.icon = this.isPlaying ? 'pause' : 'play';
+		this.playPauseBtn.options.pressed = this.isPlaying;
 
 		// Update visualizer - always show bars, but only animate when playing
 		this.visualizerElem.empty();
