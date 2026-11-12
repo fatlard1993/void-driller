@@ -590,6 +590,7 @@ export function setupEventRouter() {
 		clearMovementState(data.playerId);
 	});
 
+	// A refused move shows where it happened, the drill staying put, and can come many times a second: these leave
 	router.on('invalidMovement', data => {
 		clearMovementState(data.playerId);
 

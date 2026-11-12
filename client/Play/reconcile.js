@@ -11,7 +11,7 @@ import { gridChanges, playerChanges } from './gameDiff';
 import TradeDialog from './TradeDialog';
 
 export const leave = (reason, gameId = gameContext.gameId) => {
-	new Notify({ intent: 'warning', content: reason, timeout: 6000 });
+	new Notify({ intent: 'warning', content: reason });
 	// A player's stored id is for a contract that no longer holds them; a watcher stored nothing
 	if (!gameContext.isWatchMode) localStorage.removeItem(gameId);
 	window.location.href = '#/hub';
@@ -190,7 +190,11 @@ export const reconcileGame = state => {
 	const trades = state.trades || [];
 	const dialog = gameContext.openDialog;
 
-	if (dialog instanceof TradeDialog && dialog.tradeSession && !trades.some(trade => trade.id === dialog.tradeSession?.id)) {
+	if (
+		dialog instanceof TradeDialog &&
+		dialog.tradeSession &&
+		!trades.some(trade => trade.id === dialog.tradeSession?.id)
+	) {
 		dialog.tradeSession = null;
 		dialog.close();
 		new Notify({ intent: 'warning', content: 'The trade is over.', timeout: 4000 });
