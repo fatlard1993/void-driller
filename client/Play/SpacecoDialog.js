@@ -1,7 +1,6 @@
 import {
 	Component,
 	EmptyState,
-	Label,
 	SectionLabel,
 	Button,
 	List,
@@ -25,7 +24,7 @@ import {
 	PartImage,
 	VehicleImage,
 } from '../shared/SpriteSheetImage';
-import { Card } from '../shared/Card';
+import { Card, cardEdge } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { DescriptionText } from '../shared/DescriptionText';
 import PriceDisplay from '../shared/PriceDisplay';
@@ -761,7 +760,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			new CardGrid({
 				content: [
 					new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: `Vehicle: ${vehicleConfig.name}`,
 						body: new Elem({
 							style: {
@@ -795,7 +794,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 					new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: `Drill: ${drillConfig.name}`,
 						body: new Elem({
 							style: {
@@ -818,7 +817,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						}),
 					}),
 					new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: `Engine: ${engineConfig.name}`,
 						body: new Elem({
 							style: {
@@ -859,7 +858,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					}),
 					partConfig &&
 						new Card({
-							state: 'owned',
+							accent: cardEdge.owned,
 							header: `Part: ${player.configuration.part}`,
 							body: new Elem({
 								style: {
@@ -906,7 +905,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const canAfford = player.credits >= finalCost;
 
 				return new Card({
-					state: canAfford ? 'available' : 'unavailable',
+					accent: canAfford && cardEdge.available,
+					disabled: !canAfford,
 					header: name,
 					body: new Elem({
 						style: {
@@ -982,7 +982,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				const canAfford = player.credits >= finalCost;
 
 				return new Card({
-					state: canAfford ? 'available' : 'unavailable',
+					accent: canAfford && cardEdge.available,
+					disabled: !canAfford,
 					header: name,
 					body: new Elem({
 						style: {
@@ -1074,7 +1075,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				}
 
 				return new Card({
-					state: canAfford && !missingRequirements ? 'available' : 'unavailable',
+					accent: canAfford && !missingRequirements && cardEdge.available,
+					disabled: !canAfford || missingRequirements,
 					header: name,
 					body: new Elem({
 						style: {
@@ -1186,7 +1188,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				};
 
 				return new Card({
-					state: canAfford ? 'available' : 'unavailable',
+					accent: canAfford && cardEdge.available,
+					disabled: !canAfford,
 					header: name,
 					body: new Elem({
 						style: {
@@ -1471,7 +1474,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						state: canPurchase ? 'available' : 'unavailable',
+						accent: canPurchase && cardEdge.available,
+						disabled: !canPurchase,
 						header: capitalize(key.replaceAll('_', ' '), true),
 						body: new Elem({
 							style: {
@@ -1557,91 +1561,41 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					const playerSubmitted = eggHunt?.playerSubmissions?.[gameContext.playerId] || 0;
 
 					return [
-						new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								background: theme.colors.darkest(theme.colors.purple),
-								border: `2px solid ${theme.colors.purple}`,
-								borderRadius: theme.radius.lg,
-								padding: theme.space.lg,
-								minWidth: '160px',
-								gap: theme.space.sm,
-								boxShadow: `0 0 10px ${theme.colors.alpha(theme.colors.purple, 0.3)}`,
-							},
-							append: [
-								new Elem({
-									style: {
-										display: 'flex',
-										flexDirection: 'column',
-										alignItems: 'center',
-										gap: theme.space.sm,
-									},
-									append: [
-										new ItemImage(imageName, { displaySize: 96 }),
-										new Label(
-											{
-												label: 'Psykick Egg',
-												style: {
-													textAlign: 'center',
-													color: theme.colors.purple,
-													fontWeight: 'bold',
-												},
-											},
-											`x${count}`,
-										),
-									],
-								}),
-								new Elem({
-									style: {
-										fontSize: theme.fontSize.sm,
-										color: theme.colors.light(theme.colors.purple),
-										textAlign: 'center',
-										fontStyle: 'italic',
-									},
-									content: 'Progress',
-								}),
-								new Elem({
-									style: {
-										fontSize: theme.fontSize.sm,
-										color: theme.colors.muted,
-										textAlign: 'center',
-									},
-									content: `Your submissions: ${playerSubmitted}`,
-								}),
-								new Elem({
-									style: {
-										fontSize: theme.fontSize.sm,
-										color: theme.colors.muted,
-										textAlign: 'center',
-									},
-									content: `Global total: ${totalSubmitted}`,
-								}),
+						new Card({
+							accent: theme.colors.purple,
+							style: { backgroundColor: theme.colors.darkest(theme.colors.purple) },
+							header: new Elem({ content: 'Psykick Egg', style: { color: theme.colors.purple } }),
+							body: new Elem({
+								style: {
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									gap: theme.space.xs,
+									fontSize: theme.fontSize.sm,
+								},
+								append: [
+									new ItemImage(imageName, { displaySize: 96 }),
+									new Elem({ content: `x${count}` }),
+									new Elem({
+										content: 'Progress',
+										style: { color: theme.colors.light(theme.colors.purple), fontStyle: 'italic' },
+									}),
+									new Elem({ content: `Your submissions: ${playerSubmitted}`, style: { color: theme.colors.muted } }),
+									new Elem({ content: `Global total: ${totalSubmitted}`, style: { color: theme.colors.muted } }),
+								],
+							}),
+							footerButtons: true,
+							footer: [
 								new Button({
 									content: count > 1 ? 'Submit 1' : 'Submit',
-									style: {
-										width: '100%',
-										marginTop: theme.space.sm,
-										background: theme.colors.purple,
-										color: 'white',
-									},
 									onPointerPress: () => act('spacecoSellItem', { item: key, count: 1 }),
 								}),
-								...(count > 1
-									? [
-											new Button({
-												content: 'Submit all',
-												style: {
-													width: '100%',
-													background: theme.colors.dark(theme.colors.purple),
-													color: 'white',
-												},
-												onPointerPress: () => act('spacecoSellItem', { item: key, count }),
-											}),
-										]
-									: []),
-							],
+								count > 1 &&
+									new Button({
+										content: 'Submit all',
+										onPointerPress: () => act('spacecoSellItem', { item: key, count }),
+									}),
+							].filter(Boolean),
 						}),
 					];
 				}
@@ -1653,7 +1607,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: itemName,
 						body: new Elem({
 							style: {
@@ -1770,7 +1724,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						state: locked ? 'unavailable' : 'available',
+						accent: !locked && cardEdge.available,
+						disabled: locked,
 						header: new Elem({
 							content: capitalize(key.replaceAll('_', ' '), true),
 							style: {
@@ -2074,7 +2029,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					}
 
 					return new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: [new Icon({ icon: 'check' }), achievement.name],
 						style: { background: theme.colors.darkest(theme.colors.success) },
 						body: new Elem({

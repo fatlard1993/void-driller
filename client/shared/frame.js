@@ -116,14 +116,14 @@ export const frameDialogStyles = (corner = frameCorner.large) => `
 	}
 `;
 
-/** A card: the sub-panel's corners, edged in --card-edge, which the card's state sets (augmented-ui) */
+/** A card: the sub-panel's corners, edged in --card-accent, which the library Card's accent option sets (augmented-ui) */
 export const cardFrameAttributes = { 'data-augmented-ui': 'tl-clip br-clip border' };
 
 export const cardFrameStyles = `
 	--aug-tl1: ${theme.space.md};
 	--aug-br1: ${theme.space.md};
 	--aug-border-all: 2px;
-	--aug-border-bg: var(--card-edge, ${theme.colors.gray});
+	--aug-border-bg: var(--card-accent, ${theme.colors.gray});
 	border: none;
 	border-radius: 0;
 

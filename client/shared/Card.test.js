@@ -1,9 +1,10 @@
-import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterEach, beforeAll, describe, expect, it, mock } from 'bun:test';
 
 let Card;
+let cardEdge;
 
 beforeAll(async () => {
-	({ Card } = await import('./Card'));
+	({ Card, cardEdge } = await import('./Card'));
 });
 
 afterEach(() => {
@@ -17,20 +18,34 @@ describe('Card', () => {
 		expect(card.elem.getAttribute('data-augmented-ui')).toContain('border');
 	});
 
-	it('edges itself by its state', () => {
-		const card = new Card({ header: 'Borebit L2', state: 'unavailable' });
+	it('edges its frame in its accent', () => {
+		const card = new Card({ header: 'Borebit L2', accent: cardEdge.available });
 
-		expect(card.elem.classList.contains('state-unavailable')).toBe(true);
+		expect(card.elem.style.getPropertyValue('--card-accent')).toBe(String(cardEdge.available));
 
-		card.options.state = 'available';
+		card.options.accent = false;
 
-		expect(card.elem.classList.contains('state-available')).toBe(true);
-		expect(card.elem.classList.contains('state-unavailable')).toBe(false);
+		expect(card.elem.style.getPropertyValue('--card-accent')).toBe('');
 	});
 
-	it('has no state edge unless given one', () => {
-		const card = new Card({ header: 'Tritanium' });
+	it("says it can't be taken through aria-disabled, and presses nothing", () => {
+		const onPointerPress = mock();
+		const card = new Card({ header: 'Borebit L2', disabled: true, onPointerPress, appendTo: document.body });
 
-		expect([...card.elem.classList].some(name => name.startsWith('state-'))).toBe(false);
+		card.elem.click();
+
+		expect(card.elem.getAttribute('aria-disabled')).toBe('true');
+		expect(onPointerPress).not.toHaveBeenCalled();
+	});
+
+	it('presses by keyboard when it presses at all', () => {
+		const onPointerPress = mock();
+		const card = new Card({ header: 'Tritanium', onPointerPress, appendTo: document.body });
+
+		card.elem.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+		expect(card.elem.tabIndex).toBe(0);
+		expect(card.elem.getAttribute('role')).toBe('button');
+		expect(onPointerPress).toHaveBeenCalled();
 	});
 });

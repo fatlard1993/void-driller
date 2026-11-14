@@ -1,38 +1,63 @@
-import { Component, Elem, styled, theme } from '@vanilla-bean/components';
+import { Card as LibraryCard, Elem, styled, theme } from '@vanilla-bean/components';
 
 import { cardFrameAttributes, cardFrameStyles, frameColor } from './frame';
 
+/** The edge a card wears, as its accent: something the player can take now, or something already theirs */
+export const cardEdge = { available: theme.colors.success, owned: frameColor };
+
 /**
- * Standardized card container component with optional header, body, and footer sections
- * Based on the SpacecoDialog shop player inventory item cards reference template
+ * The library's Card in the game's cut-corner frame, laid out as a header, a body and a footer. Its accent edges the
+ * whole frame rather than striping the left side. One that can't be taken now (can't afford, locked) is `disabled`,
+ * which dims it whole and says so.
  */
 export class Card extends styled(
-	Component,
+	LibraryCard,
 	({ colors, space }) => `
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		background: ${colors.darkest(colors.gray)};
+		background-color: ${colors.darkest(colors.gray)};
 		padding: ${space.md};
 		min-width: 120px;
 		gap: ${space.sm};
 		${cardFrameStyles}
 
-		&.state-available {
-			--card-edge: ${colors.success};
+		/* The accent is the frame's edge (cardFrameStyles reads --card-accent), not an inset stripe */
+		&.accented {
+			box-shadow: none;
 		}
 
-		&.state-unavailable {
-			--card-edge: ${colors.alpha(colors.danger, 0.7)};
+		& .card-header {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: ${space.sm};
+			margin-bottom: ${space.sm};
+			font-weight: bold;
+			text-align: center;
+			color: ${colors.lighter(colors.gray)};
 		}
 
-		&.state-owned {
-			--card-edge: ${frameColor};
-		}
-
-		& .card-footer.buttons > button {
+		& .card-body {
 			flex: 1;
-			min-width: 80px;
+			width: 100%;
+			text-align: center;
+		}
+
+		& .card-footer {
+			margin-top: ${space.sm};
+			text-align: center;
+		}
+
+		& .card-footer.buttons {
+			display: flex;
+			flex-wrap: wrap;
+			gap: ${space.sm};
+
+			& > button {
+				flex: 1;
+				min-width: 80px;
+			}
 		}
 	`,
 ) {
@@ -41,15 +66,6 @@ export class Card extends styled(
 		body: {},
 		footer: {},
 		footerButtons: {},
-		// Edges the card: 'available' to take (affordable), 'unavailable' (can't afford, or locked), or 'owned'
-		state: {
-			enum: ['available', 'unavailable', 'owned'],
-			set(value) {
-				this.removeClass(/\bstate-\S+\b/g);
-
-				if (value) this.addClass(`state-${value}`);
-			},
-		},
 	};
 
 	constructor(options = {}, ...children) {
@@ -57,69 +73,17 @@ export class Card extends styled(
 	}
 
 	build() {
-		// Use @vanilla-bean/components append pattern for cleaner organization
-		const sections = [];
+		// The library Card's own build: a disabled card presses nothing
+		super.build();
 
-		// Header section
-		if (this.options.header) {
-			sections.push(
-				new Elem({
-					content: this.options.header,
-					className: 'card-header',
-					style: {
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						gap: theme.space.sm,
-						fontWeight: 'bold',
-						textAlign: 'center',
-						marginBottom: theme.space.sm,
-						color: theme.colors.lighter(theme.colors.gray),
-					},
-				}),
-			);
-		}
+		const { header, body, footer, footerButtons } = this.options;
 
-		// Body section
-		if (this.options.body) {
-			sections.push(
-				new Elem({
-					content: this.options.body,
-					className: 'card-body',
-					style: {
-						flex: '1',
-						textAlign: 'center',
-						width: '100%',
-					},
-				}),
-			);
-		}
-
-		// Footer section
-		if (this.options.footer) {
-			const footerStyle = this.options.footerButtons
-				? {
-						display: 'flex',
-						flexDirection: 'row',
-						gap: theme.space.sm,
-						marginTop: theme.space.sm,
-						flexWrap: 'wrap',
-					}
-				: {
-						marginTop: theme.space.sm,
-						textAlign: 'center',
-					};
-
-			sections.push(
-				new Elem({
-					content: this.options.footer,
-					className: this.options.footerButtons ? 'card-footer buttons' : 'card-footer',
-					style: footerStyle,
-				}),
-			);
-		}
-
-		// Append all sections at once using @vanilla-bean/components pattern
-		this.append(sections);
+		this.append(
+			[
+				header && new Elem({ content: header, className: 'card-header' }),
+				body && new Elem({ content: body, className: 'card-body' }),
+				footer && new Elem({ content: footer, className: footerButtons ? 'card-footer buttons' : 'card-footer' }),
+			].filter(Boolean),
+		);
 	}
 }

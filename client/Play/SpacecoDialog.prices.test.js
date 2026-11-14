@@ -75,7 +75,7 @@ describe('SpaceCo previews against the server', () => {
 		const card = cardNamed(root, 'L2: Surface Prospects');
 
 		const quoted = amountIn(card.querySelector('.card-footer'));
-		expect(card.classList.contains('state-available')).toBe(true);
+		expect(card.getAttribute('aria-disabled')).toBeNull();
 		expect(game.spacecoBuyTransport(id, 'L2: Surface Prospects').success).toBe(true);
 
 		expect(quoted).toBe(player.credits - game.players.get(id).credits);
@@ -92,7 +92,7 @@ describe('SpaceCo previews against the server', () => {
 		);
 
 		expect(gated).toBeDefined();
-		expect(cardNamed(root, name).classList.contains('state-unavailable')).toBe(true);
+		expect(cardNamed(root, name).getAttribute('aria-disabled')).toBe('true');
 		expect(cardNamed(root, name).textContent).toContain('Galactic Market Share');
 	});
 
@@ -119,7 +119,7 @@ describe('SpaceCo previews against the server', () => {
 
 		const root = await render('upgrade_Drills');
 
-		expect(cardNamed(root, drill.name).classList.contains('state-available')).toBe(true);
+		expect(cardNamed(root, drill.name).getAttribute('aria-disabled')).toBeNull();
 		expect(game.spacecoBuyUpgrade(id, drillId, 'drills').success).toBe(true);
 	});
 });

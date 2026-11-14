@@ -7,7 +7,7 @@ import gameContext from '../shared/gameContext';
 import { act } from '@fatlard1993/web-game-framework/client';
 import { exitGame } from '../api';
 import Notify from '../shared/Notify';
-import { Card } from '../shared/Card';
+import { Card, cardEdge } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { ItemImage } from '../shared/SpriteSheetImage';
 import { DescriptionText } from '../shared/DescriptionText';
@@ -140,7 +140,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: itemName,
 						style: {
 							opacity: canUse ? 1 : 0.6,

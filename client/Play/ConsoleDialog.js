@@ -21,7 +21,7 @@ import {
 } from '@vanilla-bean/components';
 
 import { DrillImage, EngineImage, ItemImage, MineralImage, PartImage, VehicleImage } from '../shared/SpriteSheetImage';
-import { Card } from '../shared/Card';
+import { Card, cardEdge } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { act } from '@fatlard1993/web-game-framework/client';
 import BaseDialog from '../shared/BaseDialog';
@@ -680,7 +680,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				new CardGrid({
 					content: [
 						new Card({
-							state: 'owned',
+							accent: cardEdge.owned,
 							header: `Vehicle: ${vehicleConfig.name}`,
 							body: new Elem({
 								style: {
@@ -714,7 +714,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							}),
 						}),
 						new Card({
-							state: 'owned',
+							accent: cardEdge.owned,
 							header: `Drill: ${drillConfig.name}`,
 							body: new Elem({
 								style: {
@@ -747,7 +747,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 							}),
 						}),
 						new Card({
-							state: 'owned',
+							accent: cardEdge.owned,
 							header: `Engine: ${engineConfig.name}`,
 							body: new Elem({
 								style: {
@@ -788,7 +788,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 						}),
 						partConfig &&
 							new Card({
-								state: 'owned',
+								accent: cardEdge.owned,
 								header: `Part: ${partConfig.name}`,
 								body: new Elem({
 									style: {
@@ -898,7 +898,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					}
 
 					return new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: [new Icon({ icon: 'check' }), achievement.name],
 						style: { background: theme.colors.darkest(theme.colors.success) },
 						body: new Elem({
@@ -952,7 +952,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				if (!player.stats.oreTypesCollected[color]) return [];
 
 				return new Card({
-					state: 'owned',
+					accent: cardEdge.owned,
 					header: mineral.name,
 					style: { background: theme.colors.darkest(theme.colors.success) },
 					body: new Elem({
@@ -987,7 +987,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				if (!player.stats.itemsUsed[name] && !player.items[name]) return [];
 
 				return new Card({
-					state: 'owned',
+					accent: cardEdge.owned,
 					header: capitalize(name.replaceAll('_', ' '), true),
 					style: { background: theme.colors.darkest(theme.colors.success) },
 					body: new Elem({
@@ -1059,7 +1059,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 				return [
 					new Card({
-						state: 'owned',
+						accent: cardEdge.owned,
 						header: itemName,
 						style: {
 							opacity: canUse ? 1 : 0.6,
