@@ -1,4 +1,5 @@
 import { Dialog, styled } from '@vanilla-bean/components';
+import { DialogTabs } from './DialogTabs';
 import { frameAttributes, frameCorner, frameDialogStyles } from './frame';
 import gameContext from './gameContext';
 
@@ -97,6 +98,29 @@ export default class BaseDialog extends StyledDialog {
 		if (gameContext.sounds?.alert2) {
 			gameContext.sounds.alert2.play({ volume: gameContext.volume.alerts });
 		}
+	}
+
+	/**
+	 * Shows a view as its tab in the dialog's one row, building the row the first time (or once the body was redrawn
+	 * under it), then builds the view through its render_ method in this._menuBody
+	 * @param {string} view - The view, which is its tab's id
+	 * @param {Array<{ id: string, label: string, disabled?: boolean }>} tabs - The dialog's tabs as they stand now
+	 */
+	showTab(view, tabs) {
+		if (this._tabs && this._body.elem.contains(this._tabs.row.elem)) this._tabs.update(tabs);
+		else {
+			this._body.empty();
+			this._tabs = new DialogTabs({
+				appendTo: this._body,
+				tabs,
+				onChange: id => {
+					this.options.view = id;
+				},
+			});
+		}
+
+		this._menuBody = this._tabs.show(view);
+		this[`render_${view}`]();
 	}
 
 	/**

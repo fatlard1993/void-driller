@@ -14,7 +14,6 @@ import { DescriptionText } from '../shared/DescriptionText';
 import { inventoryItem, itemUseBlocker } from '../shared/inventoryItem';
 import PriceDisplay from '../shared/PriceDisplay';
 import { getScaledServiceCosts } from '../../utils';
-import { Tab, TabRow } from '../shared/BurgerTabs';
 
 export default class RescueDialog extends (styled(BaseDialog)`
 	& button {
@@ -39,23 +38,6 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			view: 'rescue',
 			...options,
 		});
-	}
-
-	renderMenu() {
-		new TabRow(
-			{ addClass: 'menu', appendTo: this._body },
-			['Rescue', 'Inventory'].map(view =>
-				Tab({
-					content: view,
-					onPointerPress: () => {
-						this.options.view = view.toLowerCase();
-					},
-					selected: this.options.view === view.toLowerCase(),
-				}),
-			),
-		);
-
-		this._menuBody = new Elem({ className: 'menuBody', appendTo: this._body });
 	}
 
 	render_rescue() {
@@ -200,11 +182,10 @@ export default class RescueDialog extends (styled(BaseDialog)`
 	static schema = {
 		view: {
 			set(value) {
-				this._body.empty();
-
-				this.renderMenu();
-
-				this[`render_${value.toLowerCase()}`]();
+				this.showTab(value, [
+					{ id: 'rescue', label: 'Rescue' },
+					{ id: 'inventory', label: 'Inventory' },
+				]);
 			},
 		},
 	};

@@ -35,7 +35,6 @@ import PriceDisplay from '../shared/PriceDisplay';
 import { loadDoc } from '../shared/loadDoc';
 import { formatPlayerAchievementRewards, getScaledServiceCosts, stepFuelCost } from '../../utils';
 import audioPlayer from '../shared/AudioPlayer';
-import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
 import { SubPanel, subPanelOptions } from '../shared/frame';
 import {
 	toggleAutoPath,
@@ -44,6 +43,7 @@ import {
 	removeFromIgnoreList,
 	clearIgnoreList,
 } from './inputs/pointer';
+import { consoleTabs, consoleView, spacecoTabs, spacecoView } from './views';
 
 // A settings section that folds away: a Label's collapsible variant, in the sub-panel's shape
 const CollapsibleLabel = configured(Label, { variant: 'collapsible', ...subPanelOptions });
@@ -478,7 +478,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 
 		super({
 			header: 'Console',
-			view: localStorage.getItem('console_defaultMenu') || 'help_Docs',
+			view: consoleView(localStorage.getItem('console_defaultMenu')) || 'help',
 			buttons,
 			onButtonPress: ({ button, closeDialog }) => {
 				// Handle rescue button
@@ -492,22 +492,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			},
 			...options,
 		});
-	}
-
-	renderMenu() {
-		const menuViews = ['Cargo', 'Items', 'Status', 'Settings', 'Help'];
-		const currentView = menuViews.find(view => this.options.view.toLowerCase().startsWith(view.toLowerCase()));
-
-		this._burgerTabs = new BurgerTabs({
-			appendTo: this._body,
-			tabs: menuViews,
-			selectedTab: currentView,
-			onTabClick: tab => {
-				this.options.view = tab;
-			},
-		});
-
-		this._menuBody = new Elem({ className: 'menuBody', appendTo: this._body });
 	}
 
 	render_cargo() {
@@ -593,36 +577,14 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		total.append(new PriceDisplay({ amount: credits, size: 16, style: { fontWeight: 'bold' } }));
 	}
 
-	renderStatusMenu() {
-		const menuViews = ['Current', 'Rig', 'Achievements', 'Minerals', 'Items'];
-		const currentView = menuViews.find(view => this.options.view === `status_${view}`);
-
-		this._statusBurgerTabs = new BurgerTabs({
-			appendTo: this._menuBody,
-			tabs: menuViews,
-			selectedTab: currentView,
-			onTabClick: tab => {
-				this.options.view = `status_${tab}`;
-			},
-		});
-
-		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
-	}
-
 	render_status() {
-		this.options.view = 'status_Current';
-	}
-
-	render_status_current() {
-		this.renderStatusMenu();
-
 		const player = gameContext.players.currentPlayer;
 		const currentItemCount = Object.values(player.items).reduce((sum, count) => sum + count, 0);
 
 		const cargoWeightRatio = player.cargo / player.maxCargo;
 		const fuelEfficiencyDisplay = player.fuelEfficiency / (1.0 + cargoWeightRatio * 0.2);
 
-		this._subMenuBody.append(
+		this._menuBody.append(
 			new SubPanel({ label: 'Position' }, `X: ${player.position.x} | Y: ${player.position.y}`),
 			new SubPanel(
 				{ label: 'Current Stats' },
@@ -663,18 +625,19 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				}),
 			),
 		);
+
+		this.renderRig();
 	}
 
-	render_status_rig() {
-		this.renderStatusMenu();
-
+	// The rig's parts, below its numbers on the Status tab
+	renderRig() {
 		const player = gameContext.players.currentPlayer;
 		const vehicleConfig = vehicles[player.configuration.vehicle];
 		const drillConfig = drills[player.configuration.drill];
 		const engineConfig = engines[player.configuration.engine];
 		const partConfig = parts[player.configuration.part];
 
-		this._subMenuBody.append(
+		this._menuBody.append(
 			new SubPanel(
 				{ label: 'Configuration' },
 				new CardGrid({
@@ -828,26 +791,24 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		);
 	}
 
-	render_status_achievements() {
-		this.renderStatusMenu();
-
+	render_achievements() {
 		const player = gameContext.players.currentPlayer;
 
 		new Elem({
 			tag: 'p',
-			appendTo: this._subMenuBody,
+			appendTo: this._menuBody,
 			content: `Unlocked ${Object.keys(player?.achievements).length} of ${playerAchievements.length}`,
 			className: 'description',
 		});
 		new Elem({
 			tag: 'p',
-			appendTo: this._subMenuBody,
+			appendTo: this._menuBody,
 			content: `Pension Credits: ${player.xp}`,
 			className: 'description',
 		});
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: this._menuBody,
 			content: [...playerAchievements]
 				.sort(
 					orderBy([
@@ -941,16 +902,41 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	render_status_minerals() {
-		this.renderStatusMenu();
-
+	render_collection() {
 		const player = gameContext.players.currentPlayer;
+		const found = Object.entries(minerals).filter(([color]) => player.stats.oreTypesCollected[color]);
+		const used = Object.entries(items).filter(([name]) => player.stats.itemsUsed[name] || player.items[name]);
 
-		new CardGrid({
-			appendTo: this._subMenuBody,
-			content: Object.entries(minerals).flatMap(([color, mineral]) => {
-				if (!player.stats.oreTypesCollected[color]) return [];
+		new SubPanel(
+			{ label: 'Minerals', appendTo: this._menuBody },
+			found.length
+				? this.collectedMinerals(found)
+				: new EmptyState({
+						icon: 'gem',
+						title: 'No minerals found yet',
+						message: 'Each kind you drill shows up here.',
+					}),
+		);
 
+		new SubPanel(
+			{ label: 'Items', appendTo: this._menuBody },
+			used.length
+				? this.usedItems(used)
+				: new EmptyState({
+						icon: 'box-open',
+						title: 'No items held yet',
+						message: 'Each item you hold or use shows up here.',
+					}),
+		);
+	}
+
+	/**
+	 * @param {Array} found - The minerals the player has drilled, as [color, mineral]
+	 * @returns {CardGrid} A card for each
+	 */
+	collectedMinerals(found) {
+		return new CardGrid({
+			content: found.map(([color, mineral]) => {
 				return new Card({
 					accent: cardEdge.owned,
 					header: mineral.name,
@@ -976,16 +962,15 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	render_status_items() {
-		this.renderStatusMenu();
-
+	/**
+	 * @param {Array} used - The items the player holds or has used, as [name, item]
+	 * @returns {CardGrid} A card for each, with how often it was used
+	 */
+	usedItems(used) {
 		const player = gameContext.players.currentPlayer;
 
-		new CardGrid({
-			appendTo: this._subMenuBody,
-			content: Object.entries(items).flatMap(([name, item]) => {
-				if (!player.stats.itemsUsed[name] && !player.items[name]) return [];
-
+		return new CardGrid({
+			content: used.map(([name, item]) => {
 				return new Card({
 					accent: cardEdge.owned,
 					header: capitalize(name.replaceAll('_', ' '), true),
@@ -1175,19 +1160,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			new Label(
 				{ label: 'Default Console Menu', ...subPanelOptions },
 				new Select({
-					options: [
-						'Cargo',
-						'Items',
-						'Status',
-						{ label: 'Status > Rig', value: 'status_Rig' },
-						{ label: 'Status > Achievements', value: 'status_Achievements' },
-						{ label: 'Status > Minerals', value: 'status_Minerals' },
-						{ label: 'Status > Items', value: 'status_Items' },
-						'Settings',
-						'Help',
-						{ label: 'Help > Briefing', value: 'help_Briefing' },
-					],
-					value: localStorage.getItem('console_defaultMenu') || 'Help',
+					options: consoleTabs.map(({ id, label }) => ({ label, value: id })),
+					value: consoleView(localStorage.getItem('console_defaultMenu')) || 'help',
 					onChange: ({ value }) => localStorage.setItem('console_defaultMenu', value),
 				}),
 			),
@@ -1195,66 +1169,25 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 			new Label(
 				{ label: 'Default SpaceCo Menu', ...subPanelOptions },
 				new Select({
-					options: [
-						'Sell',
-						'Refuel',
-						'Repair',
-						'Upgrade',
-						{ label: 'Upgrade > Current', value: 'upgrade_Current' },
-						{ label: 'Upgrade > Vehicles', value: 'upgrade_Vehicles' },
-						{ label: 'Upgrade > Drills', value: 'upgrade_Drills' },
-						{ label: 'Upgrade > Engines', value: 'upgrade_Engines' },
-						{ label: 'Upgrade > Parts', value: 'upgrade_Parts' },
-						'Shop',
-						'Transport',
-						'Status',
-						{ label: 'Status > Current', value: 'status_Current' },
-						{ label: 'Status > Achievements', value: 'status_Achievements' },
-						{ label: 'Status > Minerals', value: 'status_Minerals' },
-					],
-					value: localStorage.getItem('console_defaultSpacecoMenu') || 'Sell',
+					options: spacecoTabs.map(({ id, label }) => ({ label, value: id })),
+					value: spacecoView(localStorage.getItem('console_defaultSpacecoMenu')) || 'sell',
 					onChange: ({ value }) => localStorage.setItem('console_defaultSpacecoMenu', value),
 				}),
 			),
 		);
 	}
 
-	renderHelpMenu() {
-		new TabRow(
-			{ addClass: 'menu', appendTo: this._menuBody },
-			['Docs', 'Briefing'].map(view =>
-				Tab({
-					content: view,
-					onPointerPress: () => {
-						this.options.view = `help_${view}`;
-					},
-					selected: this.options.view === `help_${view}`,
-				}),
-			),
-		);
-
-		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
-	}
-
-	render_help() {
-		this.options.view = 'help_Docs';
-	}
-
-	async render_help_docs() {
-		this.renderHelpMenu();
-
+	async render_help() {
 		// This pane, held: another tab opened while the doc comes builds a pane of its own, and this one never shows
-		const pane = this._subMenuBody;
+		const pane = this._menuBody;
 		const helpFile = await loadDoc(pane, 'docs/help.md', 'SpaceCo documentation');
 
 		new Content({ innerHTML: helpFile, appendTo: pane });
 	}
 
-	async render_help_briefing() {
-		this.renderHelpMenu();
-
+	async render_briefing() {
 		// This pane, held: another tab opened while the audio is checked or the doc comes builds a pane of its own
-		const pane = this._subMenuBody;
+		const pane = this._menuBody;
 
 		const worldName = gameContext.serverState.world.name;
 
@@ -1327,11 +1260,10 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 	static schema = {
 		view: {
 			set(value) {
-				this._body.empty();
+				const view = consoleView(value) ?? 'help';
 
-				this.renderMenu();
-
-				this[`render_${value.toLowerCase()}`]();
+				if (view !== value) this.options.view = view;
+				else this.showTab(view, consoleTabs);
 			},
 		},
 	};

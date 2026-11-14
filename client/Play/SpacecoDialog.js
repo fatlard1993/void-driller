@@ -28,7 +28,6 @@ import { Card, cardEdge } from '../shared/Card';
 import { CardGrid } from '../shared/CardGrid';
 import { DescriptionText } from '../shared/DescriptionText';
 import PriceDisplay from '../shared/PriceDisplay';
-import BurgerTabs, { Tab, TabRow } from '../shared/BurgerTabs';
 import { SubPanel } from '../shared/frame';
 import { act } from '@fatlard1993/web-game-framework/client';
 import {
@@ -42,6 +41,7 @@ import gameContext from '../shared/gameContext';
 import { inventoryItem } from '../shared/inventoryItem';
 import { drills, engines, items, minerals, parts, spacecoAchievements, vehicles, worlds } from '../../constants';
 import { ConfigStat } from '../shared/ConfigStat';
+import { spacecoTabs, spacecoView } from './views';
 
 /**
  * Calculate trade-in discount for equipment upgrades
@@ -411,10 +411,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	}
 `) {
 	constructor(options = {}) {
-		// The Upgrade pages were once saved as status_ views, which don't exist
-		const savedMenu = localStorage.getItem('console_defaultSpacecoMenu');
-		const defaultMenu =
-			typeof SpacecoDialog.prototype[`render_${savedMenu?.toLowerCase()}`] === 'function' ? savedMenu : 'Sell';
+		// A saved menu that names no tab (the Upgrade pages were once saved as status_ views) opens Sell
+		const defaultMenu = spacecoView(localStorage.getItem('console_defaultSpacecoMenu')) ?? 'sell';
 
 		super({
 			header: 'Spaceco',
@@ -423,46 +421,27 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	renderMenu() {
-		if (this.options.view === 'destroyed') return;
-
-		const menuViews = ['Sell', 'Refuel', 'Repair', 'Upgrade', 'Shop', 'Transport', 'Status'];
-		const currentView = menuViews.find(view => this.options.view.toLowerCase().startsWith(view.toLowerCase()));
-
-		this._burgerTabs = new BurgerTabs({
-			appendTo: this._body,
-			tabs: menuViews,
-			selectedTab: currentView,
-			onTabClick: tab => {
-				this.options.view = tab;
-			},
-			isTabEmpty: tab => this.isMenuEmpty(tab),
-		});
-
-		this._menuBody = new Elem({ className: 'menuBody', appendTo: this._body });
-	}
-
 	isMenuEmpty(menuName) {
 		const player = gameContext.players.currentPlayer;
 
 		switch (menuName) {
-			case 'Sell':
+			case 'sell':
 				// No minerals to sell
 				return Object.keys(player.hull).length === 0;
 
-			case 'Refuel': {
+			case 'refuel': {
 				// Fuel is already full
 				return player.fuel >= player.maxFuel;
 			}
 
-			case 'Repair': {
+			case 'repair': {
 				// Both player and SpaceCo are at full health
 				const playerHealthFull = player.health >= player.maxHealth;
 				const spacecoHealthFull = gameContext.serverState.world.spaceco.health >= 9;
 				return playerHealthFull && spacecoHealthFull;
 			}
 
-			case 'Upgrade': {
+			case 'upgrade': {
 				// No upgrades available in any category
 				const spaceco = gameContext.serverState.world.spaceco;
 				return (
@@ -473,76 +452,16 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				);
 			}
 
-			case 'Shop': {
-				// All items are out of stock
+			case 'shop': {
+				// All items are out of stock, and the player has none to sell
 				const shop = gameContext.serverState.world.spaceco.shop;
-				return Object.values(shop).every(stock => stock <= 0);
+				return Object.values(shop).every(stock => stock <= 0) && Object.values(player.items).every(count => count <= 0);
 			}
 
-			case 'Transport':
+			case 'transport':
 				// No transport choices available
 				return gameContext.serverState.world.transportChoices.length === 0;
 
-			case 'Status':
-				// Status always has content, never disable
-				return false;
-
-			default:
-				return false;
-		}
-	}
-
-	isUpgradeSubmenuEmpty(submenuName) {
-		const spaceco = gameContext.serverState.world.spaceco;
-
-		switch (submenuName) {
-			case 'Current':
-				// Current configuration always has content
-				return false;
-			case 'Vehicles':
-				return spaceco.vehicles.length === 0;
-			case 'Drills':
-				return spaceco.drills.length === 0;
-			case 'Engines':
-				return spaceco.engines.length === 0;
-			case 'Parts':
-				return spaceco.parts.length === 0;
-			default:
-				return false;
-		}
-	}
-
-	isShopSubmenuEmpty(submenuName) {
-		const player = gameContext.players.currentPlayer;
-
-		switch (submenuName) {
-			case 'SpaceCo Shop': {
-				// Check if all items in shop are out of stock
-				const shop = gameContext.serverState.world.spaceco.shop;
-				return Object.values(shop).every(stock => stock <= 0);
-			}
-			case 'Player Inventory': {
-				// Check if player has no items
-				return Object.values(player.items).every(count => count <= 0);
-			}
-			default:
-				return false;
-		}
-	}
-
-	isStatusSubmenuEmpty(submenuName) {
-		switch (submenuName) {
-			case 'Current':
-				// Current status always has content
-				return false;
-			case 'Achievements':
-				// Achievement stats always have content
-				return false;
-			case 'Minerals': {
-				// Check if SpaceCo has no minerals
-				const spacecoHull = gameContext.serverState.world.spaceco.hull || {};
-				return Object.values(spacecoHull).every(count => count <= 0);
-			}
 			default:
 				return false;
 		}
@@ -719,184 +638,171 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		);
 	}
 
-	render_success() {
-		new Elem({ tag: 'p', content: 'Thank you', appendTo: this._body });
-	}
-
-	renderUpgradeMenu() {
+	render_upgrade() {
 		this.renderPlayerCredits();
 
-		const menuViews = ['Current', 'Vehicles', 'Drills', 'Engines', 'Parts'];
-		const currentView = menuViews.find(view => this.options.view === `upgrade_${view}`);
+		const { spaceco } = gameContext.serverState.world;
 
-		this._upgradeBurgerTabs = new BurgerTabs({
-			appendTo: this._menuBody,
-			tabs: menuViews,
-			selectedTab: currentView,
-			onTabClick: tab => {
-				this.options.view = `upgrade_${tab}`;
-			},
-			isTabEmpty: tab => this.isUpgradeSubmenuEmpty(tab),
+		this.renderRig(new SubPanel({ label: 'Current rig', appendTo: this._menuBody }));
+
+		// Each kind SpaceCo has in stock, under the rig it would replace a part of
+		[
+			['vehicles', 'Vehicles', this.renderVehicles],
+			['drills', 'Drills', this.renderDrills],
+			['engines', 'Engines', this.renderEngines],
+			['parts', 'Parts', this.renderParts],
+		].forEach(([kind, label, render]) => {
+			if (spaceco[kind].length) render.call(this, new SubPanel({ label, appendTo: this._menuBody }));
 		});
-
-		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
 	}
 
-	render_upgrade() {
-		this.options.view = 'upgrade_Current';
-	}
-
-	render_upgrade_current() {
-		this.renderUpgradeMenu();
-
+	/** @param {object} container - Where the rig's cards go */
+	renderRig(container) {
 		const player = gameContext.players.currentPlayer;
 		const vehicleConfig = vehicles[player.configuration.vehicle];
 		const drillConfig = drills[player.configuration.drill];
 		const engineConfig = engines[player.configuration.engine];
 		const partConfig = parts[player.configuration.part];
 
-		new SubPanel(
-			{ label: 'Configuration', appendTo: this._subMenuBody },
-			new CardGrid({
-				content: [
-					new Card({
-						accent: cardEdge.owned,
-						header: `Vehicle: ${vehicleConfig.name}`,
-						body: new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								gap: theme.space.xs,
-							},
-							append: [
-								new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
-								new Elem({
-									style: {
-										display: 'flex',
-										alignItems: 'center',
-										gap: theme.space.xs,
-										justifyContent: 'center',
-									},
-									append: [
-										new DescriptionText({
-											summary: vehicleConfig.summary,
-											description: vehicleConfig.description,
-											title: vehicleConfig.name,
-										}),
-									],
-								}),
-								new ConfigStat({ label: 'Max Health', value: vehicleConfig.maxHealth }),
-								new ConfigStat({ label: 'Max Fuel', value: vehicleConfig.maxFuel }),
-								new ConfigStat({ label: 'Max Cargo', value: vehicleConfig.maxCargo }),
-								new ConfigStat({ label: 'Fuel Efficiency', value: vehicleConfig.fuelEfficiency }),
-							],
-						}),
-					}),
-					new Card({
-						accent: cardEdge.owned,
-						header: `Drill: ${drillConfig.name}`,
-						body: new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								gap: theme.space.xs,
-							},
-							append: [
-								new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
-								new DescriptionText({
-									summary: drillConfig.summary,
-									description: drillConfig.description,
-									title: drillConfig.name,
-								}),
-								new ConfigStat({ label: 'Max Health', value: drillConfig.maxHealth }),
-								new ConfigStat({ label: 'Fuel Efficiency', value: drillConfig.fuelEfficiency }),
-								new ConfigStat({ label: 'Strength', value: drillConfig.strength }),
-							],
-						}),
-					}),
-					new Card({
-						accent: cardEdge.owned,
-						header: `Engine: ${engineConfig.name}`,
-						body: new Elem({
-							style: {
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								gap: theme.space.xs,
-							},
-							append: [
-								new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
-								new Elem({
-									style: {
-										display: 'flex',
-										alignItems: 'center',
-										gap: theme.space.xs,
-										justifyContent: 'center',
-									},
-									append: [
-										new DescriptionText({
-											summary: engineConfig.summary,
-											description: engineConfig.description,
-											title: engineConfig.name,
-										}),
-									],
-								}),
-								new ConfigStat({ label: 'Max Health', value: engineConfig.maxHealth }),
-								new ConfigStat({ label: 'Max Fuel', value: engineConfig.maxFuel }),
-								new ConfigStat({ label: 'Max Cargo', value: engineConfig.maxCargo }),
-								new ConfigStat({ label: 'Torque', value: engineConfig.torque }),
-								new ConfigStat({ label: 'Max Item Slots', value: engineConfig.maxItemSlots }),
-								new ConfigStat({ label: 'Fuel Efficiency', value: engineConfig.fuelEfficiency }),
-								new ConfigStat({
-									label: 'Fuel Type',
-									value: capitalize(engineConfig.fuelType.replace('super_oxygen_liquid_nitrogen', 'SOLN')),
-								}),
-							],
-						}),
-					}),
-					partConfig &&
-						new Card({
-							accent: cardEdge.owned,
-							header: `Part: ${player.configuration.part}`,
-							body: new Elem({
+		new CardGrid({
+			appendTo: container,
+			content: [
+				new Card({
+					accent: cardEdge.owned,
+					header: `Vehicle: ${vehicleConfig.name}`,
+					body: new Elem({
+						style: {
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: theme.space.xs,
+						},
+						append: [
+							new VehicleImage(vehicleConfig.spriteIndex, { displaySize: 96 }),
+							new Elem({
 								style: {
 									display: 'flex',
-									flexDirection: 'column',
 									alignItems: 'center',
 									gap: theme.space.xs,
+									justifyContent: 'center',
 								},
 								append: [
-									new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
-									new Elem({
-										tag: 'p',
-										content: partConfig.summary,
-										className: 'description',
+									new DescriptionText({
+										summary: vehicleConfig.summary,
+										description: vehicleConfig.description,
+										title: vehicleConfig.name,
 									}),
-									new ConfigStat({ label: 'Max Health', value: partConfig.maxHealth }),
-									new ConfigStat({ label: 'Max Fuel', value: partConfig.maxFuel }),
-									new ConfigStat({ label: 'Max Cargo', value: partConfig.maxCargo }),
-									new ConfigStat({ label: 'Torque', value: partConfig.torque }),
-									new ConfigStat({ label: 'Max Item Slots', value: partConfig.maxItemSlots }),
-									new ConfigStat({ label: 'Fuel Efficiency', value: partConfig.fuelEfficiency }),
 								],
 							}),
+							new ConfigStat({ label: 'Max Health', value: vehicleConfig.maxHealth }),
+							new ConfigStat({ label: 'Max Fuel', value: vehicleConfig.maxFuel }),
+							new ConfigStat({ label: 'Max Cargo', value: vehicleConfig.maxCargo }),
+							new ConfigStat({ label: 'Fuel Efficiency', value: vehicleConfig.fuelEfficiency }),
+						],
+					}),
+				}),
+				new Card({
+					accent: cardEdge.owned,
+					header: `Drill: ${drillConfig.name}`,
+					body: new Elem({
+						style: {
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: theme.space.xs,
+						},
+						append: [
+							new DrillImage(drillConfig.spriteIndex, { displaySize: 96 }),
+							new DescriptionText({
+								summary: drillConfig.summary,
+								description: drillConfig.description,
+								title: drillConfig.name,
+							}),
+							new ConfigStat({ label: 'Max Health', value: drillConfig.maxHealth }),
+							new ConfigStat({ label: 'Fuel Efficiency', value: drillConfig.fuelEfficiency }),
+							new ConfigStat({ label: 'Strength', value: drillConfig.strength }),
+						],
+					}),
+				}),
+				new Card({
+					accent: cardEdge.owned,
+					header: `Engine: ${engineConfig.name}`,
+					body: new Elem({
+						style: {
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: theme.space.xs,
+						},
+						append: [
+							new EngineImage(engineConfig.spriteIndex, { displaySize: 96 }),
+							new Elem({
+								style: {
+									display: 'flex',
+									alignItems: 'center',
+									gap: theme.space.xs,
+									justifyContent: 'center',
+								},
+								append: [
+									new DescriptionText({
+										summary: engineConfig.summary,
+										description: engineConfig.description,
+										title: engineConfig.name,
+									}),
+								],
+							}),
+							new ConfigStat({ label: 'Max Health', value: engineConfig.maxHealth }),
+							new ConfigStat({ label: 'Max Fuel', value: engineConfig.maxFuel }),
+							new ConfigStat({ label: 'Max Cargo', value: engineConfig.maxCargo }),
+							new ConfigStat({ label: 'Torque', value: engineConfig.torque }),
+							new ConfigStat({ label: 'Max Item Slots', value: engineConfig.maxItemSlots }),
+							new ConfigStat({ label: 'Fuel Efficiency', value: engineConfig.fuelEfficiency }),
+							new ConfigStat({
+								label: 'Fuel Type',
+								value: capitalize(engineConfig.fuelType.replace('super_oxygen_liquid_nitrogen', 'SOLN')),
+							}),
+						],
+					}),
+				}),
+				partConfig &&
+					new Card({
+						accent: cardEdge.owned,
+						header: `Part: ${player.configuration.part}`,
+						body: new Elem({
+							style: {
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								gap: theme.space.xs,
+							},
+							append: [
+								new PartImage(partConfig.spriteIndex, { displaySize: 96 }),
+								new Elem({
+									tag: 'p',
+									content: partConfig.summary,
+									className: 'description',
+								}),
+								new ConfigStat({ label: 'Max Health', value: partConfig.maxHealth }),
+								new ConfigStat({ label: 'Max Fuel', value: partConfig.maxFuel }),
+								new ConfigStat({ label: 'Max Cargo', value: partConfig.maxCargo }),
+								new ConfigStat({ label: 'Torque', value: partConfig.torque }),
+								new ConfigStat({ label: 'Max Item Slots', value: partConfig.maxItemSlots }),
+								new ConfigStat({ label: 'Fuel Efficiency', value: partConfig.fuelEfficiency }),
+							],
 						}),
-				],
-			}),
-		);
+					}),
+			],
+		});
 	}
 
-	render_upgrade_vehicles() {
-		this.renderUpgradeMenu();
-
+	/** @param {object} container - Where the cards go */
+	renderVehicles(container) {
 		const player = gameContext.players.currentPlayer;
 		const vehicleConfig = vehicles[player.configuration.vehicle];
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			content: gameContext.serverState.world.spaceco.vehicles.map(id => {
 				const { name, price, summary, spriteIndex, maxHealth, maxFuel, maxCargo, fuelEfficiency } = vehicles[id];
 
@@ -963,15 +869,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	render_upgrade_engines() {
-		this.renderUpgradeMenu();
-
+	/** @param {object} container - Where the cards go */
+	renderEngines(container) {
 		const player = gameContext.players.currentPlayer;
 		const engineConfig = engines[player.configuration.engine];
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			content: gameContext.serverState.world.spaceco.engines.map(id => {
 				const { name, price, summary, spriteIndex, maxHealth, maxFuel, maxCargo, fuelType, torque, fuelEfficiency } =
 					engines[id];
@@ -1047,15 +952,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	render_upgrade_drills() {
-		this.renderUpgradeMenu();
-
+	/** @param {object} container - Where the cards go */
+	renderDrills(container) {
 		const player = gameContext.players.currentPlayer;
 		const drillConfig = drills[player.configuration.drill];
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			content: gameContext.serverState.world.spaceco.drills.map(id => {
 				const { name, price, summary, spriteIndex, maxHealth, fuelEfficiency, strength, requirements } = drills[id];
 
@@ -1148,15 +1052,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	render_upgrade_parts() {
-		this.renderUpgradeMenu();
-
+	/** @param {object} container - Where the cards go */
+	renderParts(container) {
 		const player = gameContext.players.currentPlayer;
 		const currentPartConfig = parts[player.configuration.part] || {};
 		const upgradeConfigs = { vehicles, drills, engines, parts };
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			content: gameContext.serverState.world.spaceco.parts.map(id => {
 				const newPartConfig = parts[id];
 				const {
@@ -1373,37 +1276,14 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		this._menuBody.append(playerRepairs, spacecoRepairs);
 	}
 
-	renderShopMenu() {
-		this.renderPlayerCredits();
-
-		new TabRow(
-			{ addClass: 'menu', appendTo: this._menuBody },
-			['SpaceCo Shop', 'Player Inventory'].map(view => {
-				const viewKey = `shop_${view.split(' ')[0]}`;
-				const isEmpty = this.isShopSubmenuEmpty(view);
-
-				return Tab({
-					content: view,
-					onPointerPress: () => {
-						this.options.view = viewKey;
-					},
-					selected: this.options.view === viewKey,
-					disabled: isEmpty,
-					addClass: isEmpty && 'empty-menu',
-				});
-			}),
-		);
-
-		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
-	}
-
 	render_shop() {
-		this.options.view = 'shop_SpaceCo';
+		this.renderPlayerCredits();
+		this.renderShopStock(this._menuBody);
+		this.renderSellItems(new SubPanel({ label: 'Sell your items', appendTo: this._menuBody }));
 	}
 
-	render_shop_spaceco() {
-		this.renderShopMenu();
-
+	/** @param {object} container - Where the stock goes */
+	renderShopStock(container) {
 		const player = gameContext.players.currentPlayer;
 		const currentItemCount = Object.values(player.items).reduce((sum, count) => {
 			const numCount = typeof count === 'number' ? count : 0;
@@ -1414,7 +1294,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		const canAffordResupply = player.credits >= resupplyCost;
 
 		new Elem({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			style: {
 				display: 'flex',
 				flexWrap: 'wrap',
@@ -1444,7 +1324,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 
 		new SubPanel(
-			{ appendTo: this._subMenuBody, label: `Inventory: ${currentItemCount} / ${player.maxItemSlots} slots` },
+			{ appendTo: container, label: `Inventory: ${currentItemCount} / ${player.maxItemSlots} slots` },
 			currentItemCount >= player.maxItemSlots &&
 				new Elem({
 					tag: 'p',
@@ -1455,7 +1335,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		);
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			content: Object.entries(items).flatMap(([key, { price, summary }]) => {
 				const stock = gameContext.serverState.world.spaceco.shop[key];
 
@@ -1528,14 +1408,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	render_shop_player() {
-		this.renderShopMenu();
-
+	/** @param {object} container - Where the player's items go, to sell */
+	renderSellItems(container) {
 		const player = gameContext.players.currentPlayer;
 
 		if (Object.values(player.items).every(count => count <= 0)) {
 			new EmptyState({
-				appendTo: this._subMenuBody,
+				appendTo: container,
 				icon: 'box-open',
 				title: 'No items in inventory to sell',
 				message: 'Items bought in the shop or found while drilling show up here.',
@@ -1544,7 +1423,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		}
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			content: Object.entries(player.items).flatMap(([key, count]) => {
 				if (!count) return [];
 
@@ -1858,35 +1737,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	renderStatusMenu() {
-		new TabRow(
-			{ addClass: 'menu', appendTo: this._menuBody },
-			['Current', 'Achievements', 'Minerals'].map(view => {
-				const isEmpty = this.isStatusSubmenuEmpty(view);
-
-				return Tab({
-					content: view,
-					onPointerPress: () => {
-						this.options.view = `status_${view}`;
-					},
-					selected: this.options.view === `status_${view}`,
-					disabled: isEmpty,
-					addClass: isEmpty && 'empty-menu',
-				});
-			}),
-		);
-
-		this._subMenuBody = new Elem({ className: 'menuBody', appendTo: this._menuBody });
-	}
-
 	render_status() {
-		this.options.view = 'status_Current';
-	}
-
-	render_status_current() {
-		this.renderStatusMenu();
-
-		this._subMenuBody.append(
+		this._menuBody.append(
 			new SubPanel(
 				{ label: 'Position' },
 				`X: ${gameContext.serverState.world.spaceco.position.x} | Y: ${gameContext.serverState.world.spaceco.position.y}`,
@@ -1910,13 +1762,19 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				}),
 			),
 		);
+
+		const { hull = {} } = gameContext.serverState.world.spaceco;
+
+		// What the outpost has bought, once it has any
+		if (Object.keys(minerals).some(name => hull[name] > 0)) {
+			this.renderOutpostMinerals(new SubPanel({ label: 'Minerals', appendTo: this._menuBody }));
+		}
 	}
 
-	render_status_minerals() {
-		this.renderStatusMenu();
-
+	/** @param {object} container - Where the outpost's minerals go */
+	renderOutpostMinerals(container) {
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: container,
 			content: Object.keys(minerals).flatMap(name => {
 				const count = gameContext.serverState.world.spaceco.hull?.[name] || 0;
 
@@ -1960,25 +1818,23 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 		});
 	}
 
-	render_status_achievements() {
-		this.renderStatusMenu();
-
+	render_achievements() {
 		new Elem({
 			tag: 'p',
-			appendTo: this._subMenuBody,
+			appendTo: this._menuBody,
 			content: `Unlocked ${Object.keys(gameContext.serverState.world.spaceco.achievements).length} of ${spacecoAchievements.length}`,
 			className: 'description',
 		});
 
 		new Elem({
 			tag: 'p',
-			appendTo: this._subMenuBody,
+			appendTo: this._menuBody,
 			content: `Galactic Market Share: ${gameContext.serverState.world.spaceco.xp}`,
 			className: 'description',
 		});
 
 		new CardGrid({
-			appendTo: this._subMenuBody,
+			appendTo: this._menuBody,
 			content: spacecoAchievements
 				.sort(
 					orderBy([
@@ -2075,11 +1931,24 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 	static schema = {
 		view: {
 			set(value) {
-				this._body.empty();
+				// A wrecked outpost has nothing to offer but its repair, and no tabs
+				if (value === 'destroyed') {
+					this._tabs = undefined;
+					this._body.empty();
+					this.render_destroyed();
 
-				this.renderMenu();
+					return;
+				}
 
-				this[`render_${value.toLowerCase()}`]();
+				const view = spacecoView(value) ?? 'sell';
+
+				if (view !== value) this.options.view = view;
+				// A tab with nothing behind it is disabled, unless it's the one showing: the row's tab stop is the selected tab
+				else
+					this.showTab(
+						view,
+						spacecoTabs.map(tab => ({ ...tab, disabled: tab.id !== view && this.isMenuEmpty(tab.id) })),
+					);
 			},
 		},
 	};

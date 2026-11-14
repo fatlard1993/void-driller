@@ -27,10 +27,13 @@ Your drill rig comes equipped with a built-in console interface - your lifeline 
 Open the console at any time (`Esc` or "Console" button) to access essential subsystems:
 
 - **Cargo:** Review your mineral haul and weight status
-- **Status:** See your vehicle's condition, fuel, and inventory capacity
 - **Items:** Use your carried items from inventory slots
+- **Status:** See your vehicle's condition, fuel, inventory capacity and parts
+- **Achievements:** See what you've unlocked and what's still ahead
+- **Collection:** Every mineral you've found and item you've held
 - **Settings:** Configure volume, alerts, default menu
 - **Help:** Reopen this guide anytime
+- **Briefing:** Reread, or replay, this asteroid's briefing
 
 You can change which tab opens by default in the **Settings** menu - useful if you want instant access to cargo stats or your tool belt.
 
@@ -40,7 +43,7 @@ Accessible from the **player console**:
 
 - **Volume controls** for music, briefings, alerts, interfaces and effects
 - **Alerts** for low fuel, cargo full, or low health
-- **Default Console Menu** to choose which submenu opens with the console
+- **Default Console Menu** to choose which tab opens with the console
 
 ## ⛏️ Mining
 
