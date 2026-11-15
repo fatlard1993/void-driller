@@ -204,3 +204,19 @@ describe('spacecoFall', () => {
 		expect(gameContext.spaceco.calls).toEqual([['fall', { x: 1, y: 2 }]]);
 	});
 });
+
+describe('playerMovementError', () => {
+	it("keeps the failed move's toast up until pressed, the only place it shows", async () => {
+		arrange();
+		player('me');
+		const { default: Notify } = await import('../shared/Notify');
+
+		await send('playerMovementError', { playerId: 'me', error: 'Drill seized' });
+
+		const toast = [...document.querySelectorAll('*')]
+			.map(elem => elem._component)
+			.find(component => component instanceof Notify && component.elem.textContent.includes('Drill seized'));
+		expect(toast.options.timeout).toBe(0);
+		toast.destroy();
+	});
+});

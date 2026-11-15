@@ -198,7 +198,7 @@ export const reconcileGame = state => {
 	) {
 		dialog.tradeSession = null;
 		dialog.close();
-		new Notify({ intent: 'warning', content: 'The trade is over.', timeout: 4000 });
+		new Notify({ intent: 'warning', content: 'The trade is over.' });
 	}
 	if (gameContext.pendingTradeInvitation && !trades.some(trade => trade.id === gameContext.pendingTradeInvitation.id)) {
 		gameContext.pendingTradeInvitation = null;

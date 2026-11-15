@@ -32,10 +32,11 @@ mock.module('../api', () => ({
 let gameContext;
 let refetchGame;
 let applyView;
+let reconcileGame;
 
 beforeAll(async () => {
 	({ default: gameContext } = await import('../shared/gameContext'));
-	({ refetchGame, applyView } = await import('./reconcile'));
+	({ refetchGame, applyView, reconcileGame } = await import('./reconcile'));
 });
 
 const notFound = { status: 'error', response: { status: 404 } };
@@ -204,6 +205,27 @@ describe('applyView', () => {
 		expect(window.location.hash).toBe('#/play/g1');
 		expect(localStorage.getItem('g1')).toBe('me');
 		gameContext.exiting = false;
+	});
+
+	it('closes a trade the view no longer holds, and keeps the toast saying so up until pressed', async () => {
+		arrange();
+		const { default: TradeDialog } = await import('./TradeDialog');
+		const { default: Notify } = await import('../shared/Notify');
+		let closed = false;
+		gameContext.openDialog = Object.assign(Object.create(TradeDialog.prototype), {
+			tradeSession: { id: 't1' },
+			close: () => (closed = true),
+		});
+
+		reconcileGame({ world: world(), players: [], trades: [] });
+
+		const toast = [...document.querySelectorAll('*')]
+			.map(elem => elem._component)
+			.find(component => component instanceof Notify && component.elem.textContent.includes('The trade is over.'));
+		expect(closed).toBe(true);
+		expect(toast.options.timeout).toBe(0);
+		toast.destroy();
+		gameContext.openDialog = null;
 	});
 
 	it('leaves a view of the asteroid a heard transport is taking it to for the transition to draw', () => {

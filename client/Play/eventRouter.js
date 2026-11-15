@@ -624,7 +624,7 @@ export function setupEventRouter() {
 		clearMovementState(data.playerId);
 
 		if (data.playerId === gameContext.playerId) {
-			new Notify({ intent: 'danger', content: data.error || 'Movement failed', timeout: 2000 });
+			new Notify({ intent: 'danger', content: data.error || 'Movement failed' });
 		}
 	});
 
