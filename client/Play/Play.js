@@ -42,7 +42,10 @@ export default class Play extends View {
 										gameId: gameContext.gameId,
 										playerId: gameContext.playerId,
 										header: 'Abort this contract?',
+										intent: 'danger',
 										confirmLabel: 'Abort contract',
+										// The framework's Cancel isn't marked as the cancel, so the danger color would take it too
+										buttons: [{ textContent: 'Cancel', 'data-action': 'cancel' }, 'Abort contract'],
 										label:
 											'Terminating this drilling contract will remove you from the operation.\nThis action cannot be undone. Are you sure you want to proceed?',
 										beforeExit: () => (gameContext.exiting = true),
