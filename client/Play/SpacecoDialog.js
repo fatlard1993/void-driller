@@ -1180,6 +1180,13 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			return;
 		}
 
+		const buyLabel = amount =>
+			new Elem(
+				{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
+				new Elem({ content: 'Buy' }),
+				new PriceDisplay({ amount, size: 14, preText: '(', postText: ')' }),
+			);
+
 		this._menuBody.append(
 			new SubPanel(
 				{ label: 'Fuel' },
@@ -1191,7 +1198,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				...[5, 10, 20, 40, 50].map(amount => {
 					if (player.credits > amount && amount <= cost) {
 						return new Button({
-							content: new PriceDisplay({ amount: amount, size: 14 }),
+							content: buyLabel(amount),
 							onPointerPress: () => act('spacecoRefuel', { amount }),
 						});
 					}
@@ -1199,7 +1206,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				player.credits &&
 					cost > player.credits &&
 					new Button({
-						content: new PriceDisplay({ amount: Math.floor(player.credits), size: 14 }),
+						content: buyLabel(Math.floor(player.credits)),
 						onPointerPress: () =>
 							act('spacecoRefuel', {
 								amount: Math.floor(player.credits),

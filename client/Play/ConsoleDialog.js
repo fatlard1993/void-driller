@@ -326,6 +326,7 @@ class AutoPathControl extends Component {
 					new Button({
 						appendTo: ignoreList,
 						textContent: mineralConfig.name,
+						'aria-label': `Remove ${mineralConfig.name}`,
 						icon: 'xmark',
 						style: { fontSize: theme.fontSize.sm, padding: `${theme.space.xs} ${theme.space.sm}` },
 						onPointerPress: () => {

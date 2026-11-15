@@ -91,6 +91,29 @@ describe('SpacecoDialog', () => {
 		expect(dialog.options.view).toBe('sell');
 	});
 
+	it('labels every refuel button with what pressing it does', async () => {
+		const me = gameContext.players.get('me');
+		const { engines } = await import('../../constants');
+		gameContext.players.set('me', {
+			...me,
+			configuration: { engine: Object.keys(engines)[0] },
+			fuel: 0,
+			maxFuel: 100,
+			credits: 30,
+		});
+
+		const dialog = new SpacecoDialog({ view: 'refuel' });
+		await new Promise(resolve => setTimeout(resolve));
+
+		const labels = [...dialog.elem.querySelectorAll('.content button:not([role="tab"])')].map(
+			button => button.textContent,
+		);
+		gameContext.players.set('me', me);
+
+		expect(labels.length).toBeGreaterThan(1);
+		for (const label of labels) expect(label).toMatch(/^(Buy|Fill)/);
+	});
+
 	it('says how to get minerals when there are none to sell, and offers the collection', async () => {
 		const dialog = new SpacecoDialog({ view: 'Sell' });
 		await new Promise(resolve => setTimeout(resolve));
