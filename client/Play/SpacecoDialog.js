@@ -486,27 +486,17 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 			const playerSubmitted = eggHunt.playerSubmissions?.[gameContext.playerId] || 0;
 
 			this._menuBody.append(
-				new Elem({
-					style: {
-						marginTop: theme.space.sm,
-						padding: theme.space.sm,
-						background: theme.colors.darkest(theme.colors.purple),
-						border: `1px solid ${theme.colors.purple}`,
-						borderRadius: theme.radius.sm,
-						fontSize: theme.fontSize.sm,
-					},
-					append: [
-						new SectionLabel({ textContent: 'Progress' }),
-						new Elem({
-							content: `Your submissions: ${playerSubmitted}`,
-							style: { color: theme.colors.muted },
-						}),
-						new Elem({
-							content: `Global total: ${eggHunt.totalEggsSubmitted}`,
-							style: { color: theme.colors.muted },
-						}),
-					],
-				}),
+				new SubPanel(
+					{ label: 'Progress', style: { fontSize: theme.fontSize.sm } },
+					new Elem({
+						content: `Your submissions: ${playerSubmitted}`,
+						style: { color: theme.colors.muted },
+					}),
+					new Elem({
+						content: `Global total: ${eggHunt.totalEggsSubmitted}`,
+						style: { color: theme.colors.muted },
+					}),
+				),
 			);
 		}
 	}
@@ -1301,9 +1291,6 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				alignItems: 'center',
 				gap: theme.space.sm,
 				marginBottom: theme.space.sm,
-				padding: theme.space.sm,
-				background: theme.colors.alpha(theme.colors.vantablack, 0.3),
-				borderRadius: theme.radius.sm,
 			},
 			append: [
 				new SectionLabel({ textContent: 'Resupply Shop Stock', inRow: true }),

@@ -1205,10 +1205,6 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 					display: 'flex',
 					gap: theme.space.sm,
 					marginBottom: theme.space.md,
-					padding: theme.space.sm,
-					background: theme.colors.surface,
-					borderRadius: theme.radius.md,
-					border: `1px solid ${theme.colors.border}`,
 				},
 			});
 
