@@ -6,7 +6,7 @@
       "name": "void-driller",
       "dependencies": {
         "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#30cade8",
-        "@vanilla-bean/components": "^7.5.2",
+        "@vanilla-bean/components": "^7.6.0",
         "argi-cli": "^1.0.0",
         "augmented-ui": "^2.0.0",
         "emoji-js": "^3.9.0",
@@ -141,7 +141,7 @@
 
     "@typescript-eslint/visitor-keys": ["@typescript-eslint/visitor-keys@8.72.2", "", { "dependencies": { "@typescript-eslint/types": "8.72.2", "eslint-visitor-keys": "^5.0.0" } }, "sha512-NAGrjn0Pitjqzq/GkgMC4kBYm233PQ8GffyQ9+kTA3AlNQYEzOf25EIM02BAHZv5FRJSpHpJk+OGUxVkOB93GQ=="],
 
-    "@vanilla-bean/components": ["@vanilla-bean/components@7.5.2", "", { "dependencies": { "@ctrl/tinycolor": "^4.3.1", "@fontsource-variable/kode-mono": "^5.3.0", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/hypertether": "^1.2.2", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "^6.0.2" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "@happy-dom/global-registrator": "^21.0.4", "@testing-library/jest-dom": "^6.9.1 || ^7.0.1", "emoji-js": "^3.9.0", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "happy-dom": "^21.0.4", "lowdb": "^7.0.1", "marked": ">=18" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "@happy-dom/global-registrator", "@testing-library/jest-dom", "emoji-js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "happy-dom", "lowdb", "marked"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-84jH/CyDfzogWqEyDfeUnSwaZBPRy09TnRYLZAY0zHQKn94qRrcALlwRHIdm9Rs4U6zFvXxtGqciSGWn8o1ERQ=="],
+    "@vanilla-bean/components": ["@vanilla-bean/components@7.6.0", "", { "dependencies": { "@ctrl/tinycolor": "^4.3.1", "@fontsource-variable/kode-mono": "^5.3.0", "@fortawesome/fontawesome-free": "^7.3.1", "@vanilla-bean/hypertether": "^1.2.2", "@vanilla-bean/oxject": "^1.0.0", "nanoid": "^6.0.2" }, "peerDependencies": { "@eslint/compat": "^2.1.0", "@eslint/js": "^10.0.1", "@happy-dom/global-registrator": "^21.0.4", "@testing-library/jest-dom": "^6.9.1 || ^7.0.1", "emoji-js": "^3.9.0", "eslint": "^10.7.0", "eslint-plugin-compat": "^7.0.2", "eslint-plugin-import": "^2.32.0", "eslint-plugin-jsdoc": "^63.0.13 || ^65.0.0", "eslint-plugin-spellcheck": "0.0.20", "eslint-plugin-testing-library": "^7.16.2", "eslint-plugin-write-good-comments": "^0.2.0", "globals": "^17.7.0", "happy-dom": "^21.0.4", "lowdb": "^7.0.1", "marked": ">=18" }, "optionalPeers": ["@eslint/compat", "@eslint/js", "@happy-dom/global-registrator", "@testing-library/jest-dom", "emoji-js", "eslint", "eslint-plugin-compat", "eslint-plugin-import", "eslint-plugin-jsdoc", "eslint-plugin-spellcheck", "eslint-plugin-testing-library", "eslint-plugin-write-good-comments", "globals", "happy-dom", "lowdb", "marked"], "bin": { "vbc-build": "app/buildCli.js", "vbc-service": "app/serviceCli.js" } }, "sha512-s9oBBt4fI8Nc6vzmTg4GquNycND+1MJTfABp1oh3YZr558B3x7JUal0p0OZ8fYlFZg4UWPSSB3Yws8koYYog5g=="],
 
     "@vanilla-bean/hypertether": ["@vanilla-bean/hypertether@1.2.2", "", {}, "sha512-hg7k4jsR77f8SKY25M00ZtqL9lUQ6XPrlmh9NnaWLbLpYTczpfrHr81hg8Wfnkeuw9dLku7lQdzuTBzP66sNrg=="],
 
