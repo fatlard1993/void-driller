@@ -34,7 +34,8 @@ export default class Game extends (styled.Component`
 		super({ ...options, autoRender: false });
 
 		// Initialize debug log component
-		this.debugLog = new DebugLog();
+		// Inside the game, so it goes with it; fixed, so it still lies over the screen when the Debug setting shows it
+		this.debugLog = new DebugLog({ appendTo: this });
 
 		try {
 			gameContext.game = new Phaser.Game({
