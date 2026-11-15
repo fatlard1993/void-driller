@@ -12,7 +12,8 @@ import { gridChanges, playerChanges } from './gameDiff';
 import TradeDialog from './TradeDialog';
 
 export const leave = (reason, gameId = gameContext.gameId) => {
-	new Notify({ intent: 'warning', content: reason });
+	// Lands over the hub, which nothing on it caused
+	new Notify({ intent: 'warning', content: reason, anchor: false });
 	// A player's stored id is for a contract that no longer holds them; a watcher stored nothing
 	if (!gameContext.isWatchMode) localStorage.removeItem(gameId);
 	window.location.href = href(paths.hub);

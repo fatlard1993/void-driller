@@ -83,6 +83,20 @@ describe('refetchGame', () => {
 		expect(fetches).toBe(1);
 	});
 
+	it('tells the player why in the corner stack, not at a random point over the hub', async () => {
+		arrange();
+		served = notFound;
+		const { default: Notify } = await import('../shared/Notify');
+
+		await refetchGame();
+
+		const toast = [...document.querySelectorAll('*')]
+			.map(elem => elem._component)
+			.find(component => component instanceof Notify && component.elem.textContent.includes('This contract is gone.'));
+		expect(toast.elem.classList.contains('stacked')).toBe(true);
+		toast.destroy();
+	});
+
 	it('drops an answer that arrives after the player has left the game', async () => {
 		arrange();
 		served = notFound;

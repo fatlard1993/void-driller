@@ -28,6 +28,12 @@ describe('Notify', () => {
 		expect(notify.elem.classList.contains('stacked')).toBe(true);
 	});
 
+	it('leaves a toast with an anchor, or with anchor false, to the library to place', () => {
+		const notify = new Notify({ content: 'This contract is gone.', anchor: false, timeout: 0 });
+
+		expect(notify.elem.classList.contains('stacked')).toBe(true);
+	});
+
 	it("shortens info and success toasts to the player's auto-dismiss setting", () => {
 		gameContext.notifySettings = { ...gameContext.notifySettings, autoDismissTimeout: 1234 };
 

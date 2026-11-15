@@ -31,11 +31,13 @@ export default class Notify extends styled(
 			(intent === 'info' || intent === 'success' ? gameContext.notifySettings?.autoDismissTimeout : undefined);
 
 		super({
-			// Scattered over the game, but stacked in the corner over a dialog, where a scattered toast lands on its header
-			...(!gameContext.openDialog && {
-				x: randInt(12, window.innerWidth - 12),
-				y: randInt(72, window.innerHeight / 3),
-			}),
+			// Scattered over the game, but stacked in the corner over a dialog, where a scattered toast lands on its header,
+			// and placed by the library when told where it belongs
+			...(!gameContext.openDialog &&
+				!('anchor' in options) && {
+					x: randInt(12, window.innerWidth - 12),
+					y: randInt(72, window.innerHeight / 3),
+				}),
 			timeout,
 			// Dismissed by the press itself (the release), so nothing under the toast gets pressed in its place
 			onPointerDown: event => event?.stopPropagation(),
