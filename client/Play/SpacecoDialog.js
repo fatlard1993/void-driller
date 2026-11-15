@@ -496,14 +496,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 						fontSize: theme.fontSize.sm,
 					},
 					append: [
-						new Elem({
-							content: 'Progress',
-							style: {
-								color: theme.colors.purple,
-								fontWeight: 'bold',
-								marginBottom: theme.space.xs,
-							},
-						}),
+						new SectionLabel({ textContent: 'Progress' }),
 						new Elem({
 							content: `Your submissions: ${playerSubmitted}`,
 							style: { color: theme.colors.muted },
@@ -1000,11 +993,8 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							new UpgradeStat({ label: 'Fuel Efficiency', value: fuelEfficiency, current: drillConfig.fuelEfficiency }),
 							new UpgradeStat({ label: 'Strength', value: strength, current: drillConfig.strength }),
 							new Elem(
-								{
-									tag: 'p',
-									content: 'Requirements',
-									className: 'description',
-								},
+								{ style: { display: 'flex', flexDirection: 'column', gap: theme.space.xs, width: '100%' } },
+								new SectionLabel({ textContent: 'Requirements' }),
 								new List({
 									items: requirements.map(([key, goal]) => `${capitalize(key)}: ${player[key] ?? 0} / ${goal}`),
 								}),
@@ -1316,10 +1306,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 				borderRadius: theme.radius.sm,
 			},
 			append: [
-				new Elem({
-					content: 'Resupply Shop Stock',
-					style: { fontSize: theme.fontSize.sm, fontWeight: 'bold' },
-				}),
+				new SectionLabel({ textContent: 'Resupply Shop Stock', inRow: true }),
 				new Button({
 					content: new Elem(
 						{ style: { display: 'flex', alignItems: 'center', gap: theme.space.sm } },
@@ -1464,10 +1451,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 								append: [
 									new ItemImage(imageName, { displaySize: 96 }),
 									new Elem({ content: `x${count}` }),
-									new Elem({
-										content: 'Progress',
-										style: { color: theme.colors.light(theme.colors.purple), fontStyle: 'italic' },
-									}),
+									new SectionLabel({ textContent: 'Progress' }),
 									new Elem({ content: `Your submissions: ${playerSubmitted}`, style: { color: theme.colors.muted } }),
 									new Elem({ content: `Global total: ${totalSubmitted}`, style: { color: theme.colors.muted } }),
 								],

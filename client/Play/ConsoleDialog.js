@@ -8,6 +8,7 @@ import {
 	Input,
 	Label,
 	List,
+	SectionLabel,
 	Select,
 	Button,
 	Icon,
@@ -306,7 +307,7 @@ class AutoPathControl extends Component {
 	renderIgnoreList() {
 		const ignoreListContainer = new Elem({ appendTo: this });
 
-		new Label({ appendTo: ignoreListContainer, label: 'Ignored Minerals' });
+		new SectionLabel({ appendTo: ignoreListContainer, textContent: 'Ignored Minerals' });
 
 		if (gameContext.autoPath.ignore.length > 0) {
 			const ignoreList = new Elem({
