@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { theme } from '@vanilla-bean/components';
 
 import QRCode from '@fatlard1993/web-game-framework/ui/QRCode';
 import gameContext from '../shared/gameContext';
@@ -477,9 +478,10 @@ export default class WatchScene extends Phaser.Scene {
 			top: ${qrTopY}px;
 			width: ${qrSize + 20}px;
 			height: ${qrSize + 20}px;
-			background: white;
-			border: 4px solid #000;
-			border-radius: 12px;
+			/* The code's quiet zone stays light whatever the theme */
+			background: ${theme.colors.white};
+			border: 4px solid ${theme.colors.black};
+			border-radius: ${theme.radius.lg};
 			padding: 10px;
 			box-sizing: border-box;
 			z-index: 10001;
