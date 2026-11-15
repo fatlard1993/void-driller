@@ -69,6 +69,7 @@ export default class RescueDialog extends (styled(BaseDialog)`
 			}),
 			new Button({
 				content: 'Abort contract ($0)',
+				variant: 'flat',
 				onPointerPress: async () => {
 					const confirmed = await ConfirmDialog.confirm({
 						...frameAttributes,

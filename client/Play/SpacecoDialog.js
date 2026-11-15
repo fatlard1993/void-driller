@@ -1199,6 +1199,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					if (player.credits > amount && amount <= cost) {
 						return new Button({
 							content: buyLabel(amount),
+							variant: 'flat',
 							onPointerPress: () => act('spacecoRefuel', { amount }),
 						});
 					}
@@ -1207,6 +1208,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 					cost > player.credits &&
 					new Button({
 						content: buyLabel(Math.floor(player.credits)),
+						variant: 'flat',
 						onPointerPress: () =>
 							act('spacecoRefuel', {
 								amount: Math.floor(player.credits),

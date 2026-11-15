@@ -1228,6 +1228,8 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				new Button({
 					icon: 'tower-broadcast',
 					textContent: 'Play briefing audio',
+					// The one beside Play briefing and bulletin is a lesser choice
+					...(hasBulletinAudio && { variant: 'flat' }),
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
@@ -1240,6 +1242,7 @@ export default class ConsoleDialog extends (styled(BaseDialog)`
 				new Button({
 					icon: 'clipboard',
 					textContent: 'Play bulletin audio',
+					...(hasBriefingAudio && { variant: 'flat' }),
 					appendTo: audioControls,
 					style: { flex: 1 },
 					onPointerPress: () => {
