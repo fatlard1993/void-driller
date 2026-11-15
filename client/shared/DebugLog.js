@@ -12,7 +12,7 @@ export default class DebugLog extends (styled.Component`
 	background: ${({ colors }) => colors.alpha(colors.black, 0.9)};
 	color: ${({ colors }) => colors.success};
 	padding: ${({ space }) => space.md};
-	font-family: 'Courier New', monospace;
+	font-family: ${({ fonts }) => fonts.family.code};
 	font-size: ${theme.fontSize.xs};
 	z-index: 10000;
 	max-width: 90%;

@@ -131,7 +131,7 @@ export default class GameScene extends Phaser.Scene {
 		const consoleText = document.createElement('pre');
 		consoleText.textContent = `SPACECO MINING RIG - SYSTEM BOOT\n\nInitializing mining systems...\nLoading asset database: 0%\n\n`;
 		consoleText.style.cssText = `
-			font-family: 'FontWithASyntaxHighlighter', monospace;
+			font-family: ${theme.fonts.family.code};
 			color: ${theme.colors.white};
 			font-size: ${theme.fontSize.lg};
 			white-space: pre-wrap;
@@ -170,7 +170,7 @@ export default class GameScene extends Phaser.Scene {
 			left: 50%;
 			transform: translate(-50%, -50%);
 			color: ${theme.colors.white};
-			font-family: 'FontWithASyntaxHighlighter', monospace;
+			font-family: ${theme.fonts.family.code};
 			font-size: ${theme.fontSize.xs};
 			font-weight: bold;
 			text-shadow: 1px 1px 2px ${theme.colors.alpha(theme.colors.vantablack, 0.8)};
