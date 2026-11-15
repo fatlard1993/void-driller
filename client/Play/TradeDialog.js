@@ -517,6 +517,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			{ className: 'quantity-controls' },
 			new Button({
 				content: '-',
+				'aria-label': `One less ${name}`,
 				className: 'quantity-button',
 				onPointerPress: () => set(this.offered(section, key) - 1),
 				disabled: current <= 0,
@@ -532,6 +533,7 @@ export default class TradeDialog extends (styled(BaseDialog)`
 			}),
 			new Button({
 				content: '+',
+				'aria-label': `One more ${name}`,
 				className: 'quantity-button',
 				onPointerPress: () => set(this.offered(section, key) + 1),
 				disabled: current >= maxValue,
