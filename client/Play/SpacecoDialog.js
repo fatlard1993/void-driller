@@ -1447,6 +1447,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 							footer: [
 								new Button({
 									content: count > 1 ? 'Submit 1' : 'Submit',
+									variant: count > 1 ? 'flat' : undefined,
 									onPointerPress: () => act('spacecoSellItem', { item: key, count: 1 }),
 								}),
 								count > 1 &&
@@ -1520,6 +1521,7 @@ export default class SpacecoDialog extends (styled(BaseDialog)`
 													postText: ')',
 												}),
 											),
+											variant: count > 1 ? 'flat' : undefined,
 											onPointerPress: () => act('spacecoSellItem', { item: key, count: 1 }),
 										}),
 										...(count > 1

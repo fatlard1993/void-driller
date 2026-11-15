@@ -137,6 +137,44 @@ describe('SpacecoDialog', () => {
 		expect(filled[0]).toStartWith('Fill');
 	});
 
+	it('fills the button that sells or submits all of an item, leaving the one that does 1 flat', async () => {
+		const me = gameContext.players.get('me');
+		gameContext.players.set('me', { ...me, items: { oil: 3, psykick_egg: 2 } });
+
+		const dialog = new SpacecoDialog({ view: 'shop' });
+		await new Promise(resolve => setTimeout(resolve));
+
+		const buttons = [...dialog.elem.querySelectorAll('.content button:not([role="tab"])')].filter(button =>
+			/^(Sell|Submit)/.test(button.textContent),
+		);
+		const look = name => {
+			const button = buttons.find(button => button.textContent.startsWith(name));
+
+			return button.classList.contains('variant-flat') ? 'flat' : 'filled';
+		};
+		gameContext.players.set('me', me);
+
+		expect(look('Sell 1')).toBe('flat');
+		expect(look('Sell all')).toBe('filled');
+		expect(look('Submit 1')).toBe('flat');
+		expect(look('Submit all')).toBe('filled');
+	});
+
+	it('fills the lone Sell when there is only 1 of an item', async () => {
+		const me = gameContext.players.get('me');
+		gameContext.players.set('me', { ...me, items: { oil: 1 } });
+
+		const dialog = new SpacecoDialog({ view: 'shop' });
+		await new Promise(resolve => setTimeout(resolve));
+
+		const sell = [...dialog.elem.querySelectorAll('.content button:not([role="tab"])')].find(button =>
+			button.textContent.startsWith('Sell'),
+		);
+		gameContext.players.set('me', me);
+
+		expect(sell.classList.contains('variant-flat')).toBe(false);
+	});
+
 	it('says how to get minerals when there are none to sell, and offers the collection', async () => {
 		const dialog = new SpacecoDialog({ view: 'Sell' });
 		await new Promise(resolve => setTimeout(resolve));
