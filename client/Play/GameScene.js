@@ -1,9 +1,8 @@
 import Phaser from 'phaser';
-import { theme, writeStorage } from '@vanilla-bean/components';
+import { EmptyState, styled, writeStorage } from '@vanilla-bean/components';
 
 import { rand } from '../../utils';
 import gameContext from '../shared/gameContext';
-import { frameAttributes, frameStyles } from '../shared/frame';
 import { drills, vehicles } from '../../constants';
 import { gameLog, clientLog } from '../../utils/logger.js';
 import { act } from '@fatlard1993/web-game-framework/client';
@@ -13,6 +12,13 @@ import { Ground, Item, Mineral, Spaceco, Drill, Lava, Gas, Player, ScreenLayer }
 import { createAlien } from './GameObjects/aliens';
 import BriefingDialog from './BriefingDialog';
 import StatusBarHUD from './GameObjects/StatusBarHUD';
+
+// Laid over the game's canvas, which is empty until the assets are in
+const BootState = styled(EmptyState)`
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+`;
 
 // Essential sounds loaded immediately at startup
 const essentialSounds = [
@@ -107,112 +113,29 @@ export default class GameScene extends Phaser.Scene {
 		});
 	}
 
+	// The boot screen is the view's loading state: over the game while its assets load, saying how far they've come
 	createLoadingUI() {
-		// Create custom loading container that mimics ConsoleContainer appearance
-		const gameParent = document.querySelector('.game-container') || document.body;
+		const gameElem = this.game.canvas?.parentElement ?? document.body;
 
-		// Create the main container with ConsoleContainer styling
-		this.loadingContainer = document.createElement('div');
-		for (const [name, value] of Object.entries(frameAttributes)) this.loadingContainer.setAttribute(name, value);
-		this.loadingContainer.style.cssText = `
-			${frameStyles()}
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 9999;
-			background: ${theme.colors.black};
-			width: min(90vw, 600px);
-			padding: var(--frame-inset);
-			box-sizing: border-box;
-		`;
-
-		// Create the console text element
-		const consoleText = document.createElement('pre');
-		consoleText.textContent = `SPACECO MINING RIG - SYSTEM BOOT\n\nInitializing mining systems...\nLoading asset database: 0%\n\n`;
-		consoleText.style.cssText = `
-			font-family: ${theme.fonts.family.code};
-			color: ${theme.colors.white};
-			font-size: ${theme.fontSize.lg};
-			white-space: pre-wrap;
-			margin: 0 0 16px 0;
-			padding: 0;
-		`;
-
-		// Create responsive loading bar container
-		const loadingBarContainer = document.createElement('div');
-		loadingBarContainer.style.cssText = `
-			width: 100%;
-			height: 20px;
-			background: ${theme.colors.alpha(theme.colors.white, 0.1)};
-			border: 1px solid ${theme.colors.lighter(theme.colors.blue)};
-			border-radius: 3px;
-			overflow: hidden;
-			position: relative;
-		`;
-
-		// Create the loading bar fill
-		const loadingBarFill = document.createElement('div');
-		loadingBarFill.style.cssText = `
-			height: 100%;
-			background: linear-gradient(90deg, ${theme.colors.lighter(theme.colors.blue)}, ${theme.colors.light(theme.colors.blue)});
-			width: 0%;
-			transition: width 0.3s ease;
-			border-radius: 2px;
-		`;
-
-		// Create percentage text overlay
-		const percentText = document.createElement('div');
-		percentText.textContent = '0%';
-		percentText.style.cssText = `
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			color: ${theme.colors.white};
-			font-family: ${theme.fonts.family.code};
-			font-size: ${theme.fontSize.xs};
-			font-weight: bold;
-			text-shadow: 1px 1px 2px ${theme.colors.alpha(theme.colors.vantablack, 0.8)};
-			z-index: 1;
-		`;
-
-		// Assemble the loading UI
-		loadingBarContainer.appendChild(loadingBarFill);
-		loadingBarContainer.appendChild(percentText);
-		this.loadingContainer.appendChild(consoleText);
-		this.loadingContainer.appendChild(loadingBarContainer);
-		gameParent.appendChild(this.loadingContainer);
-
-		// Store references for updates
-		this.loadingConsoleText = consoleText;
-		this.loadingBarFill = loadingBarFill;
-		this.loadingPercentText = percentText;
-
-		this.loadingStatus = 'Loading asset database: 0%';
+		this.loadingState = new BootState({
+			appendTo: gameElem,
+			loading: true,
+			title: 'Loading asset database',
+			message: 'Initializing mining systems...',
+			progress: 0,
+		});
 	}
 
 	updateLoadingProgress(percent, status = '') {
-		if (this.loadingConsoleText && this.loadingBarFill && this.loadingPercentText) {
-			const statusText = status || `Loading asset database: ${percent}%`;
+		if (!this.loadingState) return;
 
-			// Update console text
-			this.loadingConsoleText.textContent = `SPACECO MINING RIG - SYSTEM BOOT\n\nInitializing mining systems...\n${statusText}\n`;
-
-			// Update visual loading bar
-			this.loadingBarFill.style.width = `${percent}%`;
-			this.loadingPercentText.textContent = `${percent}%`;
-		}
+		this.loadingState.options.progress = percent / 100;
+		this.loadingState.options.message = status || 'Initializing mining systems...';
 	}
 
 	hideLoadingUI() {
-		if (this.loadingContainer) {
-			this.loadingContainer.remove();
-			this.loadingContainer = null;
-			this.loadingConsoleText = null;
-			this.loadingBarFill = null;
-			this.loadingPercentText = null;
-		}
+		this.loadingState?.destroy();
+		this.loadingState = null;
 	}
 
 	getAssetConfig(key) {

@@ -12,6 +12,7 @@ import setupEventRouter from './eventRouter';
 import { refetchGame } from './reconcile';
 
 export default class Game extends (styled.Component`
+	position: relative;
 	height: 100%;
 	width: 100%;
 
