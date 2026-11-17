@@ -32,7 +32,7 @@ describe('the boot screen', () => {
 
 	afterEach(() => gameElem.remove());
 
-	test("is a loading EmptyState in the game's element, whose bar follows the load", () => {
+	test("is a loading EmptyState in the rig's console frame, whose bar follows the load", () => {
 		gameElem = document.createElement('div');
 		document.body.append(gameElem);
 
@@ -43,12 +43,15 @@ describe('the boot screen', () => {
 		const bar = gameElem.querySelector('progress');
 
 		expect(gameElem.querySelector('.loading')).not.toBeNull();
-		expect(gameElem.textContent).toContain('Loading asset database');
+		expect(gameElem.textContent).toContain('SPACECO MINING RIG');
+		expect(gameElem.querySelector('[data-augmented-ui]')).not.toBeNull();
+		expect(gameElem.textContent).toContain('Loading asset database: 0%');
 		expect(bar.value).toBe(0);
 
 		scene.updateLoadingProgress(40);
 
 		expect(bar.value).toBe(0.4);
+		expect(gameElem.textContent).toContain('Loading asset database: 40%');
 
 		scene.updateLoadingProgress(100, 'Asset database loaded - Initializing world...');
 

@@ -3,6 +3,7 @@ import { EmptyState, styled, writeStorage } from '@vanilla-bean/components';
 
 import { rand } from '../../utils';
 import gameContext from '../shared/gameContext';
+import { frameAttributes, frameStyles } from '../shared/frame';
 import { drills, vehicles } from '../../constants';
 import { gameLog, clientLog } from '../../utils/logger.js';
 import { act } from '@fatlard1993/web-game-framework/client';
@@ -13,12 +14,23 @@ import { createAlien } from './GameObjects/aliens';
 import BriefingDialog from './BriefingDialog';
 import StatusBarHUD from './GameObjects/StatusBarHUD';
 
-// Laid over the game's canvas, which is empty until the assets are in
-const BootState = styled(EmptyState)`
-	position: absolute;
-	inset: 0;
-	z-index: 2;
-`;
+// The rig's console, framed and centred over the game's canvas, which is empty until the assets are in
+const BootState = styled(
+	EmptyState,
+	({ colors, fonts }) => `
+		${frameStyles()}
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 2;
+		box-sizing: border-box;
+		width: min(90vw, 600px);
+		padding: var(--frame-inset);
+		background: ${colors.black};
+		font-family: ${fonts.family.code};
+	`,
+);
 
 // Essential sounds loaded immediately at startup
 const essentialSounds = [
@@ -113,15 +125,16 @@ export default class GameScene extends Phaser.Scene {
 		});
 	}
 
-	// The boot screen is the view's loading state: over the game while its assets load, saying how far they've come
+	// The boot screen is the view's loading state in the rig's console frame: over the game while its assets load, saying how far they've come
 	createLoadingUI() {
 		const gameElem = this.game.canvas?.parentElement ?? document.body;
 
 		this.loadingState = new BootState({
 			appendTo: gameElem,
+			attributes: frameAttributes,
 			loading: true,
-			title: 'Loading asset database',
-			message: 'Initializing mining systems...',
+			title: 'SPACECO MINING RIG - SYSTEM BOOT',
+			message: 'Loading asset database: 0%',
 			progress: 0,
 		});
 	}
@@ -130,7 +143,7 @@ export default class GameScene extends Phaser.Scene {
 		if (!this.loadingState) return;
 
 		this.loadingState.options.progress = percent / 100;
-		this.loadingState.options.message = status || 'Initializing mining systems...';
+		this.loadingState.options.message = status || `Loading asset database: ${percent}%`;
 	}
 
 	hideLoadingUI() {
