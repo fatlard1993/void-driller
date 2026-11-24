@@ -133,6 +133,7 @@ export default class GameScene extends Phaser.Scene {
 			appendTo: gameElem,
 			attributes: frameAttributes,
 			loading: true,
+			loader: 'augmented',
 			title: 'SPACECO MINING RIG - SYSTEM BOOT',
 			message: 'Loading asset database: 0%',
 			progress: 0,

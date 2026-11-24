@@ -54,7 +54,7 @@ export default class Watch extends View {
 		gameContext.isWatchMode = true;
 
 		// Until the game's first view is in
-		const loading = new EmptyState({ loading: true, appendTo: this._body });
+		const loading = new EmptyState({ loading: true, loader: 'augmented', appendTo: this._body });
 
 		const { game, leave: leaveGame } = await enterGame(gameId, {
 			watch: true,

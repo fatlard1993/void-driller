@@ -12,7 +12,7 @@ import { EmptyState, GET, failureReason } from '@vanilla-bean/components';
 export const loadDoc = (container, url, what) =>
 	new Promise(resolve => {
 		const attempt = async (options = {}) => {
-			const loading = new EmptyState({ loading: true, appendTo: container });
+			const loading = new EmptyState({ loading: true, loader: 'augmented', appendTo: container });
 			const result = await GET(url, options);
 
 			loading.destroy();

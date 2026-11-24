@@ -84,7 +84,7 @@ export default class Play extends View {
 		// Opens the game as the player this browser joined as: the server hears they're here and sends each view of the
 		// game from then on (applyView); a browser that isn't in it goes to join it
 		// Until the game's first view is in
-		const loading = new EmptyState({ loading: true, appendTo: this._body });
+		const loading = new EmptyState({ loading: true, loader: 'augmented', appendTo: this._body });
 
 		const { game, leave: leaveGame } = await enterGame(gameId, {
 			onState: applyView,
