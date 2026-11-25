@@ -246,3 +246,14 @@ export const cutCornerPoints = (width, height, { tl = 0, tr = 0, br = 0, bl = 0 
 		return x !== previous.x || y !== previous.y;
 	});
 };
+
+/**
+ * The library's augmented-ui loading frame, edged in the frame's color. body outranks the library's own rule, which it
+ * adds once the page has loaded, after this; component class names don't survive the production build to select by.
+ */
+export const frameLoaderStyles = `
+	body .spinner.augmented[data-augmented-ui] {
+		--aug-border-bg: ${frameColor};
+		background: ${theme.colors.alpha(frameColor, 0.12)};
+	}
+`;

@@ -2,7 +2,7 @@ import { Page, appendStyles, theme } from '@vanilla-bean/components';
 
 import './background';
 import router from './router';
-import { frameToolbarStyles } from './shared/frame';
+import { frameLoaderStyles, frameToolbarStyles } from './shared/frame';
 
 import '@fatlard1993/web-game-framework/client/socket';
 import '@vanilla-bean/components/app/reloadOnBuild';
@@ -24,5 +24,6 @@ appendStyles(`
 `);
 
 appendStyles(frameToolbarStyles);
+appendStyles(frameLoaderStyles);
 
 new Page({ appendTo: document.body, append: router });
