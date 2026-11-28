@@ -5,7 +5,7 @@
     "": {
       "name": "void-driller",
       "dependencies": {
-        "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#6bf7705",
+        "@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#b640ec9",
         "@vanilla-bean/components": "^7.9.0",
         "argi-cli": "^1.0.0",
         "augmented-ui": "^2.0.0",
@@ -77,7 +77,7 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.7.3", "", { "dependencies": { "@eslint/core": "^1.2.1", "levn": "^0.4.1" } }, "sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q=="],
 
-    "@fatlard1993/web-game-framework": ["@fatlard1993/web-game-framework@github:fatlard1993/web-game-framework#6bf7705", { "dependencies": { "lowdb": "^7.0.1", "nanoid": "^6.0.2", "qrcode": "^1.5.4" }, "peerDependencies": { "@vanilla-bean/components": "^7.0.0" }, "bin": { "new-game": "./bin/new-game.js" } }, "fatlard1993-web-game-framework-6bf7705", "sha512-Wct4VkHSqIoXTzPeZrtAlUtNTJl4tSGYB8EKmnYbtfV3i4r0AFCkVLVtmryY8W3++jseAaZHkzdeIkM+Fbkj6A=="],
+    "@fatlard1993/web-game-framework": ["@fatlard1993/web-game-framework@github:fatlard1993/web-game-framework#b640ec9", { "dependencies": { "lowdb": "^7.0.1", "nanoid": "^6.0.2", "qrcode": "^1.5.4" }, "peerDependencies": { "@vanilla-bean/components": "^7.0.0" }, "hasInstallScript": true, "bin": { "new-game": "./bin/new-game.js" } }, "fatlard1993-web-game-framework-b640ec9", "sha512-59W17UMfb884n2Pi8kC3y/aKIwIFSPngLpVtWLJR43B2m8wjq7HmtJJRSDyZK/wVlsmzCnRU5E630srbNdl4Sg=="],
 
     "@fontsource-variable/kode-mono": ["@fontsource-variable/kode-mono@5.3.0", "", {}, "sha512-U5nNDAkv9c5jgMnom649alsS3CxlSsPM5SKSfpnWuUNDV65keYVCIZWnxf9/mFJZg6SWussoHQ6D4t//l9grQw=="],
 

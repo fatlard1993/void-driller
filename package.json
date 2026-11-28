@@ -42,7 +42,7 @@
 	},
 	"homepage": "https://github.com/fatlard1993/void-driller#readme",
 	"dependencies": {
-		"@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#6bf7705",
+		"@fatlard1993/web-game-framework": "github:fatlard1993/web-game-framework#b640ec9",
 		"@vanilla-bean/components": "^7.9.0",
 		"argi-cli": "^1.0.0",
 		"augmented-ui": "^2.0.0",
